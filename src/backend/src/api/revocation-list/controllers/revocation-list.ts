@@ -4,6 +4,11 @@
 
 import { factories } from '@strapi/strapi'
 
+// @digitalbazaar/vc-bitstring-status-list is ESM-only; this backend compiles
+// to CommonJS, so it's loaded with a dynamic import, same as this codebase
+// already does for `jose` in credential.ts's generateProof().
+const bitstringStatusList = () => import('@digitalbazaar/vc-bitstring-status-list')
+
 interface Credential {
   id: any
   credentialId: string
@@ -21,6 +26,53 @@ interface RevocationList {
 }
 
 export default factories.createCoreController('api::revocation-list.revocation-list', ({ strapi }) => ({
+  /**
+   * Serves the status list as an actual, signed `BitstringStatusListCredential`
+   * (https://www.w3.org/TR/vc-bitstring-status-list/) instead of the raw
+   * Strapi entity -- this is the URL `credentialStatus.statusListCredential`
+   * points to on every issued credential (see open-badge.ts), so an external
+   * verifier needs a real, dereferenceable, spec-shaped VC document here, not
+   * `{id, statusListCredential, statusPurpose, encodedList, ...}`.
+   */
+  async findOne(ctx) {
+    const { id } = ctx.params
+    const statusList = await strapi.entityService.findOne(
+      'api::revocation-list.revocation-list',
+      id,
+      { populate: ['issuer'] }
+    )
+
+    if (!statusList) {
+      return ctx.notFound('Status list not found')
+    }
+
+    const baseUrl = strapi.config.get('server.url', 'http://localhost:1337')
+    const credentialId = `${baseUrl}/api/revocation-lists/${statusList.id}`
+    const { createCredential, decodeList, VC_BSL_VC_V2_CONTEXT } = await bitstringStatusList()
+    const list = await decodeList({ encodedList: statusList.encodedList })
+
+    const credential: any = await createCredential({
+      id: credentialId,
+      list,
+      statusPurpose: statusList.statusPurpose || 'revocation',
+      context: VC_BSL_VC_V2_CONTEXT,
+    })
+    credential.issuer = statusList.issuer
+      ? { id: `${baseUrl}/api/profiles/${statusList.issuer.id}/issuer` }
+      : undefined
+    credential.validFrom = (statusList.lastUpdated
+      ? new Date(statusList.lastUpdated)
+      : new Date()
+    ).toISOString()
+
+    if (statusList.issuer) {
+      const credentialService = strapi.service('api::credential.credential')
+      credential.proof = await credentialService.generateProof(statusList.issuer.id, credential)
+    }
+
+    ctx.body = credential
+  },
+
   // Custom controller methods for revocation list
   async checkStatus(ctx) {
     try {

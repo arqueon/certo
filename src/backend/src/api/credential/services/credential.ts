@@ -43,7 +43,7 @@ export default ({ strapi }) => ({
       const proof = await this.generateProof(credentialPayload.issuer, credentialPayload)
 
       // Reserve a slot for this credential in the issuer's revocation
-      // status list (StatusList2021), creating the list on first use.
+      // status list (Bitstring Status List), creating the list on first use.
       const revocationListService = strapi.service('api::revocation-list.revocation-list')
       const statusList = await revocationListService.getOrCreateActiveListForIssuer(credentialPayload.issuer)
       const { index: statusListIndex, statusListId } = await revocationListService.assignNextIndex(statusList.id)

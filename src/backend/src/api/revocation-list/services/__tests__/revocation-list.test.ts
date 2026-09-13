@@ -154,15 +154,20 @@ describe('revocation-list service', () => {
     expect(await service.checkStatusInList(updatedList, index + 1)).toBe(false)
   })
 
-  it('revokeCredentialInStatusList is idempotent (revoking twice keeps one entry)', async () => {
+  it('revokeCredentialInStatusList is idempotent (revoking twice sets the same bit)', async () => {
     const { strapi } = createFakeStrapi()
     const service = revocationListExtension({ strapi } as any)
     const list = await service.createStatusListCredential(1)
 
     await service.revokeCredentialInStatusList(list.id, 5)
+    const encodedListAfterFirstRevoke = (
+      await strapi.entityService.findOne('api::revocation-list.revocation-list', list.id)
+    ).encodedList
+
     await service.revokeCredentialInStatusList(list.id, 5)
     const updatedList = await strapi.entityService.findOne('api::revocation-list.revocation-list', list.id)
 
-    expect(updatedList.encodedList).toBe('5')
+    expect(updatedList.encodedList).toBe(encodedListAfterFirstRevoke)
+    expect(await service.checkStatusInList(updatedList, 5)).toBe(true)
   })
 })

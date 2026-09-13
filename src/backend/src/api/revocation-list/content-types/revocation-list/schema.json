@@ -5,7 +5,7 @@
     "singularName": "revocation-list",
     "pluralName": "revocation-lists",
     "displayName": "Revocation List",
-    "description": "StatusList2021 credential revocation list"
+    "description": "Bitstring Status List credential revocation list"
   },
   "options": {
     "draftAndPublish": false
