@@ -36,7 +36,9 @@ export default factories.createCoreController('api::revocation-list.revocation-l
    */
   async findOne(ctx) {
     const { id } = ctx.params
-    const statusList = await strapi.entityService.findOne(
+    // Strapi's generated types don't narrow on `populate`, so the real
+    // shape here (with `issuer` populated) has to be asserted manually.
+    const statusList: any = await strapi.entityService.findOne(
       'api::revocation-list.revocation-list',
       id,
       { populate: ['issuer'] }
