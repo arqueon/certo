@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const password = ref('')
 const confirmPassword = ref('')
@@ -15,13 +16,13 @@ const pageDescription = ref('Set a new password for your Certo account.')
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/reset-password`
+  ogUrl: `${websiteUrl}/reset-password`
 })
 
 useHead({
   title: 'Reset Password',
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/reset-password` }
+    { rel: 'canonical', href: `${websiteUrl}/reset-password` }
   ]
 })
 

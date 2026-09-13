@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 import Cookies from 'js-cookie'
 import { apiClient } from '~/api/api-client'
 import { useAuthStore } from '~/stores/auth'
@@ -213,13 +214,13 @@ function formatDate(date: string) {
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/profile`
+  ogUrl: `${websiteUrl}/profile`
 })
 
 useHead({
   title: t('profile.title'),
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/profile` }
+    { rel: 'canonical', href: `${websiteUrl}/profile` }
   ]
 })
 </script>

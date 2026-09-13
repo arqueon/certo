@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 definePageMeta({
   middleware: ['route-guard']
 })
@@ -85,13 +86,13 @@ async function handleSubmit() {
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/register`
+  ogUrl: `${websiteUrl}/register`
 })
 
 useHead({
   title: 'Register',
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/register` }
+    { rel: 'canonical', href: `${websiteUrl}/register` }
   ]
 })
 </script>

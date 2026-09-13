@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const pageDescription = ref('Learn about Certo, our mission, and our open-source community.')
 
@@ -16,13 +17,13 @@ function handleSupportClick() {
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/about`
+  ogUrl: `${websiteUrl}/about`
 })
 
 useHead({
   title: 'About',
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/about` }
+    { rel: 'canonical', href: `${websiteUrl}/about` }
   ]
 })
 </script>

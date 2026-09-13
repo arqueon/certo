@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const router = useRouter()
 const email = ref('')
@@ -37,7 +38,7 @@ useSeoMeta({
 useHead({
   title: 'Login',
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/login` }
+    { rel: 'canonical', href: `${websiteUrl}/login` }
   ]
 })
 

@@ -1,16 +1,17 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const pageDescription = ref('Step-by-step guide to adding your Certo certificate to your LinkedIn profile')
 
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/linkedin`
+  ogUrl: `${websiteUrl}/linkedin`
 })
 
 useHead({
   title: 'LinkedIn Guide',
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/linkedin` }
+    { rel: 'canonical', href: `${websiteUrl}/linkedin` }
   ]
 })
 </script>

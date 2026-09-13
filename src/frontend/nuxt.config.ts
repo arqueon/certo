@@ -1,6 +1,15 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { defineNuxtConfig } from 'nuxt/config'
 
+// Single source of truth for the self-hosted site's public URL. Previously
+// only read via raw import.meta.env/process.env in app/constants/index.ts,
+// which is never wired into a Nuxt-managed env exposure mechanism, so it
+// silently stayed on the production default in every self-hosted build no
+// matter what env var was set (see docs/known-issues-and-dev-notes.md).
+// Wiring it through runtimeConfig.public (like apiUrl already is) is what
+// actually makes it configurable.
+const websiteUrl = process.env.NUXT_PUBLIC_WEBSITE_URL || 'https://certo.schroedinger-hat.org'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-06-12',
   devtools: { enabled: true },
@@ -22,7 +31,7 @@ export default defineNuxtConfig({
       debug: false
     }],
     ['@nuxtjs/sitemap', {
-      hostname: 'https://certo.schroedinger-hat.org',
+      hostname: websiteUrl,
       gzip: true,
       trailingSlash: false,
       // Only include public routes. Authenticated dashboards and admin flows
@@ -140,6 +149,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL,
+      websiteUrl,
       brandName: process.env.NUXT_PUBLIC_BRAND_NAME || 'Certo',
       brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '/certo-logo-text.png',
       brandPrimaryColor: process.env.NUXT_PUBLIC_BRAND_PRIMARY_COLOR || '#5AB69F',

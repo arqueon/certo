@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { overviewCards, quickLinks } = useDocsContent()
 
 useSeoMeta({
@@ -8,7 +9,7 @@ useSeoMeta({
 
 useHead({
   title: 'Documentation',
-  link: [{ rel: 'canonical', href: `${WEBSITE_URL}/docs` }],
+  link: [{ rel: 'canonical', href: `${websiteUrl}/docs` }],
 })
 </script>
 

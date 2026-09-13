@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const pageDescription = ref('Verify your badges with Certo')
 const faqs = ref([
@@ -32,13 +33,13 @@ const faqs = ref([
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/verify`
+  ogUrl: `${websiteUrl}/verify`
 })
 
 useHead({
   title: t('verify.title'),
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/verify` }
+    { rel: 'canonical', href: `${websiteUrl}/verify` }
   ]
 })
 </script>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 import { apiClient } from '~/api/api-client'
 const { t } = useI18n()
 definePageMeta({
@@ -53,7 +54,7 @@ useSeoMeta({
 useHead({
   title: t('dashboard.title'),
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/dashboard` }
+    { rel: 'canonical', href: `${websiteUrl}/dashboard` }
   ]
 })
 
