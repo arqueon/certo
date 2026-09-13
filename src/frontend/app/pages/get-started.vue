@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const pageDescription = ref('Get started with Certo, learn how it works')
 
@@ -7,13 +8,13 @@ const { list, title, subtitle, steps, listTitle } = useGetStartedContent()
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/get-started`
+  ogUrl: `${websiteUrl}/get-started`
 })
 
 useHead({
   title: 'Get started',
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/get-started` }
+    { rel: 'canonical', href: `${websiteUrl}/get-started` }
   ]
 })
 </script>

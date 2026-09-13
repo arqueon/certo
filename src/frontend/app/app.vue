@@ -4,6 +4,7 @@ const pageTitle = ref('Certo - Digital Credential Platform')
 
 const { locale } = useI18n()
 const branding = useBranding()
+const websiteUrl = useWebsiteUrl()
 
 // Keep <html lang="..."> in sync with the active locale — important for SEO
 // and accessibility (screen readers use this to pick the right voice)
@@ -19,11 +20,11 @@ useHead({
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogImage: `${WEBSITE_URL}/og-default.png`,
+  ogImage: `${websiteUrl}/og-default.png`,
   ogTitle: pageTitle.value,
-  ogUrl: WEBSITE_URL,
+  ogUrl: websiteUrl,
   twitterCard: 'summary_large_image',
-  twitterImage: `${WEBSITE_URL}/og-default.png`,
+  twitterImage: `${websiteUrl}/og-default.png`,
 })
 </script>
 

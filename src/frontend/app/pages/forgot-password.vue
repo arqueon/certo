@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const email = ref('')
 const isLoading = ref(false)
@@ -35,7 +36,7 @@ async function handleSubmit() {
 useHead({
   title: t('auth.resetPassword'),
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/forgot-password` }
+    { rel: 'canonical', href: `${websiteUrl}/forgot-password` }
   ]
 })
 

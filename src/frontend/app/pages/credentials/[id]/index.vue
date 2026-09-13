@@ -19,8 +19,9 @@ const credentialId = rawId
   ? decodeURIComponent(Array.isArray(rawId) ? rawId[0] : rawId)
   : ''
 
-const shareableUrl = `${WEBSITE_URL}/credentials/${encodeURIComponent(credentialId)}`
-const ogImageUrl = `${WEBSITE_URL}/.netlify/functions/og-credential?id=${encodeURIComponent(credentialId)}`
+const websiteUrl = config.public.websiteUrl || WEBSITE_URL
+const shareableUrl = `${websiteUrl}/credentials/${encodeURIComponent(credentialId)}`
+const ogImageUrl = `${websiteUrl}/.netlify/functions/og-credential?id=${encodeURIComponent(credentialId)}`
 
 // ============================================================================
 // 2. DATA FETCHING
@@ -232,7 +233,7 @@ useHead({
           'publisher': {
             '@type': 'Organization',
             'name': 'Certo',
-            'url': WEBSITE_URL,
+            'url': websiteUrl,
           },
         })
       },

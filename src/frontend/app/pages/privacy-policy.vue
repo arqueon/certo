@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const pageDescription = ref('Read everything regarding the Certo privacy and policy')
 
@@ -10,7 +11,7 @@ useSeoMeta({
 useHead({
   title: 'Privacy and Policy',
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/privacy-policy` }
+    { rel: 'canonical', href: `${websiteUrl}/privacy-policy` }
   ]
 })
 </script>

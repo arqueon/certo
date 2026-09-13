@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 import { format } from '@formkit/tempo'
 
@@ -8,13 +9,13 @@ const { termsContent } = useTermsContent()
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/terms-and-conditions`
+  ogUrl: `${websiteUrl}/terms-and-conditions`
 })
 
 useHead({
   title: termsContent.title,
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/terms-and-conditions` }
+    { rel: 'canonical', href: `${websiteUrl}/terms-and-conditions` }
   ]
 })
 

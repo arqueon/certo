@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const websiteUrl = useWebsiteUrl()
 import type { Recipient } from '~/composables/useApiClient'
 const { t } = useI18n()
 const pageDescription = ref('Issue badges utilizing Certo software')
@@ -6,13 +7,13 @@ const pageDescription = ref('Issue badges utilizing Certo software')
 useSeoMeta({
   description: pageDescription.value,
   ogDescription: pageDescription.value,
-  ogUrl: `${WEBSITE_URL}/issue`
+  ogUrl: `${websiteUrl}/issue`
 })
 
 useHead({
   title: t('issue.title'),
   link: [
-    { rel: 'canonical', href: `${WEBSITE_URL}/issue` }
+    { rel: 'canonical', href: `${websiteUrl}/issue` }
   ]
 })
 
