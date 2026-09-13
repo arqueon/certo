@@ -7,6 +7,18 @@ import { errors } from '@strapi/utils'
 import crypto from 'crypto'
 const { ApplicationError } = errors
 
+// @digitalbazaar/vc-bitstring-status-list is ESM-only; this backend compiles
+// to CommonJS, so it's loaded with a dynamic import, same as this codebase
+// already does for `jose` in credential.ts's generateProof().
+const bitstringStatusList = () => import('@digitalbazaar/vc-bitstring-status-list')
+
+// Size of a new status list, in bits. 131,072 (16 KiB uncompressed) is a
+// common default across Bitstring Status List implementations -- large
+// enough that a given index doesn't single out its holder among too small
+// a cohort, small enough that it gzips down to a few dozen bytes when
+// mostly unset. See https://www.w3.org/TR/vc-bitstring-status-list/.
+const STATUS_LIST_LENGTH = 131072
+
 interface RevocationList {
   id: any
   issuer: any
@@ -54,19 +66,17 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
   /**
    * Check if a credential is revoked in a specific status list.
    *
-   * Known simplification: encodedList is a comma-separated list of revoked
-   * indices, not a real StatusList2021 GZIP+base64 bitstring. Fine as an
-   * internal representation for a single-instance deployment; a real
-   * bitstring encoding (for publishing a standards-compliant status list
-   * credential externally) is a separate, larger task.
+   * encodedList is a real Bitstring Status List (gzip+base64url, multibase
+   * "u"-prefixed) -- the same encoding a `BitstringStatusListCredential`
+   * exposes externally, decoded here to read a single bit.
    */
   async checkStatusInList(statusList: RevocationList, statusListIndex: number) {
     try {
-      const encodedList = statusList.encodedList
-      if (!encodedList) return false
+      if (!statusList.encodedList) return false
 
-      const revokedIndices = encodedList.split(',').map(i => parseInt(i.trim(), 10))
-      return revokedIndices.includes(statusListIndex)
+      const { decodeList } = await bitstringStatusList()
+      const list = await decodeList({ encodedList: statusList.encodedList })
+      return list.getStatus(statusListIndex)
     } catch (error) {
       console.error('Error checking status in list:', error)
       return false
@@ -88,13 +98,18 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
       // Create a unique ID for the status list credential
       const statusListId = `urn:uuid:${crypto.randomUUID()}`
 
-      // Create an empty status list
+      // A fresh, all-unset Bitstring Status List (every credential slotted
+      // into it starts out not-revoked).
+      const { createList } = await bitstringStatusList()
+      const list = await createList({ length: STATUS_LIST_LENGTH })
+      const encodedList = await list.encode()
+
       const statusList = await strapi.entityService.create('api::revocation-list.revocation-list', {
         data: {
           issuer: issuerId,
           statusListCredential: statusListId,
           statusPurpose: purpose,
-          encodedList: '', // Empty list to start
+          encodedList,
           nextIndex: 0,
           lastUpdated: new Date(),
           publishedAt: new Date()
@@ -144,27 +159,25 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
     try {
       // Find the status list
       const statusList = await strapi.entityService.findOne('api::revocation-list.revocation-list', statusListId)
-      
+
       if (!statusList) {
         throw new ApplicationError('Status list not found')
       }
-      
-      // Update the encoded list to include the new index
-      const encodedList = statusList.encodedList || ''
-      const indices = encodedList ? encodedList.split(',').map(i => parseInt(i.trim())) : []
-      
-      if (!indices.includes(statusListIndex)) {
-        indices.push(statusListIndex)
-      }
-      
+
+      const { createList, decodeList } = await bitstringStatusList()
+      const list = statusList.encodedList
+        ? await decodeList({ encodedList: statusList.encodedList })
+        : await createList({ length: STATUS_LIST_LENGTH })
+      list.setStatus(statusListIndex, true)
+
       // Update the status list
       await strapi.entityService.update('api::revocation-list.revocation-list', statusListId, {
         data: {
-          encodedList: indices.join(','),
+          encodedList: await list.encode(),
           lastUpdated: new Date()
         }
       })
-      
+
       return true
     } catch (error) {
       console.error('Error revoking credential in status list:', error)

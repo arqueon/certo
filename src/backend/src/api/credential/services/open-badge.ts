@@ -476,15 +476,20 @@ export default ({ strapi }) => ({
         }))
       }
       
-      // Add credentialStatus (StatusList2021) if this credential has a slot
-      // in an issuer status list
+      // Add credentialStatus (Bitstring Status List, the W3C Recommendation
+      // that superseded StatusList2021) if this credential has a slot in an
+      // issuer status list. statusListCredential must be a dereferenceable
+      // URL, not the list's internal urn:uuid -- GET on it (revocation-list
+      // controller's findOne override) serves the actual
+      // BitstringStatusListCredential document.
       if (credential.statusList && credential.statusListIndex != null) {
+        const statusListCredentialUrl = `${baseUrl}/api/revocation-lists/${credential.statusList.id}`
         obCredential.credentialStatus = {
-          id: `${baseUrl}/api/revocation-lists/${credential.statusList.id}#${credential.statusListIndex}`,
-          type: 'StatusList2021Entry',
+          id: `${statusListCredentialUrl}#${credential.statusListIndex}`,
+          type: 'BitstringStatusListEntry',
           statusPurpose: credential.statusList.statusPurpose || 'revocation',
           statusListIndex: String(credential.statusListIndex),
-          statusListCredential: credential.statusList.statusListCredential
+          statusListCredential: statusListCredentialUrl
         }
       }
 
