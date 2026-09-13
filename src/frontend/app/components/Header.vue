@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useWindowScroll } from '@vueuse/core'
+
 const { t } = useI18n()
 const branding = useBranding()
 const router = useRouter()
