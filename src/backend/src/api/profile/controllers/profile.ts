@@ -339,6 +339,82 @@ export default factories.createCoreController('api::profile.profile', ({ strapi 
   },
 
   /**
+   * Resolve one specific historical signing key by id -- active or
+   * retired. This is what a credential's proof.verificationMethod points
+   * to once it was signed under the key-rotation scheme, so verifying an
+   * old credential keeps working after the issuer rotates its key. Never
+   * returns private key material -- issuer-key has no REST routes of its
+   * own by design, this reads it server-side and returns only the public
+   * half.
+   */
+  async getPublicKeyById(ctx) {
+    try {
+      const { id, keyId } = ctx.params
+
+      const record = await strapi.db.query('api::issuer-key.issuer-key').findOne({
+        where: { id: keyId, profile: id },
+      })
+
+      if (!record) {
+        return ctx.notFound('Signing key not found for this profile')
+      }
+
+      const profile = await strapi.entityService.findOne('api::profile.profile', id, {
+        fields: ['did'],
+      }) as { did?: string } | null
+
+      const baseUrl = strapi.config.get('server.url', 'http://localhost:1337')
+
+      return {
+        id: record.id,
+        type: 'Ed25519VerificationKey2020',
+        controller: profile?.did || `${baseUrl}/api/profiles/${id}/issuer`,
+        publicKeyJwk: record.publicKeyJwk,
+        status: record.status,
+      }
+    } catch (err) {
+      console.error('Error fetching signing key:', err)
+      return ctx.internalServerError('Error fetching signing key')
+    }
+  },
+
+  /**
+   * Retires the profile's current active signing key (its public half is
+   * kept forever so already-issued credentials keep verifying; its
+   * private key is wiped) and activates a brand-new one. Restricted to
+   * the profile's owner. Use for a scheduled rotation or in response to a
+   * suspected key compromise; pass { reason } in the body to record why.
+   */
+  async rotateSigningKey(ctx) {
+    if (!ctx.state.user) {
+      return ctx.unauthorized('Authentication required')
+    }
+
+    const { id } = ctx.params
+    const multiTenancy = strapi.service('api::profile.multi-tenancy')
+    const owns = await multiTenancy.userOwnsProfile(ctx.state.user.id, parseInt(id, 10))
+    if (!owns) {
+      return ctx.forbidden('You do not own this issuer profile')
+    }
+
+    try {
+      const reason = typeof ctx.request.body?.reason === 'string' ? ctx.request.body.reason : undefined
+      const issuerKeys = strapi.service('api::profile.issuer-keys')
+      const { keyId, publicKeyJwk } = await issuerKeys.rotateKeyPair(id, reason)
+
+      return {
+        rotated: true,
+        newKeyId: keyId,
+        publicKeyJwk,
+        verificationMethod: `${strapi.config.get('server.url', 'http://localhost:1337')}/api/profiles/${id}/keys/${keyId}`,
+      }
+    } catch (err) {
+      console.error('Error rotating signing key:', err)
+      return ctx.internalServerError('Error rotating signing key')
+    }
+  },
+
+  /**
    * Get public keys in JWKS format
    */
   async getJWKS(ctx) {

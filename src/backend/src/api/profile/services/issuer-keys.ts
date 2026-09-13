@@ -20,21 +20,33 @@ import signingKeyProvider from '../../../utils/signing-key-provider'
 interface KeyPairResult {
   privateKey: CryptoKey
   publicKeyJwk: JWK
+  keyId: number | string
 }
 
 export default ({ strapi }: { strapi: any }) => ({
   /**
-   * Returns the issuer's signing keypair, generating and persisting one on
-   * first use. Delegates to the configured signing-key provider.
+   * Returns the issuer's current active signing keypair, generating and
+   * persisting one on first use. Delegates to the configured signing-key
+   * provider.
    */
   async getOrCreateKeyPair(profileId: number | string): Promise<KeyPairResult> {
     return signingKeyProvider.getOrCreateKeyPair(strapi, profileId)
   },
 
   /**
-   * Returns the issuer's public key (for verification), or null if the
-   * issuer has never signed anything yet. Delegates to the configured
-   * signing-key provider.
+   * Retires the issuer's current active key (its public half stays on
+   * record forever, so credentials it signed keep verifying; its private
+   * key is wiped) and activates a brand-new one. Use for scheduled
+   * rotation or in response to a suspected key compromise.
+   */
+  async rotateKeyPair(profileId: number | string, reason?: string): Promise<KeyPairResult> {
+    return signingKeyProvider.rotateKeyPair(strapi, profileId, reason)
+  },
+
+  /**
+   * Returns the issuer's current active public key (for verification), or
+   * null if the issuer has never signed anything yet. Delegates to the
+   * configured signing-key provider.
    */
   async getPublicKey(profileId: number | string) {
     return signingKeyProvider.getPublicKey(strapi, profileId)

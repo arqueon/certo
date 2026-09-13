@@ -251,15 +251,20 @@ export default {
         try {
           await jwtVerify(proof.jws, publicKey);
           return { valid: true };
-        } catch (verifyError) {
-          return { valid: false, message: `Signature verification failed: ${verifyError.message}` };
+        } catch {
+          // Not signed by the issuer's *current* key -- most likely signed
+          // by a key that has since been rotated out. Don't fail yet: fall
+          // through and try every key the profile has ever held, below.
         }
       }
 
-      // Fall back to the issuer's profile-level publicKey component. Older/
-      // migrated production issuers may only have a key there (predating the
-      // api::issuer-key.issuer-key table), so try every non-revoked entry
-      // before giving up. Some of these entries don't hold a spec-shaped JWK
+      // Fall back to trying every key on the issuer's profile-level
+      // publicKey component, which accumulates one entry per key the
+      // profile has ever held (including retired ones after a rotation --
+      // see signing-key-provider.ts's mirrorPublicKeyOntoProfile). Also
+      // covers older/migrated issuers that only have a key there, predating
+      // the api::issuer-key.issuer-key table. Some of these entries don't
+      // hold a spec-shaped JWK
       // - e.g. this app's own JWKs have a flat { kty, crv, x }, but keys
       // entered from elsewhere have been seen with `publicKeyJwk` wrapping a
       // `{ jwk: [...] }` array whose "x" is actually a base64 DER SPKI blob,
@@ -310,7 +315,10 @@ export default {
         }
       }
 
-      return { valid: false, message: 'Issuer has no signing key on record' };
+      if (!publicKey && profileKeys.length === 0) {
+        return { valid: false, message: 'Issuer has no signing key on record' };
+      }
+      return { valid: false, message: 'Signature verification failed against every key on record for this issuer' };
     } catch (error) {
       console.error('Error verifying proof:', error);
       return { valid: false, message: `Error verifying proof: ${error.message}` };

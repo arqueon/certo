@@ -363,7 +363,7 @@ export default ({ strapi }) => ({
     delete payload.proof
 
     const issuerKeys = strapi.service('api::profile.issuer-keys')
-    const { privateKey } = await issuerKeys.getOrCreateKeyPair(issuerId)
+    const { privateKey, keyId } = await issuerKeys.getOrCreateKeyPair(issuerId)
 
     const { SignJWT } = await import('jose')
     const jws = await new SignJWT(payload)
@@ -373,7 +373,11 @@ export default ({ strapi }) => ({
     return {
       type: "Ed25519Signature2020",
       created: new Date().toISOString(),
-      verificationMethod: `${baseUrl}/api/profiles/${issuerId}/keys`,
+      // Points at the exact key that signed this credential (not just "the
+      // issuer's keys"), so a later key rotation never breaks a standards-
+      // compliant external verifier resolving this URL. See
+      // profile.getPublicKeyById / routes/profile-keys.ts.
+      verificationMethod: `${baseUrl}/api/profiles/${issuerId}/keys/${keyId}`,
       proofPurpose: "assertionMethod",
       jws
     }
