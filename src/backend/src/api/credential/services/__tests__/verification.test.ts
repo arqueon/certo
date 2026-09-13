@@ -48,7 +48,10 @@ describe('verification.verifyProof', () => {
 
     const result = await verificationService.verifyProof(credential)
     expect(result.valid).toBe(false)
-    expect(result.message).toMatch(/signature verification failed/i)
+    // Falls through to the profile.publicKey candidate loop before giving
+    // up (that's what lets an old credential verify after a key rotation);
+    // with no candidates on this fake issuer, that's the final message.
+    expect(result.message).toMatch(/signature verification failed against every key/i)
   })
 
   it('rejects a proof signed by a different key than the issuer\'s', async () => {
@@ -58,6 +61,28 @@ describe('verification.verifyProof', () => {
 
     const result = await verificationService.verifyProof(credential)
     expect(result.valid).toBe(false)
+  })
+
+  it('still verifies a credential signed with a key that has since been rotated out', async () => {
+    // getPublicKey() now returns the issuer's *new* active key (keypairB) --
+    // simulating that a rotation happened after this credential was signed
+    // with the old one (keypairA). The old key lives on in
+    // issuer.publicKey (mirrored there at the time it was created/retired),
+    // exactly like signing-key-provider.ts's mirrorPublicKeyOntoProfile
+    // does on every key creation.
+    setFakeStrapi(async () => keypairB.publicKey)
+    const proof = await makeSignedProof(keypairA.privateKey)
+    const { exportJWK } = await import('jose')
+    const credential: any = {
+      proof: [proof],
+      issuer: {
+        id: 1,
+        publicKey: [{ id: 'k1', publicKeyJwk: await exportJWK(keypairA.publicKey) }],
+      },
+    }
+
+    const result = await verificationService.verifyProof(credential)
+    expect(result).toEqual({ valid: true })
   })
 
   it('rejects when there is no proof at all', async () => {
@@ -162,6 +187,18 @@ describe('verification.verifyProof', () => {
       proof: [proof],
       issuer: { id: 1, publicKey: [{ revoked: false, publicKeyJwk: publicKeyJwkB }] },
     }
+
+    const result = await verificationService.verifyProof(credential)
+    expect(result).toEqual({
+      valid: false,
+      message: 'Signature verification failed against every key on record for this issuer',
+    })
+  })
+
+  it('rejects with a distinct message when the issuer truly has no key at all', async () => {
+    setFakeStrapi(async () => null)
+    const proof = await makeSignedProof(keypairA.privateKey)
+    const credential: any = { proof: [proof], issuer: { id: 1 } } // no publicKey array either
 
     const result = await verificationService.verifyProof(credential)
     expect(result).toEqual({ valid: false, message: 'Issuer has no signing key on record' })

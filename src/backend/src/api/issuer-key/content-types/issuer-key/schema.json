@@ -5,7 +5,7 @@
     "singularName": "issuer-key",
     "pluralName": "issuer-keys",
     "displayName": "Issuer Key",
-    "description": "Per-issuer signing keypairs. Never exposed over REST: no routes/controllers/services are defined for this content type, so it's reachable only from server-side code via strapi.db.query/entityService."
+    "description": "Per-issuer signing keypairs, one row per key ever held (find-or-create the active one, add a new row and retire the old one on rotation). Never exposed over REST directly: no routes/controllers/services are defined for this content type itself -- reachable only from server-side code via strapi.db.query/entityService. Public keys are served through api::profile.profile's own routes instead (/profiles/:id/keys[/:keyId]), never the private key."
   },
   "options": {
     "draftAndPublish": false
@@ -14,7 +14,7 @@
   "attributes": {
     "profile": {
       "type": "relation",
-      "relation": "oneToOne",
+      "relation": "manyToOne",
       "target": "api::profile.profile"
     },
     "algorithm": {
@@ -26,8 +26,19 @@
       "required": true
     },
     "privateKeyEncrypted": {
-      "type": "text",
+      "type": "text"
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["active", "retired"],
+      "default": "active",
       "required": true
+    },
+    "retiredAt": {
+      "type": "datetime"
+    },
+    "retiredReason": {
+      "type": "string"
     }
   }
 }
