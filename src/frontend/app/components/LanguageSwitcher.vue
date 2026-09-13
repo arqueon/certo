@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { onClickOutside } from '@vueuse/core'
+
 const { locale, locales, setLocale } = useI18n()
 
 const availableLocales = computed(() =>

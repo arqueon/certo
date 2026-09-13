@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     '@nuxt/test-utils/module',
     '@nuxtjs/color-mode',
     '@pinia/nuxt',
+    '@vueuse/nuxt',
     '@una-ui/nuxt',
     '@unocss/nuxt',
     'nuxt-svgo',
