@@ -46,7 +46,7 @@ export default ({ strapi }) => ({
       // status list (StatusList2021), creating the list on first use.
       const revocationListService = strapi.service('api::revocation-list.revocation-list')
       const statusList = await revocationListService.getOrCreateActiveListForIssuer(credentialPayload.issuer)
-      const statusListIndex = await revocationListService.assignNextIndex(statusList.id)
+      const { index: statusListIndex, statusListId } = await revocationListService.assignNextIndex(statusList.id)
 
       // Create the credential
       const credential = await strapi.entityService.create('api::credential.credential', {
@@ -62,7 +62,7 @@ export default ({ strapi }) => ({
           revoked: false,
           publishedAt: new Date(),
           proof: [proof],
-          statusList: statusList.id,
+          statusList: statusListId,
           statusListIndex,
           ...(expirationDate ? { expirationDate: new Date(expirationDate) } : {})
         }

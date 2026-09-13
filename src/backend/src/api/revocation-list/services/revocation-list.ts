@@ -89,7 +89,7 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
       const statusListId = `urn:uuid:${crypto.randomUUID()}`
 
       // Create an empty status list
-      const statusList = await strapi.entityService.create('api::revocation-list.revocation-list', {
+      const created = await strapi.entityService.create('api::revocation-list.revocation-list', {
         data: {
           issuer: issuerId,
           statusListCredential: statusListId,
@@ -101,7 +101,16 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
         }
       })
 
-      return statusList
+      // entityService.create() with publishedAt set can return the draft
+      // row's id even though a published sibling (same documentId) also
+      // exists -- re-fetch the published version explicitly so callers get
+      // an id that other already-published entities can safely relate to.
+      const [published] = await strapi.entityService.findMany('api::revocation-list.revocation-list', {
+        filters: { documentId: created.documentId },
+        status: 'published',
+      })
+
+      return published || created
     } catch (error) {
       console.error('Error creating status list credential:', error)
       throw new ApplicationError(`Error creating status list credential: ${error.message}`)
@@ -115,6 +124,7 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
   async getOrCreateActiveListForIssuer(issuerId: number | string) {
     const existing = await strapi.entityService.findMany('api::revocation-list.revocation-list', {
       filters: { issuer: { id: issuerId }, statusPurpose: 'revocation' },
+      status: 'published',
     })
     if (existing && existing.length > 0) return existing[0]
     return this.createStatusListCredential(issuerId)
@@ -130,11 +140,17 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
     }
 
     const index = statusList.nextIndex ?? 0
-    await strapi.entityService.update('api::revocation-list.revocation-list', statusListId, {
+    const updated = await strapi.entityService.update('api::revocation-list.revocation-list', statusListId, {
       data: { nextIndex: index + 1 },
     })
 
-    return index
+    // entityService.update() on a Draft & Publish content type does not
+    // necessarily mutate statusListId in place -- Strapi 5 can return a
+    // different id for the (still published) row. Callers that persist a
+    // relation to this status list (e.g. a newly issued credential) must
+    // use the id from this update's result, or the relation will point at
+    // a row that no longer resolves.
+    return { index, statusListId: updated?.id ?? statusListId }
   },
   
   /**
