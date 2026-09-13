@@ -19,6 +19,7 @@ const AUTHENTICATED_PERMISSIONS = [
   'api::profile.profile.exportMyData',
   'api::profile.profile.importMyData',
   'api::profile.profile.dashboardStats',
+  'api::profile.profile.rotateSigningKey',
 
   // Achievement permissions
   'api::achievement.achievement.find',
