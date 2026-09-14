@@ -53,9 +53,16 @@ export default factories.createCoreController('api::clr.clr', ({ strapi }) => ({
   },
 
   /**
-   * Verifies the CLR's own signature (not each individual credential's --
-   * those are already checked one by one via GET /api/credentials/:id/verify
-   * and are included, proof and all, inside the CLR's achievement array).
+   * Verifies the CLR: its own top-level signature, AND that none of the
+   * credentials it groups has been revoked since. The Bitstring Status
+   * List design deliberately never embeds a "revoked" flag in a credential
+   * (that would force re-signing it on every status change) -- revocation
+   * only shows up by dereferencing the separate status list. A CLR bundles
+   * whole achievement objects, but a caller checking only the CLR's own
+   * proof would miss that one of the achievements inside it was revoked
+   * after the CLR was assembled -- so this checks each grouped credential's
+   * current revoked flag directly, the same one GET
+   * /api/credentials/:id/verify's own not_revoked check uses.
    */
   async verify(ctx) {
     const { id } = ctx.params
@@ -67,7 +74,9 @@ export default factories.createCoreController('api::clr.clr', ({ strapi }) => ({
       const { jwtVerify } = await import('jose')
       const issuerKeys = strapi.service('api::profile.issuer-keys')
 
-      const clr: any = await strapi.entityService.findOne('api::clr.clr', id, { populate: ['issuer'] })
+      const clr: any = await strapi.entityService.findOne('api::clr.clr', id, {
+        populate: ['issuer', 'credentials'],
+      })
       const publicKey = await issuerKeys.getPublicKey(clr.issuer.id)
 
       if (!publicKey) {
@@ -76,10 +85,23 @@ export default factories.createCoreController('api::clr.clr', ({ strapi }) => ({
 
       try {
         await jwtVerify(documento.proof.jws, publicKey)
-        return { verified: true, clr: documento }
       } catch (verifyError: any) {
         return { verified: false, message: `Signature verification failed: ${verifyError.message}` }
       }
+
+      const revocadas = (clr.credentials || []).filter((c: any) => c.revoked)
+      if (revocadas.length > 0) {
+        return {
+          verified: false,
+          message: 'One or more grouped credentials have been revoked',
+          revokedCredentials: revocadas.map((c: any) => ({
+            credentialId: c.credentialId,
+            reason: c.revocationReason || null,
+          })),
+        }
+      }
+
+      return { verified: true, clr: documento }
     } catch (err: any) {
       strapi.log.error(`[clr.verify] Error: ${err.message}`)
       return ctx.internalServerError('Error verifying CLR')
