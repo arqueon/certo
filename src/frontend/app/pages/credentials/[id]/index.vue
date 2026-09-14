@@ -10,6 +10,7 @@ import { apiClient } from '~/api/api-client'
 const { t } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig()
+const branding = useBranding()
 
 // ============================================================================
 // 1. ROUTE PARAMS & STATIC URLs
@@ -125,7 +126,7 @@ function getCredentialDescription(): string {
 
 function getIssuerName(): string {
   const cred = verificationData.value?.credential || verificationData.value?.rawCredential
-  return cred?.issuer?.name || 'Certo'
+  return cred?.issuer?.name || branding.name
 }
 
 function getRecipientName(): string {
@@ -137,7 +138,7 @@ useSeoMeta({
   // Title
   title: () => {
     const name = getCredentialName()
-    return name ? `${name} | Certo` : 'Credential Details | Certo'
+    return name ? `${name} | ${branding.name}` : `Credential Details | ${branding.name}`
   },
 
   // Description
@@ -150,52 +151,52 @@ useSeoMeta({
       const issuer = getIssuerName()
       const recipient = getRecipientName()
       return recipient
-        ? `View and verify "${name}" awarded to ${recipient}, issued by ${issuer} via Certo.`
-        : `View and verify "${name}" issued by ${issuer} via Certo.`
+        ? `View and verify "${name}" awarded to ${recipient}, issued by ${issuer} via ${branding.name}.`
+        : `View and verify "${name}" issued by ${issuer} via ${branding.name}.`
     }
-    return 'View and verify this digital credential issued via Certo.'
+    return `View and verify this digital credential issued via ${branding.name}.`
   },
 
   // Open Graph
   ogType: 'website',
-  ogSiteName: 'Certo',
+  ogSiteName: branding.name,
   ogUrl: shareableUrl,
   ogTitle: () => {
     const name = getCredentialName()
-    return name ? `${name} | Certo` : 'Credential Details | Certo'
+    return name ? `${name} | ${branding.name}` : `Credential Details | ${branding.name}`
   },
   ogDescription: () => {
     const desc = getCredentialDescription()
     if (desc) return desc
     const name = getCredentialName()
-    if (name) return `View and verify "${name}" issued by ${getIssuerName()} via Certo.`
-    return 'View and verify this digital credential issued via Certo.'
+    if (name) return `View and verify "${name}" issued by ${getIssuerName()} via ${branding.name}.`
+    return `View and verify this digital credential issued via ${branding.name}.`
   },
   ogImage: ogImageUrl,
   ogImageWidth: 1200,
   ogImageHeight: 630,
   ogImageAlt: () => {
     const name = getCredentialName()
-    return name ? `${name} - verified credential` : 'Certo credential'
+    return name ? `${name} - verified credential` : `${branding.name} credential`
   },
 
   // Twitter
   twitterCard: 'summary_large_image',
   twitterTitle: () => {
     const name = getCredentialName()
-    return name ? `${name} | Certo` : 'Credential Details | Certo'
+    return name ? `${name} | ${branding.name}` : `Credential Details | ${branding.name}`
   },
   twitterDescription: () => {
     const desc = getCredentialDescription()
     if (desc) return desc
     const name = getCredentialName()
-    if (name) return `View and verify "${name}" issued by ${getIssuerName()} via Certo.`
-    return 'View and verify this digital credential issued via Certo.'
+    if (name) return `View and verify "${name}" issued by ${getIssuerName()} via ${branding.name}.`
+    return `View and verify this digital credential issued via ${branding.name}.`
   },
   twitterImage: ogImageUrl,
   twitterImageAlt: () => {
     const name = getCredentialName()
-    return name ? `${name} - verified credential` : 'Certo credential'
+    return name ? `${name} - verified credential` : `${branding.name} credential`
   },
 
   // Author
@@ -232,7 +233,7 @@ useHead({
           'identifier': credentialId,
           'publisher': {
             '@type': 'Organization',
-            'name': 'Certo',
+            'name': branding.name,
             'url': websiteUrl,
           },
         })
