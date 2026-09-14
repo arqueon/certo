@@ -125,10 +125,10 @@ export default defineNuxtConfig({
             'operatingSystem': 'Linux, macOS, Windows',
             'isAccessibleForFree': true,
             'license': 'https://www.gnu.org/licenses/agpl-3.0.html',
-            // Apunta a nuestro fork, no al proyecto original -- AGPL-3.0
-            // §13 exige ofrecer el código fuente de la versión que
-            // realmente corre aquí, con nuestros parches.
-            'codeRepository': 'https://github.com/arqueon/certo',
+            // AGPL-3.0 §13 requires prominently offering the source of the
+            // exact version running here -- if you deploy a modified fork,
+            // point this at YOUR repository, not this default.
+            'codeRepository': 'https://github.com/Schroedinger-Hat/certo',
             'author': {
               '@type': 'Organization',
               'name': 'Schroedinger Hat',
