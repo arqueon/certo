@@ -15,6 +15,41 @@ interface Achievement {
   tags?: any
 }
 
+/**
+ * Strapi 5's content-API relation validator (throw-restricted-relations,
+ * @strapi/utils) rejects ANY relation key (e.g. "creator") sent in a
+ * create/update body for a request authenticated via the users-permissions
+ * JWT strategy - it needs ctx.state.auth.strategy.verify, which that
+ * strategy never populates (auth queda como {} para peticiones JWT de
+ * content-API, confirmado empiricamente contra Strapi 5.15). No es un bug
+ * nuestro: afecta a cualquier relacion manyToOne/oneToOne enviada asi,
+ * pase lo que pase con los permisos del rol. Se evita quitando la relacion
+ * del payload antes de super.create()/super.update() y aplicandola despues
+ * con una llamada interna al document service, que no pasa por ese
+ * validador (mismo patron ya usado en clr.ts/credential.ts de este fork).
+ */
+function extraerCreator(data: Record<string, any>): number | string | undefined {
+  const { creator } = data
+  delete data.creator
+  if (creator === undefined || creator === null) return undefined
+  if (typeof creator === 'object' && 'connect' in creator) {
+    const conectados = creator.connect
+    return Array.isArray(conectados) ? (conectados[0]?.id ?? conectados[0]) : undefined
+  }
+  if (typeof creator === 'object' && 'set' in creator) {
+    return Array.isArray(creator.set) ? creator.set[0] : creator.set
+  }
+  return creator
+}
+
+async function aplicarCreator(strapi: any, documentId: string, creatorId: number | string | undefined) {
+  if (creatorId === undefined) return
+  await strapi.documents('api::achievement.achievement').update({
+    documentId,
+    data: { creator: creatorId },
+  })
+}
+
 export default factories.createCoreController('api::achievement.achievement', ({ strapi }) => ({
   // Custom controller method to handle creation with empty tags
   async create(ctx) {
@@ -26,10 +61,17 @@ export default factories.createCoreController('api::achievement.achievement', ({
       if (data.tags === '' || data.tags === undefined || data.tags === null) {
         data.tags = [];
       }
-      
+
+      const creatorId = extraerCreator(data)
+
       // Use the core controller's create which enforces Strapi RBAC
       const response = await super.create(ctx);
       const entity = response.data ?? response;
+
+      await aplicarCreator(strapi, entity.documentId, creatorId)
+      if (creatorId !== undefined) {
+        entity.creator = creatorId
+      }
 
       const auditLog = strapi.service('api::audit-log-entry.audit-log')
       await auditLog.record({
@@ -65,10 +107,17 @@ export default factories.createCoreController('api::achievement.achievement', ({
       if (data.tags === '' || data.tags === undefined || data.tags === null) {
         data.tags = [];
       }
-      
+
+      const creatorId = extraerCreator(data)
+
       // Use the core controller's create which enforces Strapi RBAC
       const response = await super.create(ctx);
       const achievement = response.data ?? response;
+
+      await aplicarCreator(strapi, achievement.documentId, creatorId)
+      if (creatorId !== undefined) {
+        achievement.creator = creatorId
+      }
 
       const auditLog = strapi.service('api::audit-log-entry.audit-log')
       await auditLog.record({
@@ -130,4 +179,4 @@ export default factories.createCoreController('api::achievement.achievement', ({
       ctx.badRequest('Error fetching achievements by creator', { error: err })
     }
   }
-})) 
+}))
