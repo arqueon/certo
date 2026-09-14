@@ -1,16 +1,16 @@
 <script setup lang="ts">
-const pageDescription = ref('Open source platform for digital credentials. Issue, verify, and share certificates using the Open Badges standard.')
-const pageTitle = ref('Certo - Digital Credential Platform')
-
 const { locale } = useI18n()
 const branding = useBranding()
 const websiteUrl = useWebsiteUrl()
+
+const pageDescription = ref('Digital credential platform. Issue, verify, and share certificates using the Open Badges standard.')
+const pageTitle = ref(`${branding.name} - Digital Credential Platform`)
 
 // Keep <html lang="..."> in sync with the active locale — important for SEO
 // and accessibility (screen readers use this to pick the right voice)
 useHead({
   title: 'Digital Credential Platform',
-  titleTemplate: '%s | Certo',
+  titleTemplate: `%s | ${branding.name}`,
   htmlAttrs: {
     lang: computed(() => locale.value),
     style: `--brand-primary: ${branding.primaryColor}`,

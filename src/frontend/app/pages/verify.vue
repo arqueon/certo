@@ -1,7 +1,8 @@
 <script setup lang="ts">
 const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
-const pageDescription = ref('Verify your badges with Certo')
+const branding = useBranding()
+const pageDescription = computed(() => `Verify your badges with ${branding.name}`)
 const faqs = ref([
   {
     question: 'How does certificate verification work?',
@@ -10,7 +11,7 @@ const faqs = ref([
   },
   {
     question: 'What types of certificates can I verify?',
-    answer: 'You can verify any digital certificate issued through Certo, including Open Badges 3.0 and other compatible verifiable credentials. We support various formats to ensure compatibility with different certification standards.',
+    answer: `You can verify any digital certificate issued through ${branding.name}, including Open Badges 3.0 and other compatible verifiable credentials. We support various formats to ensure compatibility with different certification standards.`,
     isOpen: false
   },
   {

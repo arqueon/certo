@@ -106,7 +106,7 @@ export default defineNuxtConfig({
         { rel: 'sitemap', type: 'application/xml', href: '/sitemap.xml' },
         { rel: 'describedby', type: 'text/plain', href: '/llms.txt' },
 
-        { rel: 'canonical', href: 'https://certo.schroedinger-hat.org' },
+        { rel: 'canonical', href: websiteUrl },
         {
           rel: 'stylesheet',
           href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap'
@@ -120,12 +120,15 @@ export default defineNuxtConfig({
             '@type': 'SoftwareApplication',
             'name': 'Certo',
             'description': 'Open-source platform for issuing, managing, and verifying digital credentials based on Open Badges 3.0 and W3C Verifiable Credentials.',
-            'url': 'https://certo.schroedinger-hat.org',
+            'url': websiteUrl,
             'applicationCategory': 'BusinessApplication',
             'operatingSystem': 'Linux, macOS, Windows',
             'isAccessibleForFree': true,
             'license': 'https://www.gnu.org/licenses/agpl-3.0.html',
-            'codeRepository': 'https://github.com/Schroedinger-Hat/certo',
+            // Apunta a nuestro fork, no al proyecto original -- AGPL-3.0
+            // §13 exige ofrecer el código fuente de la versión que
+            // realmente corre aquí, con nuestros parches.
+            'codeRepository': 'https://github.com/arqueon/certo',
             'author': {
               '@type': 'Organization',
               'name': 'Schroedinger Hat',
