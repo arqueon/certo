@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "clrs",
+  "info": {
+    "singularName": "clr",
+    "pluralName": "clrs",
+    "displayName": "Comprehensive Learner Record",
+    "description": "Un CLR (1EdTech Comprehensive Learner Record 2.0) agrupa varias credenciales OB3 ya emitidas bajo un mismo documento firmado -- p.ej. varias microcredenciales que en conjunto conforman un diplomado. Guarda solo la 'receta' (a quien pertenece, quien lo emite, que credenciales incluye, como se relacionan entre si); el documento JSON-LD firmado se ensambla al vuelo en cada consulta (GET /api/clrs/:id), igual que revocation-list ensambla su BitstringStatusListCredential -- así el CLR siempre refleja el estado vigente (p.ej. revocado/no revocado) de cada credencial que agrupa."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "subject": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::profile.profile",
+      "description": "El titular cuyo historial agrupa este CLR"
+    },
+    "issuer": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::profile.profile",
+      "description": "Quien emite el CLR (normalmente el mismo perfil emisor institucional que firma las credenciales individuales)"
+    },
+    "credentials": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::credential.credential",
+      "description": "Las credenciales OB3 que este CLR agrupa"
+    },
+    "associations": {
+      "type": "json",
+      "description": "Relaciones entre las credenciales agrupadas (campo Association del estándar CLR 2.0) -- p.ej. [{source: <credentialId>, target: <credentialId>, type: 'requires'}] para decir que unas microcredenciales son prerequisito de un diplomado"
+    },
+    "issuanceDate": {
+      "type": "datetime",
+      "required": true
+    }
+  }
+}
