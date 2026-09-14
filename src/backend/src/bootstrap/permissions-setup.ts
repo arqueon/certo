@@ -44,7 +44,10 @@ const AUTHENTICATED_PERMISSIONS = [
   'api::credential.credential.certificate',
   'api::credential.credential.renew',
   'api::credential.credential.expirationCheck',
-  
+
+  // CLR (Comprehensive Learner Record) permissions
+  'api::clr.clr.create',
+
   // Scheduled issuance permissions
   'api::scheduled-issuance.scheduled-issuance.create',
   'api::scheduled-issuance.scheduled-issuance.find',

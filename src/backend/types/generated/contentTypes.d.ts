@@ -382,7 +382,7 @@ export interface ApiAchievementAchievement extends Struct.CollectionTypeSchema {
     singularName: 'achievement';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     achievementId: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
@@ -452,6 +452,39 @@ export interface ApiAuditLogEntryAuditLogEntry
   };
 }
 
+export interface ApiClrClr extends Struct.CollectionTypeSchema {
+  collectionName: 'clrs';
+  info: {
+    description: "Un CLR (1EdTech Comprehensive Learner Record 2.0) agrupa varias credenciales OB3 ya emitidas bajo un mismo documento firmado -- p.ej. varias microcredenciales que en conjunto conforman un diplomado. Guarda solo la 'receta' (a quien pertenece, quien lo emite, que credenciales incluye, como se relacionan entre si); el documento JSON-LD firmado se ensambla al vuelo en cada consulta (GET /api/clrs/:id), igual que revocation-list ensambla su BitstringStatusListCredential -- as\u00ED el CLR siempre refleja el estado vigente (p.ej. revocado/no revocado) de cada credencial que agrupa.";
+    displayName: 'Comprehensive Learner Record';
+    pluralName: 'clrs';
+    singularName: 'clr';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    associations: Schema.Attribute.JSON;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    credentials: Schema.Attribute.Relation<
+      'manyToMany',
+      'api::credential.credential'
+    >;
+    issuanceDate: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    issuer: Schema.Attribute.Relation<'manyToOne', 'api::profile.profile'>;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::clr.clr'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    subject: Schema.Attribute.Relation<'manyToOne', 'api::profile.profile'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiCredentialCredential extends Struct.CollectionTypeSchema {
   collectionName: 'credentials';
   info: {
@@ -461,7 +494,7 @@ export interface ApiCredentialCredential extends Struct.CollectionTypeSchema {
     singularName: 'credential';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     achievement: Schema.Attribute.Relation<
@@ -521,7 +554,7 @@ export interface ApiEndorsementEndorsement extends Struct.CollectionTypeSchema {
     singularName: 'endorsement';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     claim: Schema.Attribute.JSON;
@@ -561,7 +594,7 @@ export interface ApiEvidenceEvidence extends Struct.CollectionTypeSchema {
     singularName: 'evidence';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     audience: Schema.Attribute.String;
@@ -595,7 +628,7 @@ export interface ApiEvidenceEvidence extends Struct.CollectionTypeSchema {
 export interface ApiIssuerKeyIssuerKey extends Struct.CollectionTypeSchema {
   collectionName: 'issuer_keys';
   info: {
-    description: "Per-issuer signing keypairs. Never exposed over REST: no routes/controllers/services are defined for this content type, so it's reachable only from server-side code via strapi.db.query/entityService.";
+    description: "Per-issuer signing keypairs, one row per key ever held (find-or-create the active one, add a new row and retire the old one on rotation). Never exposed over REST directly: no routes/controllers/services are defined for this content type itself -- reachable only from server-side code via strapi.db.query/entityService. Public keys are served through api::profile.profile's own routes instead (/profiles/:id/keys[/:keyId]), never the private key.";
     displayName: 'Issuer Key';
     pluralName: 'issuer-keys';
     singularName: 'issuer-key';
@@ -614,10 +647,15 @@ export interface ApiIssuerKeyIssuerKey extends Struct.CollectionTypeSchema {
       'api::issuer-key.issuer-key'
     > &
       Schema.Attribute.Private;
-    privateKeyEncrypted: Schema.Attribute.Text & Schema.Attribute.Required;
-    profile: Schema.Attribute.Relation<'oneToOne', 'api::profile.profile'>;
+    privateKeyEncrypted: Schema.Attribute.Text;
+    profile: Schema.Attribute.Relation<'manyToOne', 'api::profile.profile'>;
     publicKeyJwk: Schema.Attribute.JSON & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
+    retiredAt: Schema.Attribute.DateTime;
+    retiredReason: Schema.Attribute.String;
+    status: Schema.Attribute.Enumeration<['active', 'retired']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'active'>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -633,7 +671,7 @@ export interface ApiProfileProfile extends Struct.CollectionTypeSchema {
     singularName: 'profile';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAchievements: Schema.Attribute.Relation<
@@ -658,6 +696,10 @@ export interface ApiProfileProfile extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    owner: Schema.Attribute.Relation<
+      'manyToOne',
+      'plugin::users-permissions.user'
+    >;
     profileType: Schema.Attribute.Enumeration<['Issuer', 'Recipient', 'Both']> &
       Schema.Attribute.DefaultTo<'Both'>;
     publicKey: Schema.Attribute.Component<'badge.public-key', true>;
@@ -682,13 +724,13 @@ export interface ApiRevocationListRevocationList
   extends Struct.CollectionTypeSchema {
   collectionName: 'revocation_lists';
   info: {
-    description: 'StatusList2021 credential revocation list';
+    description: 'Bitstring Status List credential revocation list';
     displayName: 'Revocation List';
     pluralName: 'revocation-lists';
     singularName: 'revocation-list';
   };
   options: {
-    draftAndPublish: true;
+    draftAndPublish: false;
   };
   attributes: {
     createdAt: Schema.Attribute.DateTime;
@@ -716,11 +758,56 @@ export interface ApiRevocationListRevocationList
   };
 }
 
+export interface ApiScheduledIssuanceScheduledIssuance
+  extends Struct.CollectionTypeSchema {
+  collectionName: 'scheduled_issuances';
+  info: {
+    description: 'Credentials queued for automatic issuance at a future date.';
+    displayName: 'Scheduled Issuance';
+    pluralName: 'scheduled-issuances';
+    singularName: 'scheduled-issuance';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  attributes: {
+    achievementId: Schema.Attribute.Integer & Schema.Attribute.Required;
+    cancelReason: Schema.Attribute.Text;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    expirationDate: Schema.Attribute.DateTime;
+    failureReason: Schema.Attribute.Text;
+    issuedCredentialId: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::scheduled-issuance.scheduled-issuance'
+    > &
+      Schema.Attribute.Private;
+    note: Schema.Attribute.Text;
+    publishedAt: Schema.Attribute.DateTime;
+    recipientEmail: Schema.Attribute.Email & Schema.Attribute.Required;
+    recipientName: Schema.Attribute.String;
+    scheduledByEmail: Schema.Attribute.Email;
+    scheduledById: Schema.Attribute.Integer;
+    scheduledDate: Schema.Attribute.DateTime & Schema.Attribute.Required;
+    status: Schema.Attribute.Enumeration<
+      ['pending', 'issued', 'cancelled', 'failed']
+    > &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<'pending'>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiWebhookSubscriptionWebhookSubscription
   extends Struct.CollectionTypeSchema {
   collectionName: 'webhook_subscriptions';
   info: {
-    description: 'Outbound webhook endpoints notified on credential lifecycle events. Managed via the admin panel content manager - no public/authenticated REST routes are defined for this content type.';
+    description: 'Outbound webhook endpoints notified on credential lifecycle events. Managed through authenticated API routes or the admin panel.';
     displayName: 'Webhook Subscription';
     pluralName: 'webhook-subscriptions';
     singularName: 'webhook-subscription';
@@ -1259,12 +1346,14 @@ declare module '@strapi/strapi' {
       'admin::user': AdminUser;
       'api::achievement.achievement': ApiAchievementAchievement;
       'api::audit-log-entry.audit-log-entry': ApiAuditLogEntryAuditLogEntry;
+      'api::clr.clr': ApiClrClr;
       'api::credential.credential': ApiCredentialCredential;
       'api::endorsement.endorsement': ApiEndorsementEndorsement;
       'api::evidence.evidence': ApiEvidenceEvidence;
       'api::issuer-key.issuer-key': ApiIssuerKeyIssuerKey;
       'api::profile.profile': ApiProfileProfile;
       'api::revocation-list.revocation-list': ApiRevocationListRevocationList;
+      'api::scheduled-issuance.scheduled-issuance': ApiScheduledIssuanceScheduledIssuance;
       'api::webhook-subscription.webhook-subscription': ApiWebhookSubscriptionWebhookSubscription;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
