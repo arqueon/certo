@@ -71,7 +71,9 @@
     "newPassword": "New password",
     "currentPassword": "Current password",
     "checkEmail": "Check your email for reset instructions",
-    "alreadyHaveAccount": "Already have an account?"
+    "alreadyHaveAccount": "Already have an account?",
+    "signInWithInstitution": "Sign in with your {brand} account",
+    "signInWithLocalAccount": "Sign in with an email and password instead"
   },
   "credential": {
     "title": "Credential",

@@ -285,13 +285,23 @@ export default ({ strapi }) => ({
       const randomPassword = this.generateRandomPassword()
 
       // Create a new user with a random password
+      //
+      // The provider must match the one the recipient will actually sign in
+      // with. users-permissions' connect() looks a user up by email *and*
+      // provider, and refuses with "Email is already taken." when the email
+      // exists under a different one - so a recipient created as 'local'
+      // would be permanently locked out of SSO. When Keycloak is configured
+      // (see bootstrap/keycloak-provider.ts) recipients are institutional
+      // identities, not local accounts.
+      const provider = process.env.KEYCLOAK_PUBLIC_URL ? 'keycloak' : 'local'
+
       const newUser = await strapi.service('plugin::users-permissions.user').add({
         username: profile.email.split('@')[0] + Date.now(),
         email: profile.email,
         password: randomPassword,
         role: authenticatedRole.id,
         confirmed: true,
-        provider: 'local'
+        provider
       })
 
       return newUser

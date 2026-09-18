@@ -157,6 +157,10 @@ export default defineNuxtConfig({
       brandName: process.env.NUXT_PUBLIC_BRAND_NAME || 'Certo',
       brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '/certo-logo-text.png',
       brandPrimaryColor: process.env.NUXT_PUBLIC_BRAND_PRIMARY_COLOR || '#5AB69F',
+      // Comma-separated users-permissions provider names to offer on the
+      // login page. Read through runtimeConfig, not import.meta.env, so it
+      // stays configurable at container runtime (same bug as WEBSITE_URL had).
+      oauthProviders: process.env.NUXT_PUBLIC_OAUTH_PROVIDERS || '',
     }
   },
   imports: {

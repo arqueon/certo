@@ -10,18 +10,25 @@ const authError = ref(null)
 const isLoading = ref(false)
 const pageDescription = ref('Sign in to your Certo account to access your credentials and dashboard.')
 
-// OAuth / OIDC providers enabled via NUXT_PUBLIC_OAUTH_PROVIDERS env var
-// (comma-separated list of Strapi users-permissions provider names).
-const oauthProviders = computed(() => {
-  const raw = import.meta.env?.NUXT_PUBLIC_OAUTH_PROVIDERS
-    ?? process.env.NUXT_PUBLIC_OAUTH_PROVIDERS
-    ?? ''
-  return raw.split(',').map((p: string) => p.trim()).filter(Boolean)
-})
+// OAuth / OIDC providers offered on this page, from NUXT_PUBLIC_OAUTH_PROVIDERS
+// (comma-separated users-permissions provider names). Read through
+// runtimeConfig so it can be changed without rebuilding the image.
+const config = useRuntimeConfig()
+const branding = useBranding()
 
-const apiBaseUrl = import.meta.env?.NUXT_PUBLIC_API_URL
-  ?? process.env.NUXT_PUBLIC_API_URL
-  ?? 'http://localhost:1337'
+const oauthProviders = computed(() =>
+  String(config.public.oauthProviders || '')
+    .split(',')
+    .map((p: string) => p.trim())
+    .filter(Boolean)
+)
+
+const apiBaseUrl = config.public.apiUrl || 'http://localhost:1337'
+
+// With an identity provider configured, signing in with the institutional
+// account is the path a credential holder should take; the local form stays
+// available for service and administrative accounts.
+const showLocalForm = ref(false)
 
 function startOAuth(provider: string) {
   // Redirect to Strapi's users-permissions connect endpoint, which
@@ -121,7 +128,31 @@ onMounted(() => {
           </div>
         </div>
 
-        <form class="space-y-6" @submit.prevent="handleSubmit">
+        <!-- Institutional sign-in: the path a credential holder takes -->
+        <div v-if="oauthProviders.length > 0" class="space-y-4">
+          <button
+            v-for="provider in oauthProviders"
+            :key="provider"
+            type="button"
+            class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full shadow-sm text-base font-medium text-white transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
+            :style="{ backgroundColor: branding.primaryColor }"
+            @click="startOAuth(provider)"
+          >
+            <div class="w-5 h-5 i-heroicons-academic-cap" />
+            {{ t('auth.signInWithInstitution', { brand: branding.name }) }}
+          </button>
+
+          <button
+            v-if="!showLocalForm"
+            type="button"
+            class="w-full text-center text-sm text-text-secondary hover:text-text-primary underline"
+            @click="showLocalForm = true"
+          >
+            {{ t('auth.signInWithLocalAccount') }}
+          </button>
+        </div>
+
+        <form v-show="oauthProviders.length === 0 || showLocalForm" class="space-y-6" :class="oauthProviders.length > 0 ? 'mt-6 pt-6 border-t border-gray-200' : ''" @submit.prevent="handleSubmit">
           <!-- Email -->
           <div>
             <label for="email" class="block text-sm font-medium text-text-primary">
@@ -192,31 +223,7 @@ onMounted(() => {
           </div>
         </form>
 
-        <!-- OAuth / OIDC providers (optional, env-driven) -->
-        <div v-if="oauthProviders.length > 0" class="mt-6">
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-gray-300" />
-            </div>
-            <div class="relative flex justify-center text-sm">
-              <span class="px-2 bg-white/80 text-text-secondary">
-                {{ t('auth.orContinueWith') }}
-              </span>
-            </div>
-          </div>
 
-          <div class="mt-6 grid grid-cols-1 gap-3">
-            <button
-              v-for="provider in oauthProviders"
-              :key="provider"
-              type="button"
-              class="w-full flex items-center justify-center gap-3 py-2 px-4 border border-gray-300 rounded-full shadow-sm text-sm font-medium text-text-primary hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00E5C5]"
-              @click="startOAuth(provider)"
-            >
-              <span class="capitalize">{{ provider }}</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   </div>
