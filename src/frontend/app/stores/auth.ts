@@ -214,12 +214,14 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function loginWithOAuthToken(jwt: string) {
+  async function loginWithOAuthToken(providerAccessToken: string, provider = 'keycloak') {
     error.value = null
     isLoading.value = true
 
     try {
-      const response = await authClient.loginWithToken(jwt)
+      // What arrives from the provider is *their* token; it has to be
+      // exchanged for a Strapi session before anything else works.
+      const response = await authClient.loginWithProviderToken(provider, providerAccessToken)
 
       user.value = response.user
       token.value = response.jwt

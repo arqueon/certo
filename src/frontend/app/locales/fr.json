@@ -70,7 +70,9 @@
     "currentPassword": "Mot de passe actuel",
     "checkEmail": "Vérifiez votre e-mail pour le lien de réinitialisation",
     "alreadyHaveAccount": "Vous avez déjà un compte?",
-    "orContinueWith": "ou continuer avec"
+    "orContinueWith": "ou continuer avec",
+    "signInWithInstitution": "Se connecter avec votre compte {brand}",
+    "signInWithLocalAccount": "Se connecter avec e-mail et mot de passe"
   },
   "credential": {
     "title": "Justificatif",

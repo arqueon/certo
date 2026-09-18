@@ -1,8 +1,10 @@
 <script setup lang="ts">
-// Lands after Strapi's users-permissions OAuth/OIDC provider flow
-// (/api/connect/:provider/redirect -> provider -> /api/connect/:provider/callback)
-// completes and redirects here with ?access_token=<jwt>, per the callback
-// URL configured in the admin panel - see docs/oauth-setup.md.
+// Lands after the users-permissions OAuth/OIDC flow
+// (/api/connect/:provider -> provider -> /api/connect/:provider/callback)
+// completes and grant redirects here with ?access_token=<the *provider's*
+// token>, per the callback URL configured in the admin panel. That token is
+// not a Strapi session yet - the store exchanges it at
+// /api/auth/:provider/callback. See docs/oauth-setup.md.
 const router = useRouter()
 const route = useRoute()
 
@@ -33,7 +35,18 @@ onMounted(() => {
     try {
       const { useAuthStore } = await import('~/stores/auth')
       const authStore = useAuthStore()
-      const success = await authStore.loginWithOAuthToken(accessToken)
+      // Which /api/auth/:provider/callback to exchange the token at. grant
+      // appends its own params with '?' rather than '&', so a query string
+      // baked into the configured callback URL arrives mangled - take the
+      // provider from the app's own config instead.
+      const configured = String(useRuntimeConfig().public.oauthProviders || '')
+        .split(',')
+        .map(p => p.trim())
+        .filter(Boolean)
+      const provider = (route.query.provider as string | undefined)?.split('?')[0]
+        || configured[0]
+        || 'keycloak'
+      const success = await authStore.loginWithOAuthToken(accessToken, provider)
 
       if (success) {
         router.push('/dashboard')

@@ -42,16 +42,41 @@ before relying on it.
    the frontend callback page added in this pass:
    `<frontend-url>/auth/callback`
 5. From the frontend, initiate login by navigating to:
-   `<backend-url>/api/connect/google`
-   Strapi redirects to the provider, then back to
-   `<backend-url>/api/connect/google/callback`, which Strapi itself
-   exchanges for a JWT and redirects to the frontend redirect URL from
-   step 4 with `?access_token=<jwt>` appended.
+   `<backend-url>/api/connect/<provider>`
 
-No "Sign in with Google" button exists in the UI yet — wiring one into
-`login.vue` (pointing at `<backend-url>/api/connect/<provider>`) is a small,
-reasonable follow-up once a provider is actually configured and the
-callback flow above has been verified against it.
+**The redirect carries the *provider's* token, not a Strapi one.** The chain
+is:
+
+```
+/api/connect/<provider>          -> identity provider
+  -> /api/connect/<provider>/callback   (grant exchanges the code)
+  -> <frontend>/auth/callback?access_token=<PROVIDER token>
+  -> /api/auth/<provider>/callback?access_token=...  -> { jwt, user }
+```
+
+That last hop is what resolves or creates the local user and issues the
+Strapi JWT; `auth/callback.vue` performs it via
+`authClient.loginWithProviderToken()`. An earlier version of this document
+described step 5 as already yielding a Strapi JWT — it does not, and a
+callback page that assumed so left every subsequent request unauthenticated.
+
+A "Sign in with <brand>" button is wired into `login.vue`, driven by
+`NUXT_PUBLIC_OAUTH_PROVIDERS` (comma-separated provider names, exposed
+through `runtimeConfig.public.oauthProviders`).
+
+### Providers behind an internal network
+
+`grant` and `purest` both build their URLs as `https://{subdomain}` — one
+hostname, forced to HTTPS, shared by the browser redirect *and* the
+server-to-server token/userinfo calls. That cannot express a deployment where
+the browser and the backend reach the identity provider at different
+addresses.
+
+`src/backend/src/bootstrap/keycloak-provider.ts` overrides the stock
+`keycloak` provider with explicit `authorize_url` / `access_url` and its own
+`authCallback`, driven by `KEYCLOAK_PUBLIC_URL` (browser) and
+`KEYCLOAK_INTERNAL_URL` (backend). Without `KEYCLOAK_PUBLIC_URL` set, nothing
+is overridden and the stock provider is left untouched.
 
 ## What's explicitly out of scope here
 
@@ -61,5 +86,7 @@ callback flow above has been verified against it.
   admin panel screen.
 - Programmatically seeding provider config (e.g. via `.env` + a bootstrap
   script) instead of the admin panel — Strapi doesn't offer a documented
-  config-file-based path for this, and reverse-engineering one wasn't worth
-  the risk for a feature that needs live credentials to verify anyway.
+  config-file-based path for this. `enabled`, `key`, `secret` and `callback`
+  still have to be set once per deployment, either in the admin panel or with
+  `PUT /users-permissions/providers`; values stored there win over anything
+  the provider registry supplies.

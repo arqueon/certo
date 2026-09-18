@@ -3,6 +3,7 @@ import { seedDevelopmentData } from './bootstrap/seed-data';
 import { setupPermissions } from './bootstrap/permissions-setup';
 import { warnIfDefaultAdminCredentials } from './bootstrap/default-credentials-warning';
 import { registerMonitoringRoutes } from './monitoring/routes';
+import { registerKeycloakProvider } from './bootstrap/keycloak-provider';
 import { createEventBus } from './utils/event-bus';
 
 /**
@@ -21,6 +22,11 @@ export default {
     // (server.initRouting()) partway through its own bootstrap(), before
     // this app's bootstrap({ strapi }) hook runs - see monitoring/routes.ts.
     registerMonitoringRoutes(strapi);
+
+    // Also must happen here: users-permissions merges the provider registry
+    // into the stored `grant` config during its own bootstrap(), which runs
+    // after register() but before this app's bootstrap().
+    registerKeycloakProvider(strapi);
   },
 
   /**

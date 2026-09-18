@@ -102,6 +102,34 @@ export class AuthClient {
   }
 
   /**
+   * Exchange the *provider's* access token for a Strapi JWT.
+   *
+   * After the OAuth/OIDC dance, grant hands the browser the token issued by
+   * the identity provider — not a Strapi one. users-permissions turns it into
+   * a Strapi session at GET /api/auth/:provider/callback?access_token=...,
+   * which is what actually resolves (or creates) the local user.
+   *
+   * Skipping this step was the gap in the previous OAuth scaffolding: the
+   * callback page fed the provider token straight to loginWithToken(), and
+   * every authenticated request then failed with 401.
+   */
+  async loginWithProviderToken(
+    provider: string,
+    providerAccessToken: string
+  ): Promise<{ jwt: string, user: any }> {
+    const respuesta = await apiClient.get<{ jwt: string, user: any }>(
+      `/api/auth/${encodeURIComponent(provider)}/callback`,
+      { access_token: providerAccessToken }
+    )
+
+    if (!respuesta?.jwt) {
+      throw new Error('The identity provider did not return a session token.')
+    }
+
+    return this.loginWithToken(respuesta.jwt)
+  }
+
+  /**
    * Complete an OAuth/OIDC login given a JWT Strapi's users-permissions
    * provider callback already issued (see /auth/callback and
    * docs/oauth-setup.md for how a provider gets configured) - unlike

@@ -70,7 +70,9 @@
     "currentPassword": "Aktuelles Passwort",
     "checkEmail": "Überprüfen Sie Ihre E-Mail auf den Zurücksetzen-Link",
     "alreadyHaveAccount": "Sie haben bereits ein Konto?",
-    "orContinueWith": "oder weiter mit"
+    "orContinueWith": "oder weiter mit",
+    "signInWithInstitution": "Mit Ihrem {brand}-Konto anmelden",
+    "signInWithLocalAccount": "Mit E-Mail und Passwort anmelden"
   },
   "credential": {
     "title": "Nachweis",

@@ -70,7 +70,9 @@
     "currentPassword": "Password attuale",
     "checkEmail": "Controlla la tua email per il link di reimpostazione",
     "alreadyHaveAccount": "Hai già un account?",
-    "orContinueWith": "oppure continua con"
+    "orContinueWith": "oppure continua con",
+    "signInWithInstitution": "Accedi con il tuo account {brand}",
+    "signInWithLocalAccount": "Accedi con email e password"
   },
   "credential": {
     "title": "Credenziale",
