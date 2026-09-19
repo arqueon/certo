@@ -15,7 +15,7 @@ export default ({ strapi }) => ({
    * @param {string} expirationDate - Optional expiration date for the credential
    * @param {number} [actorId] - The users-permissions user id of the caller, for the audit log
    */
-  async issue(achievement, recipient, evidence = [], expirationDate = undefined, actorId = undefined) {
+  async issue(achievement, recipient, evidence = [], expirationDate = undefined, actorId = undefined, awardedDate = undefined) {
     try {
       const recipientEntity = await this.findOrCreateRecipientProfile(recipient)
 
@@ -37,6 +37,12 @@ export default ({ strapi }) => ({
         issuanceDate: new Date(),
         revoked: false,
         publishedAt: new Date(),
+        // Signed, not just serialized: awardedDate is a claim about when the
+        // learning happened, so it has to be covered by the signature -
+        // otherwise it could be altered afterwards and the credential would
+        // still verify. Only added when present, so credentials earned and
+        // issued at the same time serialize exactly as they always have.
+        ...(awardedDate ? { awardedDate: new Date(awardedDate) } : {}),
         ...(expirationDate ? { expirationDate: new Date(expirationDate) } : {})
       }
       // Generate cryptographic proof (JWS)
@@ -64,6 +70,7 @@ export default ({ strapi }) => ({
           proof: [proof],
           statusList: statusListId,
           statusListIndex,
+          ...(awardedDate ? { awardedDate: new Date(awardedDate) } : {}),
           ...(expirationDate ? { expirationDate: new Date(expirationDate) } : {})
         }
       })

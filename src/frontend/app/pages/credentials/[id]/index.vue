@@ -269,6 +269,16 @@ const formattedIssuanceDate = computed(() => {
   return formatDate(date)
 })
 
+// Only shown when it exists: a credential earned and issued at the same time
+// has no separate achievement date, and showing "the same date twice" would
+// be noise. When it does differ, it is the honest origin of the credential.
+const formattedAwardedDate = computed(() => {
+  const date = credential.value?.awardedDate
+    || verificationData.value?.credential?.credentialSubject?.awardedDate
+  if (!date) return null
+  return formatAwardedDate(date)
+})
+
 const formattedExpirationDate = computed(() => {
   const date = credential.value?.expirationDate
   if (!date) return 'No expiration'
@@ -319,6 +329,26 @@ function handleImageError() {
   }
   else {
     imageLoadError.value = true
+  }
+}
+
+// A day, not an instant. It is captured as a plain date ("20 March 2023")
+// and stored as UTC midnight, so formatting it in the viewer's timezone like
+// any other timestamp shows the day before for anyone west of UTC - and the
+// time-of-day is meaningless noise either way. Read it back in UTC.
+function formatAwardedDate(dateString: string) {
+  if (!dateString) return null
+
+  try {
+    return new Intl.DateTimeFormat(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    }).format(new Date(dateString))
+  }
+  catch {
+    return dateString
   }
 }
 
@@ -767,9 +797,20 @@ async function submitRenewal() {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Dates -->
             <div class="space-y-4">
+              <div v-if="formattedAwardedDate">
+                <div class="text-sm font-medium text-gray-500">
+                  {{ t('credential.awardedOn') }}
+                </div>
+                <div class="mt-1">
+                  {{ formattedAwardedDate }}
+                </div>
+                <div class="mt-0.5 text-xs text-gray-400">
+                  {{ t('credential.awardedOnHelp') }}
+                </div>
+              </div>
               <div>
                 <div class="text-sm font-medium text-gray-500">
-                  Issued On
+                  {{ t('credential.issuedOn') }}
                 </div>
                 <div class="mt-1">
                   {{ formattedIssuanceDate }}
@@ -777,7 +818,7 @@ async function submitRenewal() {
               </div>
               <div>
                 <div class="text-sm font-medium text-gray-500">
-                  Expires On
+                  {{ t('credential.expiresOn') }}
                 </div>
                 <div class="mt-1">
                   {{ formattedExpirationDate }}

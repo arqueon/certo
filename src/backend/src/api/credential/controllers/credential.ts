@@ -87,6 +87,9 @@ export default factories.createCoreController('api::credential.credential', ({ s
 
       // Support expirationDate at top-level or in recipient
       const expirationDate = data.expirationDate || recipient.expirationDate || undefined
+      // When the learning was achieved, if that is not simply "now" - e.g.
+      // recognising a 2023 workshop today. Same top-level-or-recipient shape.
+      const awardedDate = data.awardedDate || recipient.awardedDate || undefined
 
       strapi.log.debug('[credential.issue] Processing with data:', { 
         achievementId, 
@@ -100,7 +103,8 @@ export default factories.createCoreController('api::credential.credential', ({ s
         recipient,
         evidence,
         expirationDate,
-        ctx.state.user?.id
+        ctx.state.user?.id,
+        awardedDate
       )
 
       return credential
@@ -613,12 +617,16 @@ export default factories.createCoreController('api::credential.credential', ({ s
         try {
           const recipient = { ...recipientData }
           const expirationDate = recipientData.expirationDate || undefined
+          // Per recipient, not per batch: a single load can mix people who
+          // achieved the same thing on different dates.
+          const awardedDate = recipientData.awardedDate || undefined
           const credential = await strapi.service('api::credential.credential').issue(
             achievement,
             recipient,
             evidence,
             expirationDate,
-            ctx.state.user?.id
+            ctx.state.user?.id,
+            awardedDate
           )
           return { success: true, recipient: recipientData.email, data: credential }
         } catch (error) {
