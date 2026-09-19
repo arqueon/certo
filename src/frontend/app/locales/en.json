@@ -91,6 +91,8 @@
     "invalid": "Invalid",
     "valid": "Valid",
     "issuedOn": "Issued on",
+    "awardedOn": "Achieved On",
+    "awardedOnHelp": "When the learning was achieved, before the credential was issued",
     "expiresOn": "Expires on",
     "viewCredential": "View credential",
     "verifyCredential": "Verify credential",

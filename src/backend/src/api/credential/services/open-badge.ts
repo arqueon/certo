@@ -436,6 +436,12 @@ export default ({ strapi }) => ({
         credentialSubject: {
           id: credential.recipient?.email ? `mailto:${credential.recipient.email}` : undefined,
           type: ['AchievementSubject'],
+          // Only emitted when set, so a credential without it serializes byte
+          // for byte as it always did. awardedDate is when the learning was
+          // achieved (OB 3.0 AchievementSubject.awardedDate); issuanceDate
+          // above is when this document was signed. They differ whenever
+          // something earned earlier is recognised later.
+          ...(credential.awardedDate ? { awardedDate: credential.awardedDate } : {}),
           achievement: {
             id: `${baseUrl}/api/achievements/${credential.achievement.id}`,
             type: ['Achievement'],

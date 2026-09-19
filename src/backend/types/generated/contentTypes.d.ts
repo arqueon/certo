@@ -501,6 +501,7 @@ export interface ApiCredentialCredential extends Struct.CollectionTypeSchema {
       'manyToOne',
       'api::achievement.achievement'
     >;
+    awardedDate: Schema.Attribute.DateTime;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

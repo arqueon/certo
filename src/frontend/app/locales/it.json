@@ -90,6 +90,8 @@
     "invalid": "Non valida",
     "valid": "Valida",
     "issuedOn": "Emessa il",
+    "awardedOn": "Conseguito il",
+    "awardedOnHelp": "Quando è stato conseguito l’apprendimento, prima dell’emissione",
     "expiresOn": "Scade il",
     "viewCredential": "Visualizza credenziale",
     "verifyCredential": "Verifica credenziale",

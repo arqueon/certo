@@ -90,6 +90,8 @@
     "invalid": "Invalide",
     "valid": "Valide",
     "issuedOn": "Émis le",
+    "awardedOn": "Obtenu le",
+    "awardedOnHelp": "Date d’obtention de l’apprentissage, antérieure à la délivrance",
     "expiresOn": "Expire le",
     "viewCredential": "Voir le justificatif",
     "verifyCredential": "Vérifier le justificatif",

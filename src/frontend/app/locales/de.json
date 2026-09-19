@@ -90,6 +90,8 @@
     "invalid": "Ungültig",
     "valid": "Gültig",
     "issuedOn": "Ausgestellt am",
+    "awardedOn": "Erreicht am",
+    "awardedOnHelp": "Wann das Lernergebnis erreicht wurde, vor der Ausstellung",
     "expiresOn": "Läuft ab am",
     "viewCredential": "Nachweis anzeigen",
     "verifyCredential": "Nachweis verifizieren",
