@@ -1,7 +1,7 @@
 /**
  * Lightweight i18n composable — no @nuxtjs/i18n dependency needed.
  * Reads locale JSON files directly; locale is stored in a Nuxt state ref
- * (SSR-compatible) and persisted in the certo_locale cookie.
+ * (SSR-compatible) and persisted in the LOCALE_COOKIE cookie.
  */
 
 // Statically import all locale files so they are bundled with no async load
@@ -25,6 +25,26 @@ export const LOCALES = [
   { code: 'pt' as LocaleCode, name: 'Português' },
 ]
 
+// Locale used when the visitor has not picked one. English, as upstream;
+// a deployment sets its own with NUXT_PUBLIC_DEFAULT_LOCALE.
+export const FALLBACK_LOCALE: LocaleCode = 'en'
+
+// BCP 47 tag handed to Intl for dates and numbers.
+const INTL_LOCALES: Record<LocaleCode, string> = {
+  es: 'es',
+  en: 'en-US',
+  fr: 'fr-FR',
+  it: 'it-IT',
+  de: 'de-DE',
+  pt: 'pt-BR',
+}
+
+export const LOCALE_COOKIE = 'certo_locale'
+
+function isLocale(code: unknown): code is LocaleCode {
+  return typeof code === 'string' && code in MESSAGES
+}
+
 /** Resolve a dot-separated key path in a nested object */
 function resolve(obj: Record<string, any>, key: string): string | undefined {
   const parts = key.split('.')
@@ -37,23 +57,56 @@ function resolve(obj: Record<string, any>, key: string): string | undefined {
 }
 
 export function useI18n() {
-  const locale = useState<LocaleCode>('locale', () => 'en')
-  const localeCookie = useCookie<LocaleCode>('certo_locale', { maxAge: 60 * 60 * 24 * 365 })
+  const config = useRuntimeConfig()
+  const configured = config.public.defaultLocale
+  const defaultLocale: LocaleCode = isLocale(configured) ? configured : FALLBACK_LOCALE
+
+  const localeCookie = useCookie<LocaleCode>(LOCALE_COOKIE, { maxAge: 60 * 60 * 24 * 365 })
+  // Read the cookie on the server too, so the HTML already comes out in the
+  // chosen locale: no flash and no hydration mismatch.
+  const locale = useState<LocaleCode>('locale', () =>
+    isLocale(localeCookie.value) ? localeCookie.value : defaultLocale)
 
   /** Translate a dot-notation key, with optional `{param}` interpolation */
-  function t(key: string, params?: Record<string, string>): string {
-    const messages = MESSAGES[locale.value] ?? MESSAGES.en
-    let value = resolve(messages, key) ?? resolve(MESSAGES.en, key) ?? key
+  function t(key: string, params?: Record<string, string | number>): string {
+    const messages = MESSAGES[locale.value] ?? MESSAGES[defaultLocale]
+    let value = resolve(messages, key)
+      ?? resolve(MESSAGES[defaultLocale], key)
+      ?? resolve(MESSAGES.en, key)
+      ?? key
     if (params) {
-      value = value.replace(/\{(\w+)\}/g, (_, k) => params[k] ?? `{${k}}`)
+      value = value.replace(/\{(\w+)\}/g, (_, k) => (params[k] !== undefined ? String(params[k]) : `{${k}}`))
     }
     return value
   }
 
   function setLocale(code: LocaleCode | string) {
-    const safe = (code in MESSAGES ? code : 'en') as LocaleCode
+    const safe = isLocale(code) ? code : defaultLocale
     locale.value = safe
     localeCookie.value = safe
+  }
+
+  /** BCP 47 tag of the active locale, for Intl APIs */
+  const intlLocale = computed(() => INTL_LOCALES[locale.value] ?? INTL_LOCALES[defaultLocale])
+
+  /**
+   * Format a date in the active locale. Returns `fallback` for an empty or
+   * unparseable value instead of throwing.
+   */
+  function formatDate(
+    value: string | number | Date | null | undefined,
+    options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' },
+    fallback = '',
+  ): string {
+    if (value === null || value === undefined || value === '') return fallback
+    const date = value instanceof Date ? value : new Date(value)
+    if (Number.isNaN(date.getTime())) return fallback || String(value)
+    try {
+      return new Intl.DateTimeFormat(intlLocale.value, options).format(date)
+    }
+    catch {
+      return String(value)
+    }
   }
 
   return {
@@ -61,5 +114,8 @@ export function useI18n() {
     locale: readonly(locale),
     locales: readonly(ref(LOCALES)),
     setLocale,
+    defaultLocale,
+    intlLocale,
+    formatDate,
   }
 }

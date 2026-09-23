@@ -161,7 +161,7 @@ onUnmounted(() => {
 
         <!-- Mobile Menu Button -->
         <button
-          aria-label="Toggle mobile menu"
+          :aria-label="t('a11y.toggleMenu')"
           :aria-expanded="isMobileMenuOpen"
           aria-controls="mobile-menu"
           class="lg:hidden p-2 rounded-lg hover:bg-gray-100"
@@ -182,7 +182,7 @@ onUnmounted(() => {
           :to="link.href"
           class="block py-2 text-text-secondary hover:text-text-primary transition-colors"
         >
-          {{ link.name }}
+          {{ t(`nav.${link.i18nKey}`) || link.name }}
         </NuxtLink>
         <div class="pt-4 space-y-2">
           <template v-if="isAuthenticated && userName">

@@ -2,43 +2,23 @@
 const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const branding = useBranding()
-const pageDescription = computed(() => `Verify your badges with ${branding.name}`)
-const faqs = ref([
-  {
-    question: 'How does certificate verification work?',
-    answer: 'Our verification system checks the certificate\'s digital signature and metadata according to the Open Badges 3.0 standard. This ensures the certificate is authentic, untampered, and issued by a legitimate authority.',
-    isOpen: false
-  },
-  {
-    question: 'What types of certificates can I verify?',
-    answer: `You can verify any digital certificate issued through ${branding.name}, including Open Badges 3.0 and other compatible verifiable credentials. We support various formats to ensure compatibility with different certification standards.`,
-    isOpen: false
-  },
-  {
-    question: 'Is the verification process secure?',
-    answer: 'Yes, our verification process is completely secure. We use the Open Badges 3.0 standard, which ensures each credential is tamper-evident and verifiable. All data is processed securely and transparently.',
-    isOpen: false
-  },
-  {
-    question: 'How long does verification take?',
-    answer: 'Verification is instant in most cases. Once you submit a certificate for verification, our system immediately checks its authenticity and validity using the Open Badges 3.0 protocol and provides results within seconds.',
-    isOpen: false
-  },
-  {
-    question: 'What information is shown in the verification results?',
-    answer: 'Verification results include the certificate\'s status, issuer details, issue date, expiration date (if applicable), and Open Badges 3.0 verification proof. You can also view the full certificate details if available.',
-    isOpen: false
-  }
-])
+const pageDescription = computed(() => t('verifyPage.seoDescription', { brand: branding.name }))
+// Texts are read from the translations on every render (they follow the
+// locale); only the open/closed state lives here.
+const faqOpen = ref<boolean[]>([false, false, false, false, false])
+const faqs = computed(() => [1, 2, 3, 4, 5].map(n => ({
+  question: t(`verifyPage.faq.q${n}`),
+  answer: t(`verifyPage.faq.a${n}`, { brand: branding.name }),
+})))
 
 useSeoMeta({
-  description: pageDescription.value,
-  ogDescription: pageDescription.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
   ogUrl: `${websiteUrl}/verify`
 })
 
 useHead({
-  title: t('verify.title'),
+  title: () => t('verify.title'),
   link: [
     { rel: 'canonical', href: `${websiteUrl}/verify` }
   ]
@@ -78,7 +58,7 @@ useHead({
               Open Badges 3.0
             </h3>
             <p class="text-text-secondary">
-              Open Badges 3.0 is a standard for digital credentials. It is a open standard for digital credentials that is not tied to any specific platform or organization.
+              {{ t('verifyPage.ob3Desc') }}
             </p>
           </div>
 
@@ -88,10 +68,10 @@ useHead({
               <div class="w-6 h-6 i-heroicons-bolt text-[#5AB69F]" />
             </div>
             <h3 class="text-lg font-medium text-text-primary mb-2">
-              Instant Results
+              {{ t('verifyPage.instantTitle') }}
             </h3>
             <p class="text-text-secondary">
-              Get immediate verification results with detailed certificate information
+              {{ t('verifyPage.instantDesc') }}
             </p>
           </div>
 
@@ -101,10 +81,10 @@ useHead({
               <div class="w-6 h-6 i-heroicons-document-duplicate text-[#5AB69F]" />
             </div>
             <h3 class="text-lg font-medium text-text-primary mb-2">
-              Multiple Formats
+              {{ t('verifyPage.formatsTitle') }}
             </h3>
             <p class="text-text-secondary">
-              Support for various certificate formats including Open Badges and Verifiable Credentials
+              {{ t('verifyPage.formatsDesc') }}
             </p>
           </div>
         </div>
@@ -112,9 +92,9 @@ useHead({
 
       <!-- FAQ Section -->
       <div class="mt-16">
-            <h3 class="text-lg font-medium text-text-primary mb-2">
-              Frequently Asked Questions
-            </h3>
+        <h3 class="text-lg font-medium text-text-primary mb-2">
+          {{ t('verifyPage.faqTitle') }}
+        </h3>
 
         <div class="max-w-3xl mx-auto space-y-4">
           <div
@@ -124,18 +104,19 @@ useHead({
           >
             <button
               class="w-full px-6 py-4 text-left flex items-center justify-between"
-              @click="faq.isOpen = !faq.isOpen"
+              :aria-expanded="faqOpen[index]"
+              @click="faqOpen[index] = !faqOpen[index]"
             >
               <span class="font-medium text-text-primary">{{ faq.question }}</span>
               <div
                 class="w-5 h-5 transform transition-transform"
-                :class="[faq.isOpen ? 'rotate-180' : '']"
+                :class="[faqOpen[index] ? 'rotate-180' : '']"
               >
                 <div class="w-5 h-5 i-heroicons-chevron-down text-[#00E5C5]" />
               </div>
             </button>
             <div
-              v-show="faq.isOpen"
+              v-show="faqOpen[index]"
               class="px-6 pb-4 text-text-secondary"
             >
               {{ faq.answer }}

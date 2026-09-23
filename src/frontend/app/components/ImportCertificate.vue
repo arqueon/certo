@@ -26,8 +26,10 @@ function handleJsonPaste() {
   }
 }
 
+const { intlLocale } = useI18n()
+
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(intlLocale.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'

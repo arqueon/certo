@@ -46,9 +46,9 @@ export default () => {
     content: {
       title: 'Open Badges 3.0',
       features: [
-        'Verifiable digital credentials',
-        'Portable across platforms',
-        'Cryptographically secure',
+        t('home.ob3Feature1'),
+        t('home.ob3Feature2'),
+        t('home.ob3Feature3'),
       ],
     },
   }

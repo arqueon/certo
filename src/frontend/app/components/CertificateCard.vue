@@ -18,6 +18,8 @@ const props = defineProps({
 
 const emit = defineEmits(['export', 'revoke', 'view', 'download'])
 
+const { t, locale, formatDate: formatLocaleDate } = useI18n()
+
 const isMenuOpen = ref(false)
 const isExporting = ref(false)
 
@@ -35,30 +37,15 @@ const {
 } = props.certificate
 
 // Get derived values with fallbacks
-const achievementName = achievement?.name || props.certificate.name || 'Unknown Achievement'
-const achievementDescription = description || achievement?.description || props.certificate.description || 'No description available'
-const issuerName = issuer?.name || props.certificate.issuerName || 'Unknown Issuer'
-const formattedIssuanceDate = formatDate(issuanceDate || issuedOn)
-
-// Helper function to format dates
-function formatDate(dateString: string) {
-  if (!dateString) {
-    return 'Unknown'
-  }
-
-  try {
-    const date = new Date(dateString)
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-  catch (error) {
-    console.error('Error formatting date:', error)
-    return dateString
-  }
-}
+const achievementName = achievement?.name || props.certificate.name || t('certificateCard.unknownAchievement')
+const achievementDescription = computed(() => description || achievement?.description || props.certificate.description || t('certificateCard.noDescription'))
+const issuerName = computed(() => issuer?.name || props.certificate.issuerName || t('certificateCard.unknownIssuer'))
+// Date in the active locale; computed so it follows the language switcher.
+const formattedIssuanceDate = computed(() => formatLocaleDate(issuanceDate || issuedOn, {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+}, t('certificateCard.unknownDate')))
 
 // Get the achievement image URL (badge) as the primary image for the card
 const badgeImageUrl = computed(() => {
@@ -168,12 +155,12 @@ function copyToClipboard() {
   try {
     const fullUrl = `${window.location.origin}/credentials/${encodeURIComponent(credentialId || id)}`
     navigator.clipboard.writeText(fullUrl)
-    toast.show('Credential link copied!', 'The credential link has been copied to your clipboard.', 'success')
+    toast.show(t('certificateCard.linkCopiedTitle'), t('certificateCard.linkCopiedBody'), 'success')
     isMenuOpen.value = false
   }
   catch (error) {
     console.error('Error copying to clipboard:', error)
-    toast.show('Failed to copy', 'Could not copy the credential link to clipboard.', 'error')
+    toast.show(t('certificateCard.copyFailedTitle'), t('certificateCard.copyFailedBody'), 'error')
   }
 }
 
@@ -250,7 +237,7 @@ function getLinkedInAddToProfileUrl() {
           </div>
           <div v-if="showRecipient" class="flex items-center text-sm text-text-secondary">
             <div class="w-4 h-4 i-heroicons-building-office mr-2" />
-            {{ recipient?.name || 'Unknown Recipient' }}
+            {{ recipient?.name || t('certificateCard.unknownRecipient') }}
           </div>
         </div>
       </div>
@@ -259,6 +246,7 @@ function getLinkedInAddToProfileUrl() {
       <div class="relative">
         <button
           class="p-2 rounded-full hover:bg-gray-100"
+          :aria-label="t('certificateCard.actions')"
           @click.stop="isMenuOpen = !isMenuOpen"
         >
           <div class="w-5 h-5 i-heroicons-ellipsis-vertical text-gray-500" />
@@ -276,43 +264,43 @@ function getLinkedInAddToProfileUrl() {
               target="_blank"
               rel="noopener noreferrer"
               class="block w-full text-left px-4 py-2 text-sm text-[#0077b5] hover:bg-[#eaf4fb] font-medium"
-              aria-label="Add this certificate to your LinkedIn profile"
+              :aria-label="t('credential.addToLinkedInAria')"
             >
-              <img src="https://download.linkedin.com/desktop/add2profile/buttons/en_US.png" alt="LinkedIn Add to Profile" class="inline h-4 w-auto mr-2 align-middle">
-              Add to LinkedIn
+              <img :src="linkedInButtonImage(locale)" :alt="t('credential.linkedInButtonAlt')" class="inline h-4 w-auto mr-2 align-middle">
+              {{ t('credential.addToLinkedIn') }}
             </a>
             <a
               :href="getCredentialUrl()"
               target="_blank"
               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             >
-              View Certificate
+              {{ t('certificateCard.view') }}
             </a>
             <button
               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               @click="handleDownload"
             >
-              Download Badge
+              {{ t('certificateCard.downloadBadge') }}
             </button>
             <button
               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               @click="openCertificateInNewTab"
             >
-              Download Certificate
+              {{ t('certificateCard.downloadCertificate') }}
             </button>
             <button
               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               @click="copyToClipboard"
             >
-              Copy Verification Link
+              {{ t('certificateCard.copyLink') }}
             </button>
             <button
               :disabled="isExporting"
               class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
               @click="handleExport"
             >
-              <span v-if="isExporting">Exporting...</span>
-              <span v-else>Export to JSON</span>
+              <span v-if="isExporting">{{ t('certificateCard.exporting') }}</span>
+              <span v-else>{{ t('certificateCard.exportJson') }}</span>
             </button>
           </div>
         </transition>
@@ -321,7 +309,7 @@ function getLinkedInAddToProfileUrl() {
 
     <!-- Badge Image Preview (Achievement Image) -->
     <div class="mt-4 aspect-[16/9] bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-      <img :src="badgeImageUrl" alt="Credential Badge Image" class="w-full h-full object-contain">
+      <img :src="badgeImageUrl" :alt="t('certificateCard.badgeImageAlt')" class="w-full h-full object-contain">
     </div>
   </div>
 </template>

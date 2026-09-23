@@ -1,15 +1,15 @@
 <script setup lang="ts">
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 const branding = useBranding()
 const websiteUrl = useWebsiteUrl()
 
-const pageDescription = ref('Digital credential platform. Issue, verify, and share certificates using the Open Badges standard.')
-const pageTitle = ref(`${branding.name} - Digital Credential Platform`)
+const pageDescription = computed(() => t('app.description'))
+const pageTitle = computed(() => `${branding.name} - ${t('app.title')}`)
 
 // Keep <html lang="..."> in sync with the active locale — important for SEO
 // and accessibility (screen readers use this to pick the right voice)
 useHead({
-  title: 'Digital Credential Platform',
+  title: () => t('app.title'),
   titleTemplate: `%s | ${branding.name}`,
   htmlAttrs: {
     lang: computed(() => locale.value),
@@ -18,10 +18,10 @@ useHead({
 })
 
 useSeoMeta({
-  description: pageDescription.value,
-  ogDescription: pageDescription.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
   ogImage: `${websiteUrl}/og-default.png`,
-  ogTitle: pageTitle.value,
+  ogTitle: () => pageTitle.value,
   ogUrl: websiteUrl,
   twitterCard: 'summary_large_image',
   twitterImage: `${websiteUrl}/og-default.png`,

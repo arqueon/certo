@@ -8,7 +8,7 @@ const authStore = ref(null)
 const isStoreReady = ref(false)
 const authError = ref(null)
 const isLoading = ref(false)
-const pageDescription = ref('Sign in to your Certo account to access your credentials and dashboard.')
+const pageDescription = computed(() => t('auth.seoDescription'))
 
 // OAuth / OIDC providers offered on this page, from NUXT_PUBLIC_OAUTH_PROVIDERS
 // (comma-separated users-permissions provider names). Read through
@@ -38,12 +38,12 @@ function startOAuth(provider: string) {
 }
 
 useSeoMeta({
-  description: pageDescription.value,
-  ogDescription: pageDescription.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
 })
 
 useHead({
-  title: 'Login',
+  title: () => t('auth.signInTitle'),
   link: [
     { rel: 'canonical', href: `${websiteUrl}/login` }
   ]
@@ -51,7 +51,7 @@ useHead({
 
 async function handleSubmit() {
   if (!isStoreReady.value || !authStore.value) {
-    authError.value = 'Authentication system not ready. Please try again in a moment.'
+    authError.value = t('auth.notReady')
     return
   }
 
@@ -71,7 +71,7 @@ async function handleSubmit() {
     }
     catch (error) {
       console.error('Login error:', error)
-      authError.value = 'Login failed. Please try again.'
+      authError.value = t('auth.loginFailed')
     }
     finally {
       isLoading.value = false
@@ -166,7 +166,7 @@ onMounted(() => {
                 type="email"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5AB69F] focus:border-transparent"
-                placeholder="Enter your email"
+                :placeholder="t('auth.emailPlaceholder')"
               >
             </div>
           </div>
@@ -184,7 +184,7 @@ onMounted(() => {
                 type="password"
                 required
                 class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5AB69F] focus:border-transparent"
-                placeholder="Enter your password"
+                :placeholder="t('auth.passwordPlaceholder')"
               >
             </div>
           </div>

@@ -23,3 +23,20 @@ export const HEADER_NAV_LINKS = [
   { name: 'Verify',       href: '/verify',     i18nKey: 'verify' },
 ]
 export const HELLO_SH_MAIL = 'mailto:hello@schroedinger-hat.org'
+
+// LinkedIn's official "Add to profile" button, in the language variant
+// LinkedIn publishes for each interface locale (there is no es_LA; es_ES is
+// used).
+const LINKEDIN_BUTTON_LOCALES: Record<string, string> = {
+  es: 'es_ES',
+  en: 'en_US',
+  fr: 'fr_FR',
+  de: 'de_DE',
+  it: 'it_IT',
+  pt: 'pt_BR',
+}
+
+export function linkedInButtonImage(locale: string): string {
+  const variant = LINKEDIN_BUTTON_LOCALES[locale] ?? 'en_US'
+  return `https://download.linkedin.com/desktop/add2profile/buttons/${variant}.png`
+}

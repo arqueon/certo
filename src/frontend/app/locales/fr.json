@@ -10,7 +10,8 @@
     "learnMore": "En savoir plus",
     "about": "À propos",
     "home": "Accueil",
-    "issue": "Émettre"
+    "issue": "Émettre",
+    "docs": "Documentation"
   },
   "common": {
     "loading": "Chargement...",
@@ -72,7 +73,19 @@
     "alreadyHaveAccount": "Vous avez déjà un compte?",
     "orContinueWith": "ou continuer avec",
     "signInWithInstitution": "Se connecter avec votre compte {brand}",
-    "signInWithLocalAccount": "Se connecter avec e-mail et mot de passe"
+    "signInWithLocalAccount": "Se connecter avec e-mail et mot de passe",
+    "seoDescription": "Connectez-vous pour accéder à vos certificats et à votre tableau de bord.",
+    "emailPlaceholder": "Saisissez votre e-mail",
+    "passwordPlaceholder": "Saisissez votre mot de passe",
+    "notReady": "Le système d'authentification n'est pas prêt. Réessayez dans un instant.",
+    "loginFailed": "La connexion a échoué. Réessayez.",
+    "callback": {
+      "signingIn": "Connexion en cours…",
+      "providerError": "La connexion a été annulée ou a échoué : {error}",
+      "noToken": "Le fournisseur d'identité n'a renvoyé aucun jeton d'accès.",
+      "failed": "Impossible de terminer la connexion.",
+      "backToLogin": "Retour à la connexion"
+    }
   },
   "credential": {
     "title": "Justificatif",
@@ -113,7 +126,8 @@
       "not_revoked": "Non révoqué",
       "not_expired": "Non expiré",
       "issuer": "Émetteur",
-      "structure": "Structure"
+      "structure": "Structure",
+      "validSignature": "Signature valide"
     },
     "issue": "Émettre un justificatif",
     "revoke": "Révoquer le justificatif",
@@ -122,7 +136,54 @@
     "revokeReason": "Raison de la révocation",
     "revokeSuccess": "Justificatif révoqué avec succès",
     "renewSuccess": "Justificatif renouvelé avec succès",
-    "issueSuccess": "Justificatif émis avec succès"
+    "issueSuccess": "Justificatif émis avec succès",
+    "addToLinkedInAria": "Ajouter ce certificat à votre profil LinkedIn",
+    "linkedInButtonAlt": "Ajouter au profil LinkedIn",
+    "errorLoading": "Erreur lors du chargement du certificat",
+    "fetchFailed": "Impossible de vérifier ou de récupérer le certificat",
+    "allChecksPassed": "Toutes les vérifications ont réussi.",
+    "refreshVerification": "Relancer la vérification",
+    "verificationChecks": "Vérifications",
+    "checkStatus": {
+      "passed": "Réussie",
+      "warning": "Avertissement",
+      "failed": "Échouée"
+    },
+    "checkDescriptions": {
+      "not_revoked": "Ce certificat n'a pas été révoqué par l'émetteur",
+      "not_expired": "Ce certificat est dans sa période de validité",
+      "proof": "Signature cryptographique vérifiée avec succès",
+      "completed": "Vérification terminée",
+      "failed": "La vérification a échoué"
+    },
+    "expiredTitle": "Ce certificat a expiré",
+    "expiresInDay": "Expire dans 1 jour",
+    "expiresInDays": "Expire dans {days} jours",
+    "expiredHelp": "Ce certificat n'est plus valide. Contactez l'émetteur pour le renouveler.",
+    "expiringSoonHelp": "Pensez à demander bientôt à l'émetteur de renouveler ce certificat.",
+    "newExpirationDate": "Nouvelle date d'expiration :",
+    "renewing": "Renouvellement…",
+    "renewFailed": "Le renouvellement a échoué",
+    "idUnavailable": "L'identifiant du certificat n'est pas disponible",
+    "downloadImage": "Télécharger l'image",
+    "unnamed": "Certificat sans nom",
+    "imageAlt": "Image du certificat",
+    "unknown": "Inconnue",
+    "awardedTo": "Décerné à",
+    "issuedBy": "Émis par",
+    "visitWebsite": "Visiter le site",
+    "verifyLabel": "Vérifier",
+    "qrAlt": "Code QR menant à la page de vérification de ce certificat",
+    "evidence": "Preuves",
+    "shareText": "Voir mon certificat : {name}",
+    "seo": {
+      "title": "Détails du certificat",
+      "descriptionWithRecipient": "Consultez et vérifiez « {name} », décerné à {recipient} et émis par {issuer} via {brand}.",
+      "description": "Consultez et vérifiez « {name} », émis par {issuer} via {brand}.",
+      "descriptionGeneric": "Consultez et vérifiez ce certificat numérique émis via {brand}.",
+      "imageAlt": "{name} : certificat vérifié",
+      "imageAltGeneric": "Certificat {brand}"
+    }
   },
   "achievement": {
     "title": "Réalisation",
@@ -133,7 +194,11 @@
     "criteria": "Critères",
     "description": "Description",
     "name": "Nom",
-    "type": "Type"
+    "type": "Type",
+    "details": "Détails de la réussite",
+    "alignments": "Alignements",
+    "learnMore": "En savoir plus",
+    "criteriaNotSpecified": "Critères non précisés"
   },
   "verification": {
     "title": "Vérifier un justificatif",
@@ -159,7 +224,13 @@
     "loading": "Chargement...",
     "error": "Erreur lors du chargement",
     "yourCredentials": "Vos justificatifs",
-    "noCredentials": "Aucune justification trouvée"
+    "noCredentials": "Aucune justification trouvée",
+    "seoDescription": "Votre tableau de bord : gérez vos certificats numériques reçus et émis",
+    "loadFailed": "Impossible de charger le tableau de bord. Réessayez.",
+    "noReceivedYet": "Vous n'avez encore reçu aucun certificat.",
+    "noIssuedYet": "Vous n'avez encore émis aucun certificat.",
+    "issueNew": "Nouvelle émission",
+    "issueFirst": "Émettez votre premier certificat"
   },
   "errors": {
     "notFound": "Page introuvable",
@@ -178,9 +249,21 @@
       "privacy": "Politique de confidentialité",
       "terms": "Conditions d'utilisation",
       "github": "GitHub",
-      "docs": "Documentation"
+      "docs": "Documentation",
+      "home": "Accueil",
+      "dashboard": "Tableau de bord",
+      "verify": "Vérifier des certificats",
+      "linkedin": "Guide LinkedIn",
+      "privacyNotice": "Politique de confidentialité",
+      "termsConditions": "Conditions générales"
     },
-    "rights": "Tous droits réservés"
+    "rights": "Tous droits réservés",
+    "description": "Émettez, vérifiez et partagez des certificats numériques avec le standard Open Badges.",
+    "linksTitle": "Liens",
+    "legal": "Mentions légales",
+    "builtOn": "Construit avec",
+    "license": "(logiciel libre, AGPL-3.0) —",
+    "sourceCode": "code source"
   },
   "language": {
     "label": "Langue",
@@ -251,7 +334,10 @@
     "section3Header": "Exportez et envoyez les certificats émis",
     "section3Feature1": "Envoyez automatiquement des e-mails avec les certificats PDF",
     "section3Feature2": "Exportez les certificats aux formats PNG, JPG et SVG",
-    "section3Feature3": "Gérez les certificats émis"
+    "section3Feature3": "Gérez les certificats émis",
+    "ob3Feature1": "Certificats numériques vérifiables",
+    "ob3Feature2": "Portables entre plateformes",
+    "ob3Feature3": "Sécurisés par cryptographie"
   },
   "getStarted": {
     "title": "Commencer",
@@ -259,5 +345,88 @@
     "step1": "Étape 1",
     "step2": "Étape 2",
     "step3": "Étape 3"
+  },
+  "app": {
+    "title": "Plateforme de certificats numériques",
+    "description": "Plateforme de certificats numériques. Émettez, vérifiez et partagez des certificats avec le standard Open Badges."
+  },
+  "a11y": {
+    "skipToContent": "Aller au contenu principal",
+    "toggleMenu": "Ouvrir ou fermer le menu"
+  },
+  "verifyPage": {
+    "seoDescription": "Vérifiez vos badges avec {brand}",
+    "ob3Desc": "Open Badges 3.0 est un standard ouvert pour les certificats numériques, indépendant de toute plateforme ou organisation.",
+    "instantTitle": "Résultats immédiats",
+    "instantDesc": "Obtenez immédiatement le résultat de la vérification et le détail du certificat",
+    "formatsTitle": "Plusieurs formats",
+    "formatsDesc": "Prise en charge de plusieurs formats, dont Open Badges et Verifiable Credentials",
+    "faqTitle": "Questions fréquentes",
+    "faq": {
+      "q1": "Comment fonctionne la vérification ?",
+      "a1": "Le système contrôle la signature numérique et les métadonnées du certificat selon le standard Open Badges 3.0. Cela garantit qu'il est authentique, non modifié et émis par une autorité légitime.",
+      "q2": "Quels certificats puis-je vérifier ?",
+      "a2": "Vous pouvez vérifier tout certificat numérique émis via {brand}, y compris les Open Badges 3.0 et autres justificatifs vérifiables compatibles.",
+      "q3": "La vérification est-elle sûre ?",
+      "a3": "Oui. Le standard Open Badges 3.0 rend toute altération détectable et chaque certificat vérifiable. Les données sont traitées de façon sûre et transparente.",
+      "q4": "Combien de temps dure la vérification ?",
+      "a4": "Elle est presque toujours immédiate : le système contrôle l'authenticité et la validité avec le protocole Open Badges 3.0 et affiche le résultat en quelques secondes.",
+      "q5": "Quelles informations affiche le résultat ?",
+      "a5": "Le résultat indique le statut du certificat, l'émetteur, la date d'émission, la date d'expiration (le cas échéant) et la preuve Open Badges 3.0. Le détail complet est aussi consultable s'il est disponible."
+    }
+  },
+  "verifier": {
+    "title": "Vérifier un certificat",
+    "subtitle": "Vérifiez l'authenticité d'un certificat ou d'un badge",
+    "byId": "Par identifiant",
+    "byJson": "Par fichier JSON",
+    "idLabel": "Identifiant ou hash du certificat",
+    "idPlaceholder": "Saisissez l'identifiant ou le hash",
+    "jsonLabel": "Fichier JSON du certificat",
+    "uploadFile": "Téléverser un fichier",
+    "dragDrop": "ou glissez-déposez",
+    "supportedFiles": "Fichiers JSON contenant des Open Badges ou Verifiable Credentials",
+    "selected": "Sélectionné : {name}",
+    "verified": "Certificat vérifié",
+    "failed": "Échec de la vérification",
+    "issuer": "Émetteur",
+    "issueDate": "Date d'émission",
+    "expiryDate": "Date d'expiration",
+    "id": "Identifiant",
+    "unknownIssuer": "Émetteur inconnu",
+    "errors": {
+      "invalidFileType": "Téléversez un fichier JSON valide.",
+      "invalidJsonFile": "Fichier JSON invalide.",
+      "idRequired": "Saisissez l'identifiant du certificat",
+      "jsonRequired": "Ajoutez le JSON du certificat",
+      "verifyFailed": "Impossible de vérifier le certificat. Vérifiez l'identifiant et réessayez.",
+      "invalidJsonFormat": "Format JSON invalide. Vérifiez le contenu.",
+      "validateFailed": "Impossible de valider le certificat."
+    }
+  },
+  "certificateCard": {
+    "unknownAchievement": "Réussite inconnue",
+    "noDescription": "Aucune description",
+    "unknownIssuer": "Émetteur inconnu",
+    "unknownRecipient": "Destinataire inconnu",
+    "unknownDate": "Inconnue",
+    "actions": "Actions",
+    "view": "Voir le certificat",
+    "downloadBadge": "Télécharger le badge",
+    "downloadCertificate": "Télécharger le certificat",
+    "copyLink": "Copier le lien de vérification",
+    "exporting": "Exportation...",
+    "exportJson": "Exporter en JSON",
+    "linkCopiedTitle": "Lien copié !",
+    "linkCopiedBody": "Le lien du certificat a été copié dans le presse-papiers.",
+    "copyFailedTitle": "Copie impossible",
+    "copyFailedBody": "Impossible de copier le lien du certificat.",
+    "badgeImageAlt": "Image du badge"
+  },
+  "errorPage": {
+    "notFound": "Page introuvable",
+    "generic": "Oups ! Une erreur s'est produite",
+    "genericMessage": "Une erreur inattendue s'est produite. Réessayez plus tard.",
+    "home": "Retour à l'accueil"
   }
 }

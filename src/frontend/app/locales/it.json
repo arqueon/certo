@@ -10,7 +10,8 @@
     "learnMore": "Scopri di più",
     "about": "Chi siamo",
     "home": "Home",
-    "issue": "Emetti"
+    "issue": "Emetti",
+    "docs": "Documentazione"
   },
   "common": {
     "loading": "Caricamento...",
@@ -72,7 +73,19 @@
     "alreadyHaveAccount": "Hai già un account?",
     "orContinueWith": "oppure continua con",
     "signInWithInstitution": "Accedi con il tuo account {brand}",
-    "signInWithLocalAccount": "Accedi con email e password"
+    "signInWithLocalAccount": "Accedi con email e password",
+    "seoDescription": "Accedi per consultare le tue credenziali e il tuo pannello.",
+    "emailPlaceholder": "Inserisci la tua email",
+    "passwordPlaceholder": "Inserisci la password",
+    "notReady": "Il sistema di accesso non è pronto. Riprova tra un momento.",
+    "loginFailed": "Accesso non riuscito. Riprova.",
+    "callback": {
+      "signingIn": "Accesso in corso…",
+      "providerError": "L'accesso è stato annullato o non è riuscito: {error}",
+      "noToken": "Il provider di identità non ha restituito alcun token di accesso.",
+      "failed": "Impossibile completare l'accesso.",
+      "backToLogin": "Torna all'accesso"
+    }
   },
   "credential": {
     "title": "Credenziale",
@@ -113,7 +126,8 @@
       "not_revoked": "Non revocata",
       "not_expired": "Non scaduta",
       "issuer": "Emittente",
-      "structure": "Struttura"
+      "structure": "Struttura",
+      "validSignature": "Firma valida"
     },
     "issue": "Emetti credenziale",
     "revoke": "Revoca credenziale",
@@ -122,7 +136,54 @@
     "revokeReason": "Motivo della revoca",
     "revokeSuccess": "Credenziale revocata con successo",
     "renewSuccess": "Credenziale rinnovata con successo",
-    "issueSuccess": "Credenziale emessa con successo"
+    "issueSuccess": "Credenziale emessa con successo",
+    "addToLinkedInAria": "Aggiungi questa credenziale al tuo profilo LinkedIn",
+    "linkedInButtonAlt": "Aggiungi al profilo LinkedIn",
+    "errorLoading": "Errore durante il caricamento della credenziale",
+    "fetchFailed": "Impossibile verificare o recuperare la credenziale",
+    "allChecksPassed": "Tutti i controlli di verifica sono stati superati.",
+    "refreshVerification": "Ripeti la verifica",
+    "verificationChecks": "Controlli di verifica",
+    "checkStatus": {
+      "passed": "Superato",
+      "warning": "Avviso",
+      "failed": "Non superato"
+    },
+    "checkDescriptions": {
+      "not_revoked": "Questa credenziale non è stata revocata dall'emittente",
+      "not_expired": "Questa credenziale è nel suo periodo di validità",
+      "proof": "Firma crittografica verificata correttamente",
+      "completed": "Controllo completato",
+      "failed": "Controllo non superato"
+    },
+    "expiredTitle": "Questa credenziale è scaduta",
+    "expiresInDay": "Scade tra 1 giorno",
+    "expiresInDays": "Scade tra {days} giorni",
+    "expiredHelp": "Questa credenziale non è più valida. Contatta l'emittente per rinnovarla.",
+    "expiringSoonHelp": "Valuta di chiedere presto all'emittente di rinnovare questa credenziale.",
+    "newExpirationDate": "Nuova data di scadenza:",
+    "renewing": "Rinnovo in corso…",
+    "renewFailed": "Rinnovo non riuscito",
+    "idUnavailable": "ID della credenziale non disponibile",
+    "downloadImage": "Scarica immagine",
+    "unnamed": "Credenziale senza nome",
+    "imageAlt": "Immagine della credenziale",
+    "unknown": "Sconosciuta",
+    "awardedTo": "Assegnata a",
+    "issuedBy": "Emessa da",
+    "visitWebsite": "Visita il sito",
+    "verifyLabel": "Verifica",
+    "qrAlt": "Codice QR che porta alla pagina di verifica di questa credenziale",
+    "evidence": "Evidenze",
+    "shareText": "Guarda la mia credenziale: {name}",
+    "seo": {
+      "title": "Dettagli della credenziale",
+      "descriptionWithRecipient": "Visualizza e verifica «{name}», assegnata a {recipient} ed emessa da {issuer} tramite {brand}.",
+      "description": "Visualizza e verifica «{name}», emessa da {issuer} tramite {brand}.",
+      "descriptionGeneric": "Visualizza e verifica questa credenziale digitale emessa tramite {brand}.",
+      "imageAlt": "{name}: credenziale verificata",
+      "imageAltGeneric": "Credenziale {brand}"
+    }
   },
   "achievement": {
     "title": "Traguardo",
@@ -133,7 +194,11 @@
     "criteria": "Criteri",
     "description": "Descrizione",
     "name": "Nome",
-    "type": "Tipo"
+    "type": "Tipo",
+    "details": "Dettagli del risultato",
+    "alignments": "Allineamenti",
+    "learnMore": "Scopri di più",
+    "criteriaNotSpecified": "Criteri non specificati"
   },
   "verification": {
     "title": "Verifica una credenziale",
@@ -159,7 +224,13 @@
     "loading": "Caricamento...",
     "error": "Errore durante il caricamento",
     "yourCredentials": "Le tue credenziali",
-    "noCredentials": "Nessuna credenziale trovata"
+    "noCredentials": "Nessuna credenziale trovata",
+    "seoDescription": "Il tuo pannello: gestisci le credenziali digitali ricevute ed emesse",
+    "loadFailed": "Impossibile caricare i dati del pannello. Riprova.",
+    "noReceivedYet": "Non hai ancora ricevuto credenziali.",
+    "noIssuedYet": "Non hai ancora emesso credenziali.",
+    "issueNew": "Emetti nuova",
+    "issueFirst": "Emetti la tua prima credenziale"
   },
   "errors": {
     "notFound": "Pagina non trovata",
@@ -178,9 +249,21 @@
       "privacy": "Privacy policy",
       "terms": "Termini di servizio",
       "github": "GitHub",
-      "docs": "Documentazione"
+      "docs": "Documentazione",
+      "home": "Home",
+      "dashboard": "Pannello",
+      "verify": "Verifica credenziali",
+      "linkedin": "Guida a LinkedIn",
+      "privacyNotice": "Informativa sulla privacy",
+      "termsConditions": "Termini e condizioni"
     },
-    "rights": "Tutti i diritti riservati"
+    "rights": "Tutti i diritti riservati",
+    "description": "Emetti, verifica e condividi credenziali digitali con lo standard Open Badges.",
+    "linksTitle": "Link",
+    "legal": "Note legali",
+    "builtOn": "Basato su",
+    "license": "(software libero, AGPL-3.0) —",
+    "sourceCode": "codice sorgente"
   },
   "language": {
     "label": "Lingua",
@@ -251,7 +334,10 @@
     "section3Header": "Esporta e invia i certificati emessi",
     "section3Feature1": "Invia automaticamente e-mail con certificati PDF",
     "section3Feature2": "Esporta certificati nei formati PNG, JPG e SVG",
-    "section3Feature3": "Gestisci i certificati emessi"
+    "section3Feature3": "Gestisci i certificati emessi",
+    "ob3Feature1": "Credenziali digitali verificabili",
+    "ob3Feature2": "Portabili tra piattaforme",
+    "ob3Feature3": "Protette da crittografia"
   },
   "getStarted": {
     "title": "Inizia",
@@ -259,5 +345,88 @@
     "step1": "Passaggio 1",
     "step2": "Passaggio 2",
     "step3": "Passaggio 3"
+  },
+  "app": {
+    "title": "Piattaforma di credenziali digitali",
+    "description": "Piattaforma di credenziali digitali. Emetti, verifica e condividi certificati con lo standard Open Badges."
+  },
+  "a11y": {
+    "skipToContent": "Vai al contenuto principale",
+    "toggleMenu": "Apri o chiudi il menu"
+  },
+  "verifyPage": {
+    "seoDescription": "Verifica i tuoi badge con {brand}",
+    "ob3Desc": "Open Badges 3.0 è uno standard aperto per le credenziali digitali, non legato a nessuna piattaforma od organizzazione.",
+    "instantTitle": "Risultati immediati",
+    "instantDesc": "Ottieni subito il risultato della verifica con i dettagli della credenziale",
+    "formatsTitle": "Più formati",
+    "formatsDesc": "Supporto per vari formati, tra cui Open Badges e Verifiable Credentials",
+    "faqTitle": "Domande frequenti",
+    "faq": {
+      "q1": "Come funziona la verifica?",
+      "a1": "Il sistema controlla la firma digitale e i metadati della credenziale secondo lo standard Open Badges 3.0, garantendo che sia autentica, integra ed emessa da un ente legittimo.",
+      "q2": "Quali credenziali posso verificare?",
+      "a2": "Puoi verificare qualsiasi credenziale digitale emessa tramite {brand}, inclusi Open Badges 3.0 e altre credenziali verificabili compatibili.",
+      "q3": "La verifica è sicura?",
+      "a3": "Sì. Lo standard Open Badges 3.0 rende rilevabile ogni alterazione e verificabile ogni credenziale. I dati sono trattati in modo sicuro e trasparente.",
+      "q4": "Quanto dura la verifica?",
+      "a4": "Quasi sempre immediata: il sistema controlla autenticità e validità con il protocollo Open Badges 3.0 e mostra il risultato in pochi secondi.",
+      "q5": "Quali informazioni mostra il risultato?",
+      "a5": "Il risultato include stato, emittente, data di emissione, data di scadenza (se presente) e la prova Open Badges 3.0. Se disponibile, puoi vedere anche il dettaglio completo."
+    }
+  },
+  "verifier": {
+    "title": "Verifica credenziale",
+    "subtitle": "Verifica l'autenticità di una credenziale o di un badge",
+    "byId": "Per ID",
+    "byJson": "Da file JSON",
+    "idLabel": "ID o hash della credenziale",
+    "idPlaceholder": "Inserisci l'ID o l'hash",
+    "jsonLabel": "File JSON della credenziale",
+    "uploadFile": "Carica un file",
+    "dragDrop": "o trascinalo qui",
+    "supportedFiles": "Supporta file JSON con Open Badges o Verifiable Credentials",
+    "selected": "Selezionato: {name}",
+    "verified": "Credenziale verificata",
+    "failed": "Verifica non riuscita",
+    "issuer": "Emittente",
+    "issueDate": "Data di emissione",
+    "expiryDate": "Data di scadenza",
+    "id": "ID",
+    "unknownIssuer": "Emittente sconosciuto",
+    "errors": {
+      "invalidFileType": "Carica un file JSON valido.",
+      "invalidJsonFile": "File JSON non valido.",
+      "idRequired": "Inserisci l'identificativo della credenziale",
+      "jsonRequired": "Inserisci il JSON della credenziale",
+      "verifyFailed": "Impossibile verificare la credenziale. Controlla l'identificativo e riprova.",
+      "invalidJsonFormat": "Formato JSON non valido. Controlla il contenuto.",
+      "validateFailed": "Impossibile convalidare la credenziale."
+    }
+  },
+  "certificateCard": {
+    "unknownAchievement": "Risultato sconosciuto",
+    "noDescription": "Nessuna descrizione",
+    "unknownIssuer": "Emittente sconosciuto",
+    "unknownRecipient": "Destinatario sconosciuto",
+    "unknownDate": "Sconosciuta",
+    "actions": "Azioni",
+    "view": "Vedi credenziale",
+    "downloadBadge": "Scarica badge",
+    "downloadCertificate": "Scarica certificato",
+    "copyLink": "Copia link di verifica",
+    "exporting": "Esportazione...",
+    "exportJson": "Esporta in JSON",
+    "linkCopiedTitle": "Link copiato!",
+    "linkCopiedBody": "Il link della credenziale è stato copiato negli appunti.",
+    "copyFailedTitle": "Copia non riuscita",
+    "copyFailedBody": "Impossibile copiare il link della credenziale.",
+    "badgeImageAlt": "Immagine del badge"
+  },
+  "errorPage": {
+    "notFound": "Pagina non trovata",
+    "generic": "Ops! Qualcosa è andato storto",
+    "genericMessage": "Si è verificato un errore imprevisto. Riprova più tardi.",
+    "home": "Torna alla home"
   }
 }

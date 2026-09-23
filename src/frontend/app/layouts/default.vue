@@ -1,10 +1,14 @@
+<script setup lang="ts">
+const { t } = useI18n()
+</script>
+
 <template>
   <div class="min-h-screen flex flex-col bg-gradient-to-b from-white to-[#FFE5AE]/20">
     <a
       href="#main-content"
       class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-3 focus:text-text-primary focus:shadow-lg"
     >
-      Skip to main content
+      {{ t('a11y.skipToContent') }}
     </a>
 
     <!-- Navigation -->

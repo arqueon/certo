@@ -10,7 +10,8 @@
     "learnMore": "Saiba mais",
     "about": "Sobre",
     "home": "Início",
-    "issue": "Emitir"
+    "issue": "Emitir",
+    "docs": "Documentação"
   },
   "common": {
     "loading": "Carregando...",
@@ -72,7 +73,19 @@
     "alreadyHaveAccount": "Já tem uma conta?",
     "orContinueWith": "ou continue com",
     "signInWithInstitution": "Entrar com a sua conta {brand}",
-    "signInWithLocalAccount": "Entrar com email e palavra-passe"
+    "signInWithLocalAccount": "Entrar com email e palavra-passe",
+    "seoDescription": "Entre para acessar suas credenciais e seu painel.",
+    "emailPlaceholder": "Digite seu e-mail",
+    "passwordPlaceholder": "Digite sua senha",
+    "notReady": "O sistema de acesso ainda não está pronto. Tente novamente em instantes.",
+    "loginFailed": "Não foi possível entrar. Tente novamente.",
+    "callback": {
+      "signingIn": "Entrando…",
+      "providerError": "O login foi cancelado ou falhou: {error}",
+      "noToken": "O provedor de identidade não retornou um token de acesso.",
+      "failed": "Não foi possível concluir o login.",
+      "backToLogin": "Voltar ao login"
+    }
   },
   "credential": {
     "title": "Credencial",
@@ -113,7 +126,8 @@
       "not_revoked": "Não revogada",
       "not_expired": "Não vencida",
       "issuer": "Emissor",
-      "structure": "Estrutura"
+      "structure": "Estrutura",
+      "validSignature": "Assinatura válida"
     },
     "issue": "Emitir credencial",
     "revoke": "Revogar credencial",
@@ -122,7 +136,54 @@
     "revokeReason": "Motivo da revogação",
     "revokeSuccess": "Credencial revogada com sucesso",
     "renewSuccess": "Credencial renovada com sucesso",
-    "issueSuccess": "Credencial emitida com sucesso"
+    "issueSuccess": "Credencial emitida com sucesso",
+    "addToLinkedInAria": "Adicionar esta credencial ao seu perfil do LinkedIn",
+    "linkedInButtonAlt": "Adicionar ao perfil do LinkedIn",
+    "errorLoading": "Erro ao carregar a credencial",
+    "fetchFailed": "Não foi possível verificar ou obter a credencial",
+    "allChecksPassed": "Todas as verificações foram concluídas com sucesso.",
+    "refreshVerification": "Verificar novamente",
+    "verificationChecks": "Verificações",
+    "checkStatus": {
+      "passed": "Aprovada",
+      "warning": "Aviso",
+      "failed": "Reprovada"
+    },
+    "checkDescriptions": {
+      "not_revoked": "Esta credencial não foi revogada pelo emissor",
+      "not_expired": "Esta credencial está dentro do período de validade",
+      "proof": "Assinatura criptográfica verificada com sucesso",
+      "completed": "Verificação concluída",
+      "failed": "A verificação falhou"
+    },
+    "expiredTitle": "Esta credencial expirou",
+    "expiresInDay": "Expira em 1 dia",
+    "expiresInDays": "Expira em {days} dias",
+    "expiredHelp": "Esta credencial não é mais válida. Entre em contato com o emissor para renová-la.",
+    "expiringSoonHelp": "Considere pedir ao emissor que renove esta credencial em breve.",
+    "newExpirationDate": "Nova data de expiração:",
+    "renewing": "Renovando…",
+    "renewFailed": "Falha na renovação",
+    "idUnavailable": "ID da credencial indisponível",
+    "downloadImage": "Baixar imagem",
+    "unnamed": "Credencial sem nome",
+    "imageAlt": "Imagem da credencial",
+    "unknown": "Desconhecida",
+    "awardedTo": "Concedida a",
+    "issuedBy": "Emitida por",
+    "visitWebsite": "Visitar site",
+    "verifyLabel": "Verificar",
+    "qrAlt": "Código QR que leva à página de verificação desta credencial",
+    "evidence": "Evidências",
+    "shareText": "Veja minha credencial: {name}",
+    "seo": {
+      "title": "Detalhes da credencial",
+      "descriptionWithRecipient": "Veja e verifique \"{name}\", concedida a {recipient} e emitida por {issuer} via {brand}.",
+      "description": "Veja e verifique \"{name}\", emitida por {issuer} via {brand}.",
+      "descriptionGeneric": "Veja e verifique esta credencial digital emitida via {brand}.",
+      "imageAlt": "{name}: credencial verificada",
+      "imageAltGeneric": "Credencial {brand}"
+    }
   },
   "achievement": {
     "title": "Conquista",
@@ -133,7 +194,11 @@
     "criteria": "Critérios",
     "description": "Descrição",
     "name": "Nome",
-    "type": "Tipo"
+    "type": "Tipo",
+    "details": "Detalhes da conquista",
+    "alignments": "Alinhamentos",
+    "learnMore": "Saiba mais",
+    "criteriaNotSpecified": "Critérios não especificados"
   },
   "verification": {
     "title": "Verificar uma credencial",
@@ -159,7 +224,13 @@
     "loading": "Carregando...",
     "error": "Erro ao carregar",
     "yourCredentials": "Suas credenciais",
-    "noCredentials": "Nenhuma credencial encontrada"
+    "noCredentials": "Nenhuma credencial encontrada",
+    "seoDescription": "Seu painel: gerencie as credenciais digitais recebidas e emitidas",
+    "loadFailed": "Não foi possível carregar o painel. Tente novamente.",
+    "noReceivedYet": "Você ainda não recebeu credenciais.",
+    "noIssuedYet": "Você ainda não emitiu credenciais.",
+    "issueNew": "Emitir nova",
+    "issueFirst": "Emita sua primeira credencial"
   },
   "errors": {
     "notFound": "Página não encontrada",
@@ -178,9 +249,21 @@
       "privacy": "Política de privacidade",
       "terms": "Termos de serviço",
       "github": "GitHub",
-      "docs": "Documentação"
+      "docs": "Documentação",
+      "home": "Início",
+      "dashboard": "Painel",
+      "verify": "Verificar credenciais",
+      "linkedin": "Guia do LinkedIn",
+      "privacyNotice": "Aviso de privacidade",
+      "termsConditions": "Termos e condições"
     },
-    "rights": "Todos os direitos reservados"
+    "rights": "Todos os direitos reservados",
+    "description": "Emita, verifique e compartilhe credenciais digitais com o padrão Open Badges.",
+    "linksTitle": "Links",
+    "legal": "Legal",
+    "builtOn": "Construído sobre",
+    "license": "(software livre, AGPL-3.0) —",
+    "sourceCode": "código-fonte"
   },
   "language": {
     "label": "Idioma",
@@ -251,7 +334,10 @@
     "section3Header": "Exporte e envie os certificados emitidos",
     "section3Feature1": "Envie e-mails com certificados PDF automaticamente",
     "section3Feature2": "Exporte certificados nos formatos PNG, JPG e SVG",
-    "section3Feature3": "Gerencie os certificados emitidos"
+    "section3Feature3": "Gerencie os certificados emitidos",
+    "ob3Feature1": "Credenciais digitais verificáveis",
+    "ob3Feature2": "Portáveis entre plataformas",
+    "ob3Feature3": "Protegidas por criptografia"
   },
   "getStarted": {
     "title": "Começar",
@@ -259,5 +345,88 @@
     "step1": "Etapa 1",
     "step2": "Etapa 2",
     "step3": "Etapa 3"
+  },
+  "app": {
+    "title": "Plataforma de credenciais digitais",
+    "description": "Plataforma de credenciais digitais. Emita, verifique e compartilhe certificados com o padrão Open Badges."
+  },
+  "a11y": {
+    "skipToContent": "Pular para o conteúdo principal",
+    "toggleMenu": "Abrir ou fechar o menu"
+  },
+  "verifyPage": {
+    "seoDescription": "Verifique seus badges com {brand}",
+    "ob3Desc": "Open Badges 3.0 é um padrão aberto para credenciais digitais, sem vínculo com nenhuma plataforma ou organização específica.",
+    "instantTitle": "Resultados imediatos",
+    "instantDesc": "Obtenha na hora o resultado da verificação com os detalhes da credencial",
+    "formatsTitle": "Vários formatos",
+    "formatsDesc": "Suporte a vários formatos, incluindo Open Badges e Verifiable Credentials",
+    "faqTitle": "Perguntas frequentes",
+    "faq": {
+      "q1": "Como funciona a verificação?",
+      "a1": "O sistema confere a assinatura digital e os metadados da credencial conforme o padrão Open Badges 3.0, garantindo que ela é autêntica, não foi alterada e foi emitida por uma instituição legítima.",
+      "q2": "Quais credenciais posso verificar?",
+      "a2": "Você pode verificar qualquer credencial digital emitida via {brand}, incluindo Open Badges 3.0 e outras credenciais verificáveis compatíveis.",
+      "q3": "A verificação é segura?",
+      "a3": "Sim. O padrão Open Badges 3.0 torna qualquer alteração detectável e cada credencial verificável. Os dados são tratados de forma segura e transparente.",
+      "q4": "Quanto tempo leva a verificação?",
+      "a4": "Quase sempre imediata: o sistema confere autenticidade e validade com o protocolo Open Badges 3.0 e mostra o resultado em segundos.",
+      "q5": "Que informações o resultado mostra?",
+      "a5": "O resultado inclui o status, o emissor, a data de emissão, a de expiração (se houver) e a prova Open Badges 3.0. Quando disponível, também é possível ver os detalhes completos."
+    }
+  },
+  "verifier": {
+    "title": "Verificar credencial",
+    "subtitle": "Verifique a autenticidade de uma credencial ou badge",
+    "byId": "Por ID",
+    "byJson": "Por arquivo JSON",
+    "idLabel": "ID ou hash da credencial",
+    "idPlaceholder": "Digite o ID ou hash",
+    "jsonLabel": "Arquivo JSON da credencial",
+    "uploadFile": "Enviar um arquivo",
+    "dragDrop": "ou arraste e solte",
+    "supportedFiles": "Aceita arquivos JSON com Open Badges ou Verifiable Credentials",
+    "selected": "Selecionado: {name}",
+    "verified": "Credencial verificada",
+    "failed": "Falha na verificação",
+    "issuer": "Emissor",
+    "issueDate": "Data de emissão",
+    "expiryDate": "Data de expiração",
+    "id": "ID",
+    "unknownIssuer": "Emissor desconhecido",
+    "errors": {
+      "invalidFileType": "Envie um arquivo JSON válido.",
+      "invalidJsonFile": "Arquivo JSON inválido.",
+      "idRequired": "Digite o identificador da credencial",
+      "jsonRequired": "Informe o JSON da credencial",
+      "verifyFailed": "Não foi possível verificar a credencial. Confira o identificador e tente novamente.",
+      "invalidJsonFormat": "Formato JSON inválido. Confira o conteúdo.",
+      "validateFailed": "Não foi possível validar a credencial."
+    }
+  },
+  "certificateCard": {
+    "unknownAchievement": "Conquista desconhecida",
+    "noDescription": "Sem descrição",
+    "unknownIssuer": "Emissor desconhecido",
+    "unknownRecipient": "Destinatário desconhecido",
+    "unknownDate": "Desconhecida",
+    "actions": "Ações",
+    "view": "Ver credencial",
+    "downloadBadge": "Baixar badge",
+    "downloadCertificate": "Baixar certificado",
+    "copyLink": "Copiar link de verificação",
+    "exporting": "Exportando...",
+    "exportJson": "Exportar para JSON",
+    "linkCopiedTitle": "Link copiado!",
+    "linkCopiedBody": "O link da credencial foi copiado para a área de transferência.",
+    "copyFailedTitle": "Falha ao copiar",
+    "copyFailedBody": "Não foi possível copiar o link da credencial.",
+    "badgeImageAlt": "Imagem do badge"
+  },
+  "errorPage": {
+    "notFound": "Página não encontrada",
+    "generic": "Ops! Algo deu errado",
+    "genericMessage": "Ocorreu um erro inesperado. Tente novamente mais tarde.",
+    "home": "Voltar ao início"
   }
 }
