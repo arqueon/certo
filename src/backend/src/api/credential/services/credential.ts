@@ -5,6 +5,7 @@
 import { getNotificationProvider } from './notification-providers'
 import { channelAlerts } from './channel-alerts/index'
 import { credentialsIssuedTotal } from '../../../monitoring/metrics'
+import { normalizeResults } from '../../../utils/ob3-results'
 
 export default ({ strapi }) => ({
   /**
@@ -14,9 +15,15 @@ export default ({ strapi }) => ({
    * @param {Array} evidence - Optional evidence items
    * @param {string} expirationDate - Optional expiration date for the credential
    * @param {number} [actorId] - The users-permissions user id of the caller, for the audit log
+   * @param {string} [awardedDate] - When the learning was achieved, if not now
+   * @param {Object} [results] - Optional { resultDescription, result } per OB 3.0 (see utils/ob3-results)
    */
-  async issue(achievement, recipient, evidence = [], expirationDate = undefined, actorId = undefined, awardedDate = undefined) {
+  async issue(achievement, recipient, evidence = [], expirationDate = undefined, actorId = undefined, awardedDate = undefined, results = undefined) {
     try {
+      // Validated before anything is created: a result a verifier cannot
+      // resolve must fail the issue, not produce a half-meaningful credential.
+      const normalizedResults = normalizeResults(results?.resultDescription, results?.result)
+
       const recipientEntity = await this.findOrCreateRecipientProfile(recipient)
 
       // Find or create user associated with the profile
@@ -43,6 +50,11 @@ export default ({ strapi }) => ({
         // still verify. Only added when present, so credentials earned and
         // issued at the same time serialize exactly as they always have.
         ...(awardedDate ? { awardedDate: new Date(awardedDate) } : {}),
+        // Signed for the same reason as awardedDate: the level reached on
+        // each criterion is a claim about the learner, and the rubric it
+        // refers to is snapshotted here so later rubric versions cannot
+        // change what an existing credential says.
+        ...(normalizedResults ?? {}),
         ...(expirationDate ? { expirationDate: new Date(expirationDate) } : {})
       }
       // Generate cryptographic proof (JWS)
@@ -71,6 +83,7 @@ export default ({ strapi }) => ({
           statusList: statusListId,
           statusListIndex,
           ...(awardedDate ? { awardedDate: new Date(awardedDate) } : {}),
+          ...(normalizedResults ?? {}),
           ...(expirationDate ? { expirationDate: new Date(expirationDate) } : {})
         }
       })

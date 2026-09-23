@@ -92,6 +92,8 @@
     "issuedOn": "Emitida el",
     "awardedOn": "Logrado el",
     "awardedOnHelp": "Fecha en que se logró el aprendizaje, anterior a la emisión",
+    "results": "Resultados por criterio",
+    "resultsHelp": "Nivel alcanzado en cada criterio de la rúbrica con que se evaluó",
     "expiresOn": "Vence el",
     "viewCredential": "Ver credencial",
     "verifyCredential": "Verificar credencial",

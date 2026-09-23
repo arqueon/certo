@@ -279,6 +279,29 @@ const formattedAwardedDate = computed(() => {
   return formatAwardedDate(date)
 })
 
+// Level reached on each rubric criterion (OB 3.0 result + resultDescription).
+// Only credentials issued with results have them; the block stays hidden
+// otherwise. Each result is resolved against the rubric snapshot signed
+// into this same credential, so it reads the rubric the learner was
+// actually assessed with.
+const criterionResults = computed(() => {
+  const subject = credential.value?.credentialSubject
+  const results = subject?.result
+  const descriptions = subject?.achievement?.resultDescription
+  if (!Array.isArray(results) || !Array.isArray(descriptions)) return []
+  return results.map((r: any) => {
+    const description = descriptions.find((d: any) => d.id === r.resultDescription)
+    const levels = description?.rubricCriterionLevel || []
+    const achieved = levels.find((l: any) => l.id === r.achievedLevel)
+    return {
+      criterion: description?.name || r.resultDescription,
+      level: achieved?.name || r.value || r.status || '',
+      detail: achieved?.description || '',
+      position: achieved ? `${levels.indexOf(achieved) + 1} / ${levels.length}` : '',
+    }
+  })
+})
+
 const formattedExpirationDate = computed(() => {
   const date = credential.value?.expirationDate
   if (!date) return 'No expiration'
@@ -886,6 +909,37 @@ async function submitRenewal() {
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Results per criterion -->
+      <div
+        v-if="criterionResults.length"
+        class="mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
+      >
+        <h2 class="text-2xl font-semibold mb-1">
+          {{ t('credential.results') }}
+        </h2>
+        <p class="text-sm text-gray-500 mb-4">
+          {{ t('credential.resultsHelp') }}
+        </p>
+        <dl class="divide-y divide-gray-100">
+          <div
+            v-for="(item, index) in criterionResults"
+            :key="index"
+            class="py-3 grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-4"
+          >
+            <dt class="text-sm font-medium text-gray-700">
+              {{ item.criterion }}
+            </dt>
+            <dd class="md:col-span-2">
+              <span class="font-medium">{{ item.level }}</span>
+              <span v-if="item.position" class="ml-2 text-xs text-gray-400">{{ item.position }}</span>
+              <p v-if="item.detail" class="mt-0.5 text-sm text-gray-500">
+                {{ item.detail }}
+              </p>
+            </dd>
+          </div>
+        </dl>
       </div>
 
       <!-- Achievement Details -->

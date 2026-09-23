@@ -92,6 +92,8 @@
     "issuedOn": "Ausgestellt am",
     "awardedOn": "Erreicht am",
     "awardedOnHelp": "Wann das Lernergebnis erreicht wurde, vor der Ausstellung",
+    "results": "Ergebnisse nach Kriterium",
+    "resultsHelp": "Erreichte Stufe in jedem Kriterium des verwendeten Bewertungsrasters",
     "expiresOn": "Läuft ab am",
     "viewCredential": "Nachweis anzeigen",
     "verifyCredential": "Nachweis verifizieren",

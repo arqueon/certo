@@ -529,6 +529,8 @@ export interface ApiCredentialCredential extends Struct.CollectionTypeSchema {
     proof: Schema.Attribute.Component<'badge.proof', true>;
     publishedAt: Schema.Attribute.DateTime;
     recipient: Schema.Attribute.Relation<'manyToOne', 'api::profile.profile'>;
+    result: Schema.Attribute.JSON;
+    resultDescription: Schema.Attribute.JSON;
     revocationReason: Schema.Attribute.Text;
     revoked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
     statusList: Schema.Attribute.Relation<
