@@ -451,6 +451,15 @@ export default ({ strapi }) => ({
           achievement: {
             id: `${baseUrl}/api/achievements/${credential.achievement.id}`,
             type: ['Achievement'],
+            // What kind of achievement this is (OB 3.0 achievementType:
+            // MicroCredential, Course, Diploma, CertificateOfCompletion...).
+            // Stored on the achievement but never serialized before, so a
+            // course and a micro-credential looked identical to a verifier.
+            // Omitted when it is the generic default, so existing
+            // credentials keep serializing as they did.
+            ...(credential.achievement.achievementType && credential.achievement.achievementType !== 'Achievement'
+              ? { achievementType: credential.achievement.achievementType }
+              : {}),
             name: credential.achievement.name,
             description: credential.achievement.description,
             image: credential.achievement.image ? {
