@@ -1,6 +1,9 @@
 import verificationService from '../verification'
 
-async function makeSignedProof(privateKey: any, payload: Record<string, unknown> = { hello: 'world' }) {
+// The signed payload is Certo's summary of the credential; by default it
+// matches the fixtures below (issuer 1), since verification now also checks
+// that the stored credential says what was signed.
+async function makeSignedProof(privateKey: any, payload: Record<string, unknown> = { issuer: 1 }) {
   const { SignJWT } = await import('jose')
   const jws = await new SignJWT(payload).setProtectedHeader({ alg: 'EdDSA' }).sign(privateKey)
   return {
@@ -38,6 +41,16 @@ describe('verification.verifyProof', () => {
 
     const result = await verificationService.verifyProof(credential)
     expect(result).toEqual({ valid: true })
+  })
+
+  it('rejects a stored credential that no longer says what was signed', async () => {
+    setFakeStrapi(async () => keypairA.publicKey)
+    const proof = await makeSignedProof(keypairA.privateKey, { issuer: 1, name: 'Datos abiertos' })
+    const credential: any = { proof: [proof], issuer: { id: 1 }, name: 'Nombre cambiado en la base' }
+
+    const result = await verificationService.verifyProof(credential)
+    expect(result.valid).toBe(false)
+    expect(result.message).toMatch(/name/)
   })
 
   it('rejects a tampered JWS', async () => {
