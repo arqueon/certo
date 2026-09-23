@@ -93,6 +93,8 @@
     "issuedOn": "Issued on",
     "awardedOn": "Achieved On",
     "awardedOnHelp": "When the learning was achieved, before the credential was issued",
+    "results": "Results by criterion",
+    "resultsHelp": "Level reached on each criterion of the rubric used for assessment",
     "expiresOn": "Expires on",
     "viewCredential": "View credential",
     "verifyCredential": "Verify credential",

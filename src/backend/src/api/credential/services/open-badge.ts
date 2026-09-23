@@ -442,6 +442,12 @@ export default ({ strapi }) => ({
           // above is when this document was signed. They differ whenever
           // something earned earlier is recognised later.
           ...(credential.awardedDate ? { awardedDate: credential.awardedDate } : {}),
+          // Per-criterion results, only when present. resultDescription is
+          // the rubric snapshot stored with this credential (see
+          // utils/ob3-results), not a live field of the achievement.
+          ...(Array.isArray(credential.result) && credential.result.length > 0
+            ? { result: credential.result }
+            : {}),
           achievement: {
             id: `${baseUrl}/api/achievements/${credential.achievement.id}`,
             type: ['Achievement'],
@@ -464,6 +470,9 @@ export default ({ strapi }) => ({
                   targetFramework: align.targetFramework,
                   targetCode: align.targetCode
                 })) }
+              : {}),
+            ...(Array.isArray(credential.resultDescription) && credential.resultDescription.length > 0
+              ? { resultDescription: credential.resultDescription }
               : {})
           }
         }
