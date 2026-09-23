@@ -4,6 +4,7 @@
 
 import { errors } from '@strapi/utils';
 import { credentialsVerifiedTotal } from '../../../monitoring/metrics';
+import { storedCredentialMismatches } from '../../../utils/signed-content';
 const { ApplicationError } = errors;
 
 // Define interface for credential with all required properties
@@ -28,6 +29,19 @@ interface CredentialWithRelations {
 /**
  * Verification service for Open Badges 3.0 credentials
  */
+/**
+ * A valid JWS only proves its own payload was signed. The stored credential
+ * must match that payload, or a change made in the database after signing
+ * (name, awarded date, per-criterion results...) would still verify.
+ */
+function signedContentCheck(payload: any, credential: any): { valid: boolean; message?: string } {
+  const mismatches = storedCredentialMismatches(payload, credential);
+  if (mismatches.length > 0) {
+    return { valid: false, message: `Signed content does not match the credential: ${mismatches.join(', ')}` };
+  }
+  return { valid: true };
+}
+
 export default {
   /**
    * Verify a credential's cryptographic proof
@@ -249,8 +263,8 @@ export default {
       const publicKey = await issuerKeys.getPublicKey(credential.issuer.id);
       if (publicKey) {
         try {
-          await jwtVerify(proof.jws, publicKey);
-          return { valid: true };
+          const { payload } = await jwtVerify(proof.jws, publicKey);
+          return signedContentCheck(payload, credential);
         } catch {
           // Not signed by the issuer's *current* key -- most likely signed
           // by a key that has since been rotated out. Don't fail yet: fall
@@ -307,8 +321,8 @@ export default {
       for (const key of profileKeys) {
         for (const candidate of await candidateKeysFor(key)) {
           try {
-            await jwtVerify(proof.jws, candidate);
-            return { valid: true };
+            const { payload } = await jwtVerify(proof.jws, candidate);
+            return signedContentCheck(payload, credential);
           } catch {
             // Try the next candidate key.
           }
