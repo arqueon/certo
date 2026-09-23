@@ -369,8 +369,7 @@ function formatAwardedDate(dateString: string) {
   })
 }
 
-// Fecha y hora en el idioma activo (es-MX: «22 de septiembre de 2026,
-// 21:07 CST»), no en el idioma del navegador.
+// Date and time in the active locale, not the browser's.
 function formatDate(dateString: string) {
   return formatLocaleDate(dateString, {
     year: 'numeric',
@@ -947,8 +946,8 @@ async function submitRenewal() {
             <h4 class="font-medium mb-2">
               {{ t('achievement.criteria') }}
             </h4>
-            <!-- El backend firma «Criteria not specified» cuando la ficha no
-                 trae criterios; se traduce solo al mostrarlo. -->
+            <!-- The backend signs "Criteria not specified" when an achievement
+                 has no criteria; it is translated only for display. -->
             <p>
               {{ credential.credentialSubject.achievement.criteria.narrative === 'Criteria not specified'
                 ? t('achievement.criteriaNotSpecified')

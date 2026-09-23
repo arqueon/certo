@@ -24,9 +24,9 @@ export const HEADER_NAV_LINKS = [
 ]
 export const HELLO_SH_MAIL = 'mailto:hello@schroedinger-hat.org'
 
-// Botón oficial «Agregar al perfil» de LinkedIn, en la variante de idioma que
-// LinkedIn publica para cada locale de la interfaz (es_LA no existe; se usa
-// es_ES).
+// LinkedIn's official "Add to profile" button, in the language variant
+// LinkedIn publishes for each interface locale (there is no es_LA; es_ES is
+// used).
 const LINKEDIN_BUTTON_LOCALES: Record<string, string> = {
   es: 'es_ES',
   en: 'en_US',

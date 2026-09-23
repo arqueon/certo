@@ -3,8 +3,8 @@ const websiteUrl = useWebsiteUrl()
 const { t } = useI18n()
 const branding = useBranding()
 const pageDescription = computed(() => t('verifyPage.seoDescription', { brand: branding.name }))
-// Los textos se leen de las traducciones en cada render (cambian con el
-// idioma); solo el estado abierto/cerrado vive aquí.
+// Texts are read from the translations on every render (they follow the
+// locale); only the open/closed state lives here.
 const faqOpen = ref<boolean[]>([false, false, false, false, false])
 const faqs = computed(() => [1, 2, 3, 4, 5].map(n => ({
   question: t(`verifyPage.faq.q${n}`),

@@ -40,7 +40,7 @@ const {
 const achievementName = achievement?.name || props.certificate.name || t('certificateCard.unknownAchievement')
 const achievementDescription = computed(() => description || achievement?.description || props.certificate.description || t('certificateCard.noDescription'))
 const issuerName = computed(() => issuer?.name || props.certificate.issuerName || t('certificateCard.unknownIssuer'))
-// Fecha en el idioma activo; computed para que siga al selector de idioma.
+// Date in the active locale; computed so it follows the language switcher.
 const formattedIssuanceDate = computed(() => formatLocaleDate(issuanceDate || issuedOn, {
   year: 'numeric',
   month: 'short',
