@@ -95,6 +95,18 @@ describe('Multi-Tenancy Service', () => {
       expect(result).toBe(false);
     });
 
+    it('populates owner, so a profile with an owner is never mistaken for a legacy one', async () => {
+      (global.strapi.entityService.findOne as jest.Mock).mockResolvedValue({ id: 1, owner: { id: 456 } });
+
+      await service.userOwnsProfile(123, 1);
+
+      expect(global.strapi.entityService.findOne).toHaveBeenCalledWith(
+        'api::profile.profile',
+        1,
+        expect.objectContaining({ populate: expect.arrayContaining(['owner']) }),
+      );
+    });
+
     it('should return true for a profile with no owner (legacy resource)', async () => {
       const mockProfile = { id: 1, name: 'Legacy Profile', owner: null };
 
