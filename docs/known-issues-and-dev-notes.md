@@ -55,10 +55,17 @@ several of them are the kind of thing that tends to silently regress.
    system in code.** `credential.issue` no longer sets
    `ctx.state.auth = { strategy: { name: 'public' } }` to disable the auth
    check — auth is enforced by the route config instead (mutating routes
-   use users-permissions). `achievement.create` and `createAchievement`
-   now call `super.create(ctx)` through the core controller (which enforces
-   Strapi RBAC) rather than calling `strapi.entityService.create()` directly
-   to bypass permission checks. All three actions continue to record an
+   use users-permissions). `achievement.create` now calls
+   `super.create(ctx)` through the core controller rather than calling
+   `strapi.entityService.create()` directly. Note that `super.create()`
+   alone does not enforce anything: Strapi checks permissions in the route,
+   so a route declared `auth: false` stays open whatever the controller
+   does. Until Sep 2026 the achievement router declared `auth: false` on
+   `create`/`update`/`delete`, plus a public `POST /achievements/create`
+   route (`createAchievement`) — anyone reaching the API could rewrite what
+   an issued credential asserts. Writes now require a users-permissions
+   session; `find`/`findOne` stay public, and the unused
+   `/achievements/create` route and its handler were removed. Both actions continue to record an
    `audit-log-entry` with the real caller's user ID, so "who did this" is
    recoverable — see [security.md](./security.md#authorization).
    Audit log coverage was also expanded (Aug 2026) to include

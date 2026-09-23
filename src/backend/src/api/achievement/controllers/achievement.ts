@@ -97,51 +97,6 @@ export default factories.createCoreController('api::achievement.achievement', ({
     }
   },
   
-  // Custom method for public creation of achievements
-  async createAchievement(ctx) {
-    try {
-      // Get the data from the request body
-      const { data } = ctx.request.body;
-      
-      // Handle empty tags by ensuring it's a valid JSON array
-      if (data.tags === '' || data.tags === undefined || data.tags === null) {
-        data.tags = [];
-      }
-
-      const creatorId = extraerCreator(data)
-
-      // Use the core controller's create which enforces Strapi RBAC
-      const response = await super.create(ctx);
-      const achievement = response.data ?? response;
-
-      await aplicarCreator(strapi, achievement.documentId, creatorId)
-      if (creatorId !== undefined) {
-        achievement.creator = creatorId
-      }
-
-      const auditLog = strapi.service('api::audit-log-entry.audit-log')
-      await auditLog.record({
-        action: 'achievement.create',
-        entityType: 'achievement',
-        entityId: achievement.id,
-        actorId: ctx.state.user?.id,
-        metadata: { name: achievement.name },
-      })
-      achievementsCreatedTotal.inc()
-
-      await strapi.service('api::webhook-subscription.dispatch').dispatch('achievement.created', {
-        achievementId: achievement.id,
-        name: achievement.name,
-        actorId: ctx.state.user?.id,
-      })
-      
-      return response;
-    } catch (error) {
-      console.error('Error in createAchievement:', error);
-      return ctx.badRequest('Failed to create achievement', { error: error.toString() });
-    }
-  },
-  
   // Custom method to find achievement with credentials
   async findWithCredentials(ctx) {
     try {
