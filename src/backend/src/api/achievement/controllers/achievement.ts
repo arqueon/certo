@@ -50,7 +50,49 @@ async function aplicarCreator(strapi: any, documentId: string, creatorId: number
   })
 }
 
+/**
+ * An achievement is what every credential pointing at it asserts, so only
+ * the owner of its issuer profile (creator) may create it under that
+ * issuer, change it or delete it. Unowned profiles stay open, as elsewhere.
+ */
+async function callerOwnsCreator(strapi: any, ctx: any, creatorId: number | string | undefined): Promise<boolean> {
+  if (creatorId === undefined || creatorId === null) return true
+  if (!ctx.state.user) return false
+  return strapi.service('api::profile.multi-tenancy').userOwnsProfile(ctx.state.user.id, Number(creatorId))
+}
+
+async function callerOwnsAchievement(strapi: any, ctx: any): Promise<boolean | null> {
+  const existing: any = await strapi.documents('api::achievement.achievement').findOne({
+    documentId: ctx.params.id,
+    populate: ['creator'],
+  })
+  if (!existing) return null
+  return callerOwnsCreator(strapi, ctx, existing.creator?.id)
+}
+
 export default factories.createCoreController('api::achievement.achievement', ({ strapi }) => ({
+  async update(ctx) {
+    const owns = await callerOwnsAchievement(strapi, ctx)
+    if (owns === null) return ctx.notFound('Achievement not found')
+    if (!owns) return ctx.forbidden('Only the owner of the issuer profile can change this achievement')
+
+    const data = ctx.request.body?.data || {}
+    const creatorId = extraerCreator(data)
+    if (!(await callerOwnsCreator(strapi, ctx, creatorId))) {
+      return ctx.forbidden('Cannot move an achievement to an issuer profile you do not own')
+    }
+    const response = await super.update(ctx)
+    await aplicarCreator(strapi, ctx.params.id, creatorId)
+    return response
+  },
+
+  async delete(ctx) {
+    const owns = await callerOwnsAchievement(strapi, ctx)
+    if (owns === null) return ctx.notFound('Achievement not found')
+    if (!owns) return ctx.forbidden('Only the owner of the issuer profile can delete this achievement')
+    return super.delete(ctx)
+  },
+
   // Custom controller method to handle creation with empty tags
   async create(ctx) {
     try {
@@ -63,6 +105,9 @@ export default factories.createCoreController('api::achievement.achievement', ({
       }
 
       const creatorId = extraerCreator(data)
+      if (!(await callerOwnsCreator(strapi, ctx, creatorId))) {
+        return ctx.forbidden('Cannot create an achievement under an issuer profile you do not own')
+      }
 
       // Use the core controller's create which enforces Strapi RBAC
       const response = await super.create(ctx);

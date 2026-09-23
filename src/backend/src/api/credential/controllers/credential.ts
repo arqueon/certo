@@ -39,6 +39,18 @@ interface Credential {
   proof?: any[]
 }
 
+/**
+ * The caller must own the issuer profile that signs: issuing, batch issuing
+ * and revoking use the issuer's private key or status list, so they are the
+ * issuer's decisions. Profiles without an owner stay open, as elsewhere
+ * (legacy resources, see multi-tenancy.userOwnsProfile).
+ */
+async function callerOwnsIssuer(ctx, issuerProfileId): Promise<boolean> {
+  if (!ctx.state.user) return false
+  if (!issuerProfileId) return false
+  return strapi.service('api::profile.multi-tenancy').userOwnsProfile(ctx.state.user.id, issuerProfileId)
+}
+
 export default factories.createCoreController('api::credential.credential', ({ strapi }) => ({
   /**
    * Custom method to issue a new Open Badge credential
@@ -76,6 +88,9 @@ export default factories.createCoreController('api::credential.credential', ({ s
 
       if (!achievement) {
         return ctx.notFound('Achievement not found')
+      }
+      if (!(await callerOwnsIssuer(ctx, (achievement as any).creator?.id))) {
+        return ctx.forbidden('Only the owner of the issuer profile can issue this achievement')
       }
 
       // Add recipient data if provided in the request
@@ -208,8 +223,14 @@ export default factories.createCoreController('api::credential.credential', ({ s
       }
 
       const existing: any = await strapi.entityService.findOne('api::credential.credential', id, {
-        populate: ['statusList'],
+        populate: ['statusList', 'issuer'],
       })
+      if (!existing) {
+        return ctx.notFound('Credential not found')
+      }
+      if (!(await callerOwnsIssuer(ctx, existing.issuer?.id))) {
+        return ctx.forbidden('Only the owner of the issuer profile can revoke this credential')
+      }
 
       // Update the credential to revoked status
       const updatedCredential = await strapi.entityService.update('api::credential.credential', id, {
@@ -617,6 +638,9 @@ export default factories.createCoreController('api::credential.credential', ({ s
       }
       if (!achievement.creator) {
         return ctx.badRequest('Achievement creator not found')
+      }
+      if (!(await callerOwnsIssuer(ctx, achievement.creator.id))) {
+        return ctx.forbidden('Only the owner of the issuer profile can issue this achievement')
       }
 
       const issuePromises = recipients.map(async (recipientData) => {

@@ -68,7 +68,11 @@ export default () => ({
    * Returns true if the user owns it, or if the profile has no owner (legacy resource).
    */
   async userOwnsProfile(userId: number, profileId: number): Promise<boolean> {
-    const profile = (await strapi.entityService.findOne('api::profile.profile', profileId)) as any;
+    // `owner` must be populated: without it profile.owner is always undefined,
+    // every profile looked "legacy" and this returned true for any user.
+    const profile = (await strapi.entityService.findOne('api::profile.profile', profileId, {
+      populate: ['owner'],
+    })) as any;
     if (!profile) return false;
     // Profiles without an owner are legacy resources — accessible to any authenticated user
     if (!profile.owner) return true;
@@ -80,8 +84,9 @@ export default () => ({
    * A profile with no owner is a legacy resource accessible to any authenticated user.
    */
   async userCanAccessCredential(userId: number, credentialId: number): Promise<boolean> {
+    // Same as above: the owners have to be populated to be compared at all.
     const credential = (await strapi.entityService.findOne('api::credential.credential', credentialId, {
-      populate: ['issuer', 'recipient'],
+      populate: { issuer: { populate: ['owner'] }, recipient: { populate: ['owner'] } },
     })) as any;
 
     if (!credential) return false;
