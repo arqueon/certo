@@ -3,6 +3,19 @@
  */
 
 import { resolveDidWeb } from '../../../utils/did-web';
+import { documentMismatches } from '../../../utils/signed-content'
+
+/**
+ * The document being verified must say what was signed: a valid JWS over a
+ * different payload does not vouch for this document.
+ */
+function documentCheck(payload: any, credential: any): { valid: boolean; message?: string } {
+  const mismatches = documentMismatches(payload, credential)
+  if (mismatches.length > 0) {
+    return { valid: false, message: `Signed content does not match the document: ${mismatches.join(', ')}` }
+  }
+  return { valid: true }
+}
 
 export default ({ strapi }) => ({
   /**
@@ -179,8 +192,8 @@ export default ({ strapi }) => ({
         if (publicKey) {
           const { jwtVerify } = await import('jose');
           try {
-            await jwtVerify(jws, publicKey);
-            return { valid: true };
+            const { payload } = await jwtVerify(jws, publicKey);
+            return documentCheck(payload, credential);
           } catch (verifyError) {
             return { valid: false, message: `Signature verification failed: ${verifyError.message}` };
           }
@@ -207,8 +220,8 @@ export default ({ strapi }) => ({
           const { jwtVerify } = await import('jose');
           for (const key of candidates) {
             try {
-              await jwtVerify(jws, key);
-              return { valid: true };
+              const { payload } = await jwtVerify(jws, key);
+              return documentCheck(payload, credential);
             } catch {
               // Try the next candidate key.
             }
@@ -234,8 +247,8 @@ export default ({ strapi }) => ({
         const { jwtVerify } = await import('jose');
         for (const key of candidates) {
           try {
-            await jwtVerify(jws, key);
-            return { valid: true };
+            const { payload } = await jwtVerify(jws, key);
+            return documentCheck(payload, credential);
           } catch {
             // Try the next candidate key.
           }
@@ -584,6 +597,15 @@ export default ({ strapi }) => ({
       if (existingCredential) {
         throw new Error('Credential already exists')
       }
+
+      // Imported credentials are someone else's claims: check the signature
+      // before storing anything, or a forged document would sit in the
+      // database looking like any other credential.
+      const validation = await this.validateExternalCredential(vcData)
+      if (!validation.verified) {
+        const failed = (validation.checks || []).filter((c) => c.result !== 'success').map((c) => c.check)
+        throw new Error(`Credential failed verification (${failed.join(', ') || 'unknown'})`)
+      }
       
       // Find or create the issuer profile
       let issuerId
@@ -595,6 +617,15 @@ export default ({ strapi }) => ({
         })
         
         if (existingIssuer) {
+          // A profile with signing keys issues here: its credentials are
+          // issued through this instance, never imported. Accepting one
+          // would let an import pose as a local issuance.
+          const localKeys = await strapi.db.query('api::issuer-key.issuer-key').count({
+            where: { profile: existingIssuer.id },
+          })
+          if (localKeys > 0) {
+            throw new Error('Credentials from a local issuer cannot be imported')
+          }
           issuerId = existingIssuer.id
         } else {
           // Create a new issuer profile
@@ -617,8 +648,10 @@ export default ({ strapi }) => ({
       const achievementData = vcData.credentialSubject?.achievement
       
       if (achievementData) {
+        // Only reuse an achievement of this same (external) issuer: matching
+        // on achievementId alone could hang the import on a local achievement.
         const existingAchievement = await strapi.db.query('api::achievement.achievement').findOne({
-          where: { achievementId: achievementData.id }
+          where: { achievementId: achievementData.id, creator: issuerId ?? null }
         })
         
         if (existingAchievement) {

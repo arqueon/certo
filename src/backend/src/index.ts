@@ -3,7 +3,7 @@ import { seedDevelopmentData } from './bootstrap/seed-data';
 import { setupPermissions } from './bootstrap/permissions-setup';
 import { warnIfDefaultAdminCredentials } from './bootstrap/default-credentials-warning';
 import { registerMonitoringRoutes } from './monitoring/routes';
-import { registerKeycloakProvider } from './bootstrap/keycloak-provider';
+import { registerKeycloakProvider, syncKeycloakGrantConfig } from './bootstrap/keycloak-provider';
 import { createEventBus } from './utils/event-bus';
 
 /**
@@ -37,6 +37,10 @@ export default {
    * run jobs, or perform some special logic.
    */
   async bootstrap({ strapi }) {
+    // The stored grant settings must follow the environment, not the other
+    // way round (see syncKeycloakGrantConfig).
+    await syncKeycloakGrantConfig(strapi);
+
     // Initialize event bus (in-memory by default, Redis can be configured via EVENT_BUS_PROVIDER=redis)
     const eventBus = await createEventBus({
       provider: process.env.EVENT_BUS_PROVIDER as 'memory' | 'redis' | undefined,

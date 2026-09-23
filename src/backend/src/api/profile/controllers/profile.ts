@@ -29,6 +29,21 @@ interface ProfileWithPublicKeys {
   }>
 }
 
+/**
+ * Whether the caller may list this profile's credentials: they own it, or it
+ * is their own recipient profile (same email). Stricter than
+ * userOwnsProfile(), which treats unowned profiles as open - recipient
+ * profiles are unowned, so that would let anyone list anyone's credentials.
+ */
+async function callerIsProfile(strapi: any, ctx: any, profileId: string | number): Promise<boolean | null> {
+  const user = ctx.state.user
+  if (!user) return false
+  const profile: any = await strapi.entityService.findOne('api::profile.profile', profileId, { populate: ['owner'] })
+  if (!profile) return null
+  if (profile.owner?.id === user.id) return true
+  return Boolean(profile.email && user.email && profile.email.toLowerCase() === user.email.toLowerCase())
+}
+
 export default factories.createCoreController('api::profile.profile', ({ strapi }) => ({
   // Custom controller methods for profile
 
@@ -251,6 +266,9 @@ export default factories.createCoreController('api::profile.profile', ({ strapi 
   async findIssuedCredentials(ctx) {
     try {
       const { id } = ctx.params
+      const allowed = await callerIsProfile(strapi, ctx, id)
+      if (allowed === null) return ctx.notFound('Profile not found')
+      if (!allowed) return ctx.forbidden('You can only list credentials of your own profile')
       
       const profile = await strapi.entityService.findOne('api::profile.profile', id, {
         status: 'published',
@@ -279,6 +297,9 @@ export default factories.createCoreController('api::profile.profile', ({ strapi 
   async findReceivedCredentials(ctx) {
     try {
       const { id } = ctx.params
+      const allowed = await callerIsProfile(strapi, ctx, id)
+      if (allowed === null) return ctx.notFound('Profile not found')
+      if (!allowed) return ctx.forbidden('You can only list credentials of your own profile')
       
       const profile = await strapi.entityService.findOne('api::profile.profile', id, {
         status: 'published',
