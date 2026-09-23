@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
 
-const { locale, locales, setLocale } = useI18n()
+const { t, locale, locales, setLocale } = useI18n()
 
 const availableLocales = computed(() =>
   (locales.value as Array<{ code: string; name: string }>).filter(l => l.code !== locale.value)
@@ -21,7 +21,7 @@ onClickOutside(dropdownRef, () => { isOpen.value = false })
   <div ref="dropdownRef" class="relative">
     <button
       class="flex items-center gap-1 px-2 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-      :aria-label="`Language: ${currentLocale?.name}`"
+      :aria-label="`${t('language.label')}: ${currentLocale?.name}`"
       @click="isOpen = !isOpen"
     >
       <span class="i-lucide-globe w-4 h-4" />

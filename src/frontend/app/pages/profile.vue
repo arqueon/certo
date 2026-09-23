@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import { apiClient } from '~/api/api-client'
 import { useAuthStore } from '~/stores/auth'
 
-const { t } = useI18n()
+const { t, intlLocale } = useI18n()
 interface UserProfile {
   id: string
   name: string
@@ -204,7 +204,7 @@ function handleDeleteAccount() {
 }
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(intlLocale.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'

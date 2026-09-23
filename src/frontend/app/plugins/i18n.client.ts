@@ -1,19 +1,27 @@
 /**
  * i18n client plugin — runs on first page load in the browser.
- * Reads the certo_locale cookie; if not set, detects the browser language
- * and sets the closest supported locale.
+ *
+ * El idioma inicial lo fija useI18n() (cookie LOCALE_COOKIE o, si no existe,
+ * el idioma por defecto de la instancia, español). La detección por idioma
+ * del navegador queda desactivada por defecto: en una instancia institucional
+ * la página debe verse igual para todos (un navegador en inglés no debe
+ * cambiarla) y así el HTML del servidor coincide con el del cliente. Se
+ * puede reactivar con NUXT_PUBLIC_DETECT_BROWSER_LOCALE=true.
  */
-import { LOCALES } from '~/composables/useI18n'
+import { LOCALE_COOKIE, LOCALES } from '~/composables/useI18n'
 
 export default defineNuxtPlugin(() => {
-  const { locale, setLocale } = useI18n()
+  const config = useRuntimeConfig()
+  if (String(config.public.detectBrowserLocale) !== 'true') return
+
+  const { setLocale } = useI18n()
 
   // Already have a saved preference
-  const cookie = useCookie('certo_locale')
+  const cookie = useCookie(LOCALE_COOKIE)
   if (cookie.value) return
 
   // Detect from navigator.languages
-  const preferred = navigator.languages ?? [navigator.language ?? 'en']
+  const preferred = navigator.languages ?? [navigator.language ?? '']
   const supportedCodes = LOCALES.map(l => l.code)
 
   for (const lang of preferred) {

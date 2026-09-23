@@ -7,12 +7,13 @@
 // /api/auth/:provider/callback. See docs/oauth-setup.md.
 const router = useRouter()
 const route = useRoute()
+const { t } = useI18n()
 
 const errorMessage = ref<string | null>(null)
 const isProcessing = ref(true)
 
 useHead({
-  title: 'Signing you in…'
+  title: () => t('auth.callback.signingIn')
 })
 
 onMounted(() => {
@@ -21,13 +22,13 @@ onMounted(() => {
     const providerError = route.query.error as string | undefined
 
     if (providerError) {
-      errorMessage.value = `Sign-in was cancelled or failed: ${providerError}`
+      errorMessage.value = t('auth.callback.providerError', { error: providerError })
       isProcessing.value = false
       return
     }
 
     if (!accessToken) {
-      errorMessage.value = 'No access token was returned by the identity provider.'
+      errorMessage.value = t('auth.callback.noToken')
       isProcessing.value = false
       return
     }
@@ -52,13 +53,13 @@ onMounted(() => {
         router.push('/dashboard')
       }
       else {
-        errorMessage.value = authStore.error || 'Failed to complete sign-in.'
+        errorMessage.value = authStore.error || t('auth.callback.failed')
         isProcessing.value = false
       }
     }
     catch (error) {
       console.error('OAuth callback error:', error)
-      errorMessage.value = 'Failed to complete sign-in.'
+      errorMessage.value = t('auth.callback.failed')
       isProcessing.value = false
     }
   }, 100)
@@ -75,12 +76,12 @@ onMounted(() => {
           </p>
         </div>
         <NuxtLink to="/login" class="text-[#5AB69F] underline">
-          Back to login
+          {{ t('auth.callback.backToLogin') }}
         </NuxtLink>
       </div>
       <div v-else-if="isProcessing">
         <p class="text-text-secondary">
-          Signing you in…
+          {{ t('auth.callback.signingIn') }}
         </p>
       </div>
     </div>

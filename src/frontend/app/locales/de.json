@@ -10,7 +10,8 @@
     "learnMore": "Mehr erfahren",
     "about": "Über",
     "home": "Startseite",
-    "issue": "Ausstellen"
+    "issue": "Ausstellen",
+    "docs": "Dokumentation"
   },
   "common": {
     "loading": "Laden...",
@@ -72,7 +73,19 @@
     "alreadyHaveAccount": "Sie haben bereits ein Konto?",
     "orContinueWith": "oder weiter mit",
     "signInWithInstitution": "Mit Ihrem {brand}-Konto anmelden",
-    "signInWithLocalAccount": "Mit E-Mail und Passwort anmelden"
+    "signInWithLocalAccount": "Mit E-Mail und Passwort anmelden",
+    "seoDescription": "Melden Sie sich an, um Ihre Nachweise und Ihr Dashboard zu sehen.",
+    "emailPlaceholder": "E-Mail-Adresse eingeben",
+    "passwordPlaceholder": "Passwort eingeben",
+    "notReady": "Die Anmeldung ist noch nicht bereit. Bitte gleich erneut versuchen.",
+    "loginFailed": "Anmeldung fehlgeschlagen. Bitte erneut versuchen.",
+    "callback": {
+      "signingIn": "Anmeldung läuft…",
+      "providerError": "Die Anmeldung wurde abgebrochen oder ist fehlgeschlagen: {error}",
+      "noToken": "Der Identitätsanbieter hat kein Zugriffstoken zurückgegeben.",
+      "failed": "Die Anmeldung konnte nicht abgeschlossen werden.",
+      "backToLogin": "Zurück zur Anmeldung"
+    }
   },
   "credential": {
     "title": "Nachweis",
@@ -113,7 +126,8 @@
       "not_revoked": "Nicht widerrufen",
       "not_expired": "Nicht abgelaufen",
       "issuer": "Aussteller",
-      "structure": "Struktur"
+      "structure": "Struktur",
+      "validSignature": "Gültige Signatur"
     },
     "issue": "Nachweis ausstellen",
     "revoke": "Nachweis widerrufen",
@@ -122,7 +136,54 @@
     "revokeReason": "Grund für den Widerruf",
     "revokeSuccess": "Nachweis erfolgreich widerrufen",
     "renewSuccess": "Nachweis erfolgreich erneuert",
-    "issueSuccess": "Nachweis erfolgreich ausgestellt"
+    "issueSuccess": "Nachweis erfolgreich ausgestellt",
+    "addToLinkedInAria": "Diesen Nachweis zu Ihrem LinkedIn-Profil hinzufügen",
+    "linkedInButtonAlt": "Zum LinkedIn-Profil hinzufügen",
+    "errorLoading": "Fehler beim Laden des Nachweises",
+    "fetchFailed": "Der Nachweis konnte nicht geprüft oder abgerufen werden",
+    "allChecksPassed": "Alle Prüfungen wurden erfolgreich bestanden.",
+    "refreshVerification": "Erneut prüfen",
+    "verificationChecks": "Prüfungen",
+    "checkStatus": {
+      "passed": "Bestanden",
+      "warning": "Warnung",
+      "failed": "Fehlgeschlagen"
+    },
+    "checkDescriptions": {
+      "not_revoked": "Dieser Nachweis wurde vom Aussteller nicht widerrufen",
+      "not_expired": "Dieser Nachweis ist innerhalb seiner Gültigkeitsdauer",
+      "proof": "Kryptografische Signatur erfolgreich geprüft",
+      "completed": "Prüfung abgeschlossen",
+      "failed": "Prüfung fehlgeschlagen"
+    },
+    "expiredTitle": "Dieser Nachweis ist abgelaufen",
+    "expiresInDay": "Läuft in 1 Tag ab",
+    "expiresInDays": "Läuft in {days} Tagen ab",
+    "expiredHelp": "Dieser Nachweis ist nicht mehr gültig. Wenden Sie sich zur Verlängerung an den Aussteller.",
+    "expiringSoonHelp": "Bitten Sie den Aussteller bald um eine Verlängerung dieses Nachweises.",
+    "newExpirationDate": "Neues Ablaufdatum:",
+    "renewing": "Wird verlängert…",
+    "renewFailed": "Verlängerung fehlgeschlagen",
+    "idUnavailable": "Nachweis-ID nicht verfügbar",
+    "downloadImage": "Bild herunterladen",
+    "unnamed": "Unbenannter Nachweis",
+    "imageAlt": "Bild des Nachweises",
+    "unknown": "Unbekannt",
+    "awardedTo": "Verliehen an",
+    "issuedBy": "Ausgestellt von",
+    "visitWebsite": "Website besuchen",
+    "verifyLabel": "Prüfen",
+    "qrAlt": "QR-Code zur Prüfseite dieses Nachweises",
+    "evidence": "Nachweise",
+    "shareText": "Mein Nachweis: {name}",
+    "seo": {
+      "title": "Details zum Nachweis",
+      "descriptionWithRecipient": "„{name}“ ansehen und prüfen – verliehen an {recipient}, ausgestellt von {issuer} über {brand}.",
+      "description": "„{name}“ ansehen und prüfen – ausgestellt von {issuer} über {brand}.",
+      "descriptionGeneric": "Diesen über {brand} ausgestellten digitalen Nachweis ansehen und prüfen.",
+      "imageAlt": "{name}: geprüfter Nachweis",
+      "imageAltGeneric": "{brand}-Nachweis"
+    }
   },
   "achievement": {
     "title": "Auszeichnung",
@@ -133,7 +194,11 @@
     "criteria": "Kriterien",
     "description": "Beschreibung",
     "name": "Name",
-    "type": "Typ"
+    "type": "Typ",
+    "details": "Details zur Leistung",
+    "alignments": "Zuordnungen",
+    "learnMore": "Mehr erfahren",
+    "criteriaNotSpecified": "Keine Kriterien angegeben"
   },
   "verification": {
     "title": "Nachweis verifizieren",
@@ -159,7 +224,13 @@
     "loading": "Lädt...",
     "error": "Fehler beim Laden",
     "yourCredentials": "Ihre Anmeldeinformationen",
-    "noCredentials": "Keine Anmeldeinformationen gefunden"
+    "noCredentials": "Keine Anmeldeinformationen gefunden",
+    "seoDescription": "Ihr Dashboard: erhaltene und ausgestellte digitale Nachweise verwalten",
+    "loadFailed": "Dashboard-Daten konnten nicht geladen werden. Bitte erneut versuchen.",
+    "noReceivedYet": "Sie haben noch keine Nachweise erhalten.",
+    "noIssuedYet": "Sie haben noch keine Nachweise ausgestellt.",
+    "issueNew": "Neu ausstellen",
+    "issueFirst": "Ersten Nachweis ausstellen"
   },
   "errors": {
     "notFound": "Seite nicht gefunden",
@@ -178,9 +249,21 @@
       "privacy": "Datenschutzrichtlinie",
       "terms": "Nutzungsbedingungen",
       "github": "GitHub",
-      "docs": "Dokumentation"
+      "docs": "Dokumentation",
+      "home": "Startseite",
+      "dashboard": "Dashboard",
+      "verify": "Nachweise prüfen",
+      "linkedin": "LinkedIn-Anleitung",
+      "privacyNotice": "Datenschutzhinweis",
+      "termsConditions": "Nutzungsbedingungen"
     },
-    "rights": "Alle Rechte vorbehalten"
+    "rights": "Alle Rechte vorbehalten",
+    "description": "Digitale Nachweise nach dem Open-Badges-Standard ausstellen, prüfen und teilen.",
+    "linksTitle": "Links",
+    "legal": "Rechtliches",
+    "builtOn": "Basiert auf",
+    "license": "(freie Software, AGPL-3.0) —",
+    "sourceCode": "Quellcode"
   },
   "language": {
     "label": "Sprache",
@@ -251,7 +334,10 @@
     "section3Header": "Ausgestellte Zertifikate exportieren & versenden",
     "section3Feature1": "E-Mails mit PDF-Zertifikaten automatisch senden",
     "section3Feature2": "Zertifikate in PNG-, JPG- und SVG-Format exportieren",
-    "section3Feature3": "Ausgestellte Zertifikate verwalten"
+    "section3Feature3": "Ausgestellte Zertifikate verwalten",
+    "ob3Feature1": "Prüfbare digitale Nachweise",
+    "ob3Feature2": "Plattformübergreifend nutzbar",
+    "ob3Feature3": "Kryptografisch gesichert"
   },
   "getStarted": {
     "title": "Erste Schritte",
@@ -259,5 +345,88 @@
     "step1": "Schritt 1",
     "step2": "Schritt 2",
     "step3": "Schritt 3"
+  },
+  "app": {
+    "title": "Plattform für digitale Nachweise",
+    "description": "Plattform für digitale Nachweise. Zertifikate nach dem Open-Badges-Standard ausstellen, prüfen und teilen."
+  },
+  "a11y": {
+    "skipToContent": "Zum Hauptinhalt springen",
+    "toggleMenu": "Menü öffnen oder schließen"
+  },
+  "verifyPage": {
+    "seoDescription": "Prüfen Sie Ihre Badges mit {brand}",
+    "ob3Desc": "Open Badges 3.0 ist ein offener Standard für digitale Nachweise, der an keine bestimmte Plattform oder Organisation gebunden ist.",
+    "instantTitle": "Sofortige Ergebnisse",
+    "instantDesc": "Erhalten Sie sofort das Prüfergebnis mit allen Details zum Nachweis",
+    "formatsTitle": "Mehrere Formate",
+    "formatsDesc": "Unterstützung verschiedener Formate, darunter Open Badges und Verifiable Credentials",
+    "faqTitle": "Häufige Fragen",
+    "faq": {
+      "q1": "Wie funktioniert die Prüfung?",
+      "a1": "Das System prüft die digitale Signatur und die Metadaten des Nachweises nach dem Standard Open Badges 3.0. So ist sichergestellt, dass er echt, unverändert und von einer legitimen Stelle ausgestellt ist.",
+      "q2": "Welche Nachweise kann ich prüfen?",
+      "a2": "Sie können jeden über {brand} ausgestellten digitalen Nachweis prüfen, einschließlich Open Badges 3.0 und anderer kompatibler Verifiable Credentials.",
+      "q3": "Ist die Prüfung sicher?",
+      "a3": "Ja. Der Standard Open Badges 3.0 macht jede Manipulation erkennbar und jeden Nachweis prüfbar. Alle Daten werden sicher und transparent verarbeitet.",
+      "q4": "Wie lange dauert die Prüfung?",
+      "a4": "Meist sofort: Das System prüft Echtheit und Gültigkeit mit dem Protokoll Open Badges 3.0 und zeigt das Ergebnis in Sekunden.",
+      "q5": "Welche Informationen zeigt das Ergebnis?",
+      "a5": "Das Ergebnis enthält Status, Aussteller, Ausstellungsdatum, Ablaufdatum (falls vorhanden) und den Open-Badges-3.0-Nachweis. Sofern verfügbar, sind auch alle Details einsehbar."
+    }
+  },
+  "verifier": {
+    "title": "Nachweis prüfen",
+    "subtitle": "Prüfen Sie die Echtheit eines Nachweises oder Badges",
+    "byId": "Per ID",
+    "byJson": "Per JSON-Datei",
+    "idLabel": "ID oder Hash des Nachweises",
+    "idPlaceholder": "ID oder Hash eingeben",
+    "jsonLabel": "JSON-Datei des Nachweises",
+    "uploadFile": "Datei hochladen",
+    "dragDrop": "oder hierher ziehen",
+    "supportedFiles": "Unterstützt JSON-Dateien mit Open Badges oder Verifiable Credentials",
+    "selected": "Ausgewählt: {name}",
+    "verified": "Nachweis geprüft",
+    "failed": "Prüfung fehlgeschlagen",
+    "issuer": "Aussteller",
+    "issueDate": "Ausstellungsdatum",
+    "expiryDate": "Ablaufdatum",
+    "id": "ID",
+    "unknownIssuer": "Unbekannter Aussteller",
+    "errors": {
+      "invalidFileType": "Bitte laden Sie eine gültige JSON-Datei hoch.",
+      "invalidJsonFile": "Ungültige JSON-Datei.",
+      "idRequired": "Bitte geben Sie eine Nachweis-ID ein",
+      "jsonRequired": "Bitte fügen Sie das JSON des Nachweises ein",
+      "verifyFailed": "Der Nachweis konnte nicht geprüft werden. Bitte ID prüfen und erneut versuchen.",
+      "invalidJsonFormat": "Ungültiges JSON-Format. Bitte Eingabe prüfen.",
+      "validateFailed": "Der Nachweis konnte nicht validiert werden."
+    }
+  },
+  "certificateCard": {
+    "unknownAchievement": "Unbekannte Leistung",
+    "noDescription": "Keine Beschreibung verfügbar",
+    "unknownIssuer": "Unbekannter Aussteller",
+    "unknownRecipient": "Unbekannter Empfänger",
+    "unknownDate": "Unbekannt",
+    "actions": "Aktionen",
+    "view": "Nachweis ansehen",
+    "downloadBadge": "Badge herunterladen",
+    "downloadCertificate": "Zertifikat herunterladen",
+    "copyLink": "Prüflink kopieren",
+    "exporting": "Wird exportiert...",
+    "exportJson": "Als JSON exportieren",
+    "linkCopiedTitle": "Link kopiert!",
+    "linkCopiedBody": "Der Link zum Nachweis wurde in die Zwischenablage kopiert.",
+    "copyFailedTitle": "Kopieren fehlgeschlagen",
+    "copyFailedBody": "Der Link konnte nicht kopiert werden.",
+    "badgeImageAlt": "Badge-Bild"
+  },
+  "errorPage": {
+    "notFound": "Seite nicht gefunden",
+    "generic": "Hoppla! Etwas ist schiefgelaufen",
+    "genericMessage": "Ein unerwarteter Fehler ist aufgetreten. Bitte später erneut versuchen.",
+    "home": "Zur Startseite"
   }
 }

@@ -73,7 +73,19 @@
     "checkEmail": "Check your email for reset instructions",
     "alreadyHaveAccount": "Already have an account?",
     "signInWithInstitution": "Sign in with your {brand} account",
-    "signInWithLocalAccount": "Sign in with an email and password instead"
+    "signInWithLocalAccount": "Sign in with an email and password instead",
+    "seoDescription": "Sign in to your account to access your credentials and dashboard.",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "notReady": "Authentication system not ready. Please try again in a moment.",
+    "loginFailed": "Login failed. Please try again.",
+    "callback": {
+      "signingIn": "Signing you in…",
+      "providerError": "Sign-in was cancelled or failed: {error}",
+      "noToken": "No access token was returned by the identity provider.",
+      "failed": "Failed to complete sign-in.",
+      "backToLogin": "Back to login"
+    }
   },
   "credential": {
     "title": "Credential",
@@ -114,7 +126,8 @@
       "not_revoked": "Not revoked",
       "not_expired": "Not expired",
       "issuer": "Issuer",
-      "structure": "Structure"
+      "structure": "Structure",
+      "validSignature": "Valid signature"
     },
     "issue": "Issue credential",
     "revoke": "Revoke credential",
@@ -123,7 +136,54 @@
     "revokeReason": "Reason for revocation",
     "revokeSuccess": "Credential revoked successfully",
     "renewSuccess": "Credential renewed successfully",
-    "issueSuccess": "Credential issued successfully"
+    "issueSuccess": "Credential issued successfully",
+    "addToLinkedInAria": "Add this credential to your LinkedIn profile",
+    "linkedInButtonAlt": "LinkedIn Add to Profile",
+    "errorLoading": "Error loading credential",
+    "fetchFailed": "Failed to verify or fetch credential details",
+    "allChecksPassed": "All verification checks passed successfully.",
+    "refreshVerification": "Refresh verification",
+    "verificationChecks": "Verification checks",
+    "checkStatus": {
+      "passed": "Passed",
+      "warning": "Warning",
+      "failed": "Failed"
+    },
+    "checkDescriptions": {
+      "not_revoked": "This credential has not been revoked by the issuer",
+      "not_expired": "This credential is within its validity period",
+      "proof": "Cryptographic signature verified successfully",
+      "completed": "Verification check completed",
+      "failed": "Verification check failed"
+    },
+    "expiredTitle": "This credential has expired",
+    "expiresInDay": "Expires in 1 day",
+    "expiresInDays": "Expires in {days} days",
+    "expiredHelp": "This credential is no longer valid. Contact the issuer to renew it.",
+    "expiringSoonHelp": "Consider asking the issuer to renew this credential soon.",
+    "newExpirationDate": "New expiration date:",
+    "renewing": "Renewing…",
+    "renewFailed": "Renewal failed",
+    "idUnavailable": "Credential ID not available",
+    "downloadImage": "Download image",
+    "unnamed": "Unnamed credential",
+    "imageAlt": "Credential image",
+    "unknown": "Unknown",
+    "awardedTo": "Awarded to",
+    "issuedBy": "Issued by",
+    "visitWebsite": "Visit website",
+    "verifyLabel": "Verify",
+    "qrAlt": "QR code linking to this credential's verification page",
+    "evidence": "Evidence",
+    "shareText": "View my credential: {name}",
+    "seo": {
+      "title": "Credential details",
+      "descriptionWithRecipient": "View and verify \"{name}\" awarded to {recipient}, issued by {issuer} via {brand}.",
+      "description": "View and verify \"{name}\" issued by {issuer} via {brand}.",
+      "descriptionGeneric": "View and verify this digital credential issued via {brand}.",
+      "imageAlt": "{name} - verified credential",
+      "imageAltGeneric": "{brand} credential"
+    }
   },
   "achievement": {
     "title": "Achievement",
@@ -134,7 +194,11 @@
     "criteria": "Criteria",
     "description": "Description",
     "name": "Name",
-    "type": "Type"
+    "type": "Type",
+    "details": "Achievement details",
+    "alignments": "Alignments",
+    "learnMore": "Learn more",
+    "criteriaNotSpecified": "Criteria not specified"
   },
   "verification": {
     "title": "Verify a credential",
@@ -160,7 +224,13 @@
     "loading": "Loading your credentials...",
     "error": "Error loading dashboard",
     "yourCredentials": "Your Credentials",
-    "noCredentials": "No credentials yet"
+    "noCredentials": "No credentials yet",
+    "seoDescription": "Your dashboard: manage your issued and received digital credentials",
+    "loadFailed": "Failed to load dashboard data. Please try again.",
+    "noReceivedYet": "You haven't received any certificates yet.",
+    "noIssuedYet": "You haven't issued any certificates yet.",
+    "issueNew": "Issue new",
+    "issueFirst": "Issue your first certificate"
   },
   "errors": {
     "notFound": "Page not found",
@@ -179,9 +249,21 @@
       "privacy": "Privacy policy",
       "terms": "Terms of service",
       "github": "GitHub",
-      "docs": "Documentation"
+      "docs": "Documentation",
+      "home": "Home",
+      "dashboard": "Dashboard",
+      "verify": "Verify credentials",
+      "linkedin": "LinkedIn guide",
+      "privacyNotice": "Privacy notice",
+      "termsConditions": "Terms and conditions"
     },
-    "rights": "All rights reserved"
+    "rights": "All rights reserved",
+    "description": "Issue, verify and share digital credentials with the Open Badges standard.",
+    "linksTitle": "Links",
+    "legal": "Legal",
+    "builtOn": "Built on",
+    "license": "(free software, AGPL-3.0) —",
+    "sourceCode": "source code"
   },
   "language": {
     "label": "Language",
@@ -259,6 +341,92 @@
     "section3Header": "Export & send issued certificates",
     "section3Feature1": "Send emails with PDF certificates automatically",
     "section3Feature2": "Export certificates in PNG, JPG and SVG formats",
-    "section3Feature3": "Manage issued certificates"
+    "section3Feature3": "Manage issued certificates",
+    "ob3Feature1": "Verifiable digital credentials",
+    "ob3Feature2": "Portable across platforms",
+    "ob3Feature3": "Cryptographically secure"
+  },
+  "app": {
+    "title": "Digital Credential Platform",
+    "description": "Digital credential platform. Issue, verify, and share certificates using the Open Badges standard."
+  },
+  "a11y": {
+    "skipToContent": "Skip to main content",
+    "toggleMenu": "Toggle mobile menu"
+  },
+  "verifyPage": {
+    "seoDescription": "Verify your badges with {brand}",
+    "ob3Desc": "Open Badges 3.0 is an open standard for digital credentials that is not tied to any specific platform or organization.",
+    "instantTitle": "Instant results",
+    "instantDesc": "Get immediate verification results with detailed certificate information",
+    "formatsTitle": "Multiple formats",
+    "formatsDesc": "Support for various certificate formats including Open Badges and Verifiable Credentials",
+    "faqTitle": "Frequently asked questions",
+    "faq": {
+      "q1": "How does certificate verification work?",
+      "a1": "Our verification system checks the certificate's digital signature and metadata according to the Open Badges 3.0 standard. This ensures the certificate is authentic, untampered, and issued by a legitimate authority.",
+      "q2": "What types of certificates can I verify?",
+      "a2": "You can verify any digital certificate issued through {brand}, including Open Badges 3.0 and other compatible verifiable credentials.",
+      "q3": "Is the verification process secure?",
+      "a3": "Yes. We use the Open Badges 3.0 standard, which makes each credential tamper-evident and verifiable. All data is processed securely and transparently.",
+      "q4": "How long does verification take?",
+      "a4": "Verification is instant in most cases: the system checks authenticity and validity with the Open Badges 3.0 protocol and returns results within seconds.",
+      "q5": "What information is shown in the verification results?",
+      "a5": "Results include the certificate's status, issuer details, issue date, expiration date (if any) and the Open Badges 3.0 verification proof. You can also view the full certificate details if available."
+    }
+  },
+  "verifier": {
+    "title": "Verify Certificate",
+    "subtitle": "Verify the authenticity of a certificate or badge",
+    "byId": "By certificate ID",
+    "byJson": "By JSON file",
+    "idLabel": "Certificate ID or hash",
+    "idPlaceholder": "Enter certificate ID or hash",
+    "jsonLabel": "Certificate JSON file",
+    "uploadFile": "Upload a file",
+    "dragDrop": "or drag and drop",
+    "supportedFiles": "Supports JSON files containing Open Badges or Verifiable Credentials",
+    "selected": "Selected: {name}",
+    "verified": "Certificate verified",
+    "failed": "Verification failed",
+    "issuer": "Issuer",
+    "issueDate": "Issue date",
+    "expiryDate": "Expiry date",
+    "id": "ID",
+    "unknownIssuer": "Unknown issuer",
+    "errors": {
+      "invalidFileType": "Please upload a valid JSON file.",
+      "invalidJsonFile": "Invalid JSON file.",
+      "idRequired": "Please enter a credential identifier",
+      "jsonRequired": "Please enter credential JSON",
+      "verifyFailed": "Failed to verify badge. Please check the identifier and try again.",
+      "invalidJsonFormat": "Invalid JSON format. Please check your input.",
+      "validateFailed": "Failed to validate badge."
+    }
+  },
+  "certificateCard": {
+    "unknownAchievement": "Unknown achievement",
+    "noDescription": "No description available",
+    "unknownIssuer": "Unknown issuer",
+    "unknownRecipient": "Unknown recipient",
+    "unknownDate": "Unknown",
+    "actions": "Actions",
+    "view": "View certificate",
+    "downloadBadge": "Download badge",
+    "downloadCertificate": "Download certificate",
+    "copyLink": "Copy verification link",
+    "exporting": "Exporting...",
+    "exportJson": "Export to JSON",
+    "linkCopiedTitle": "Credential link copied!",
+    "linkCopiedBody": "The credential link has been copied to your clipboard.",
+    "copyFailedTitle": "Failed to copy",
+    "copyFailedBody": "Could not copy the credential link to clipboard.",
+    "badgeImageAlt": "Credential badge image"
+  },
+  "errorPage": {
+    "notFound": "Page not found",
+    "generic": "Oops! Something went wrong",
+    "genericMessage": "We encountered an unexpected error. Please try again later.",
+    "home": "Return home"
   }
 }

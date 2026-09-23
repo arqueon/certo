@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const websiteUrl = useWebsiteUrl()
 import type { Recipient } from '~/composables/useApiClient'
-const { t } = useI18n()
+const { t, intlLocale } = useI18n()
 const pageDescription = ref('Issue badges utilizing Certo software')
 
 useSeoMeta({
@@ -320,7 +320,7 @@ function clearForm() {
 }
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString('en-US', {
+  return new Date(date).toLocaleDateString(intlLocale.value, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'

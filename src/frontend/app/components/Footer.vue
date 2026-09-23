@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const branding = useBranding()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -12,14 +13,14 @@ const branding = useBranding()
             <img :src="branding.logoUrl" :alt="`${branding.name} logo`" class="h-14 w-auto">
           </div>
           <p class="mt-4 text-text-secondary max-w-sm">
-            Emite, verifica y comparte credenciales digitales con el estándar Open Badges.
+            {{ t('footer.description') }}
           </p>
         </div>
 
         <!-- Quick Links -->
         <div class="space-y-4">
           <h3 class="font-bold text-lg">
-            Enlaces
+            {{ t('footer.linksTitle') }}
           </h3>
           <ul class="space-y-2">
             <li>
@@ -27,7 +28,7 @@ const branding = useBranding()
                 to="/"
                 class="text-text-secondary hover:text-text-primary transition-colors"
               >
-                Inicio
+                {{ t('footer.links.home') }}
               </NuxtLink>
             </li>
             <li>
@@ -35,7 +36,7 @@ const branding = useBranding()
                 to="/dashboard"
                 class="text-text-secondary hover:text-text-primary transition-colors"
               >
-                Panel
+                {{ t('footer.links.dashboard') }}
               </NuxtLink>
             </li>
             <li>
@@ -43,7 +44,7 @@ const branding = useBranding()
                 to="/verify"
                 class="text-text-secondary hover:text-text-primary transition-colors"
               >
-                Verificar credenciales
+                {{ t('footer.links.verify') }}
               </NuxtLink>
             </li>
             <li>
@@ -51,7 +52,7 @@ const branding = useBranding()
                 to="/linkedin"
                 class="text-text-secondary hover:text-text-primary transition-colors"
               >
-                Guía para LinkedIn
+                {{ t('footer.links.linkedin') }}
               </NuxtLink>
             </li>
           </ul>
@@ -60,7 +61,7 @@ const branding = useBranding()
         <!-- Legal -->
         <div class="space-y-4">
           <h3 class="font-bold text-lg">
-            Legal
+            {{ t('footer.legal') }}
           </h3>
           <ul class="space-y-2">
             <li>
@@ -68,7 +69,7 @@ const branding = useBranding()
                 href="/privacy-policy"
                 class="text-text-secondary hover:text-text-primary transition-colors"
               >
-                Aviso de privacidad
+                {{ t('footer.links.privacyNotice') }}
               </a>
             </li>
             <li>
@@ -76,7 +77,7 @@ const branding = useBranding()
                 href="/terms-and-conditions"
                 class="text-text-secondary hover:text-text-primary transition-colors"
               >
-                Términos y condiciones
+                {{ t('footer.links.termsConditions') }}
               </a>
             </li>
           </ul>
@@ -87,20 +88,20 @@ const branding = useBranding()
       <div class="text-center text-text-secondary pt-8 border-t border-gray-200">
         <p>{{ branding.name }} © {{ new Date().getFullYear() }}.</p>
         <p class="text-xs mt-1">
-          Construido sobre
+          {{ t('footer.builtOn') }}
           <a
             href="https://github.com/arqueon/certo"
             target="_blank"
             rel="noopener noreferrer"
             class="underline hover:text-text-primary"
           >Certo</a>
-          (software libre, AGPL-3.0) —
+          {{ t('footer.license') }}
           <a
             href="https://github.com/arqueon/certo"
             target="_blank"
             rel="noopener noreferrer"
             class="underline hover:text-text-primary"
-          >código fuente</a>
+          >{{ t('footer.sourceCode') }}</a>
         </p>
       </div>
     </div>

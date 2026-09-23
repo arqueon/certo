@@ -146,7 +146,7 @@ export default defineNuxtConfig({
       ],
       htmlAttrs: {
         // lang is updated dynamically per-request in app.vue via useHead()
-        lang: 'en'
+        lang: process.env.NUXT_PUBLIC_DEFAULT_LOCALE || 'es'
       }
     }
   },
@@ -161,6 +161,11 @@ export default defineNuxtConfig({
       // login page. Read through runtimeConfig, not import.meta.env, so it
       // stays configurable at container runtime (same bug as WEBSITE_URL had).
       oauthProviders: process.env.NUXT_PUBLIC_OAUTH_PROVIDERS || '',
+      // Idioma de la interfaz cuando la persona no ha elegido otro (cookie
+      // certo_lang). Español por defecto en este fork.
+      defaultLocale: process.env.NUXT_PUBLIC_DEFAULT_LOCALE || 'es',
+      // 'true' para que el primer acceso tome el idioma del navegador.
+      detectBrowserLocale: process.env.NUXT_PUBLIC_DETECT_BROWSER_LOCALE || 'false',
     }
   },
   imports: {

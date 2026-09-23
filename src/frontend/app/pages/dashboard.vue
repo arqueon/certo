@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const websiteUrl = useWebsiteUrl()
 import { apiClient } from '~/api/api-client'
-const { t } = useI18n()
+const { t, locale } = useI18n()
 definePageMeta({
   middleware: ['auth']
 })
@@ -27,7 +27,7 @@ interface Certificate {
 const authStore = useAuthStore()
 const loading = ref(false)
 const error = ref<string | null>(null)
-const pageDescription = ref('Your Certo dashboard: manage your issued and received digital credentials')
+const pageDescription = computed(() => t('dashboard.seoDescription'))
 
 const receivedCertificates = ref<Certificate[]>([])
 const issuedCertificates = ref<Certificate[]>([])
@@ -47,12 +47,12 @@ function getLinkedInAddToProfileUrl(cert: Certificate) {
 }
 
 useSeoMeta({
-  description: pageDescription.value,
-  ogDescription: pageDescription.value
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value
 })
 
 useHead({
-  title: t('dashboard.title'),
+  title: () => t('dashboard.title'),
   link: [
     { rel: 'canonical', href: `${websiteUrl}/dashboard` }
   ]
@@ -77,7 +77,7 @@ onMounted(async () => {
   }
   catch (err) {
     console.error('Error fetching dashboard data:', err)
-    error.value = 'Failed to load dashboard data. Please try again.'
+    error.value = t('dashboard.loadFailed')
   }
   finally {
     loading.value = false
@@ -101,7 +101,7 @@ onMounted(async () => {
         class="mt-2 text-sm text-red-600 hover:text-red-800"
         @click="$router.go(0)"
       >
-        Try Again
+        {{ t('common.tryAgain') }}
       </button>
     </div>
 
@@ -119,7 +119,7 @@ onMounted(async () => {
             {{ t('dashboard.noCredentials') }}
           </h3>
           <p class="text-gray-600">
-            You haven't received any certificates yet.
+            {{ t('dashboard.noReceivedYet') }}
           </p>
         </div>
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -135,10 +135,10 @@ onMounted(async () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#0077b5] text-white rounded hover:bg-[#005983] transition-colors text-sm font-medium mt-2"
-                aria-label="Add this certificate to your LinkedIn profile"
+                :aria-label="t('credential.addToLinkedInAria')"
               >
-                <img src="https://download.linkedin.com/desktop/add2profile/buttons/en_US.png" alt="LinkedIn Add to Profile" class="h-5 w-auto">
-                Add to LinkedIn
+                <img :src="linkedInButtonImage(locale)" :alt="t('credential.linkedInButtonAlt')" class="h-5 w-auto">
+                {{ t('credential.addToLinkedIn') }}
               </a>
             </template>
           </CertificateCard>
@@ -156,7 +156,7 @@ onMounted(async () => {
               to="/issue"
               class="px-4 py-2 bg-[#5AB69F] text-black rounded-full hover:bg-[#5AB69F]/90 transition-colors"
             >
-              Issue New
+              {{ t('dashboard.issueNew') }}
             </NuxtLink>
           </div>
         </div>
@@ -166,14 +166,14 @@ onMounted(async () => {
             {{ t('dashboard.noCredentials') }}
           </h3>
           <p class="text-gray-600 mb-4">
-            You haven't issued any certificates yet.
+            {{ t('dashboard.noIssuedYet') }}
           </p>
           <NuxtLink
             to="/issue"
             class="inline-flex items-center px-4 py-2 bg-[#5AB69F] text-black rounded-full hover:bg-[#5AB69F]/90 transition-colors"
           >
             <div class="i-heroicons-plus w-5 h-5 mr-2" />
-            Issue Your First Certificate
+            {{ t('dashboard.issueFirst') }}
           </NuxtLink>
         </div>
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -188,10 +188,10 @@ onMounted(async () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#0077b5] text-white rounded hover:bg-[#005983] transition-colors text-sm font-medium mt-2"
-                aria-label="Add this certificate to your LinkedIn profile"
+                :aria-label="t('credential.addToLinkedInAria')"
               >
-                <img src="https://download.linkedin.com/desktop/add2profile/buttons/en_US.png" alt="LinkedIn Add to Profile" class="h-5 w-auto">
-                Add to LinkedIn
+                <img :src="linkedInButtonImage(locale)" :alt="t('credential.linkedInButtonAlt')" class="h-5 w-auto">
+                {{ t('credential.addToLinkedIn') }}
               </a>
             </template>
           </CertificateCard>

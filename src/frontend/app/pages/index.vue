@@ -24,7 +24,7 @@ const { sections, features, trustees } = useHomeContent()
           to="/docs"
           class="inline-flex items-center px-8 py-4 rounded-full border border-slate-300 bg-white text-text-primary hover:border-primary hover:text-primary transition-all text-lg font-medium"
         >
-          Documentation
+          {{ t('nav.docs') }}
         </NuxtLink>
       </div>
     </div>

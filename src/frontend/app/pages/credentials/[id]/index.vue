@@ -7,7 +7,7 @@ import type {
 import QRCode from 'qrcode'
 import { apiClient } from '~/api/api-client'
 
-const { t } = useI18n()
+const { t, locale, formatDate: formatLocaleDate } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig()
 const branding = useBranding()
@@ -102,7 +102,7 @@ const loading = computed(() => status.value === 'pending')
 const error = computed(() => {
   if (fetchError.value) return fetchError.value.message
   if (status.value === 'error' && !verificationData.value && credentialId) {
-    return 'Failed to verify or fetch credential details'
+    return t('credential.fetchFailed')
   }
   return null
 })
@@ -138,7 +138,7 @@ useSeoMeta({
   // Title
   title: () => {
     const name = getCredentialName()
-    return name ? `${name} | ${branding.name}` : `Credential Details | ${branding.name}`
+    return name ? `${name} | ${branding.name}` : `${t('credential.seo.title')} | ${branding.name}`
   },
 
   // Description
@@ -151,10 +151,10 @@ useSeoMeta({
       const issuer = getIssuerName()
       const recipient = getRecipientName()
       return recipient
-        ? `View and verify "${name}" awarded to ${recipient}, issued by ${issuer} via ${branding.name}.`
-        : `View and verify "${name}" issued by ${issuer} via ${branding.name}.`
+        ? t('credential.seo.descriptionWithRecipient', { name, recipient, issuer, brand: branding.name })
+        : t('credential.seo.description', { name, issuer, brand: branding.name })
     }
-    return `View and verify this digital credential issued via ${branding.name}.`
+    return t('credential.seo.descriptionGeneric', { brand: branding.name })
   },
 
   // Open Graph
@@ -163,40 +163,40 @@ useSeoMeta({
   ogUrl: shareableUrl,
   ogTitle: () => {
     const name = getCredentialName()
-    return name ? `${name} | ${branding.name}` : `Credential Details | ${branding.name}`
+    return name ? `${name} | ${branding.name}` : `${t('credential.seo.title')} | ${branding.name}`
   },
   ogDescription: () => {
     const desc = getCredentialDescription()
     if (desc) return desc
     const name = getCredentialName()
-    if (name) return `View and verify "${name}" issued by ${getIssuerName()} via ${branding.name}.`
-    return `View and verify this digital credential issued via ${branding.name}.`
+    if (name) return t('credential.seo.description', { name, issuer: getIssuerName(), brand: branding.name })
+    return t('credential.seo.descriptionGeneric', { brand: branding.name })
   },
   ogImage: ogImageUrl,
   ogImageWidth: 1200,
   ogImageHeight: 630,
   ogImageAlt: () => {
     const name = getCredentialName()
-    return name ? `${name} - verified credential` : `${branding.name} credential`
+    return name ? t('credential.seo.imageAlt', { name }) : t('credential.seo.imageAltGeneric', { brand: branding.name })
   },
 
   // Twitter
   twitterCard: 'summary_large_image',
   twitterTitle: () => {
     const name = getCredentialName()
-    return name ? `${name} | ${branding.name}` : `Credential Details | ${branding.name}`
+    return name ? `${name} | ${branding.name}` : `${t('credential.seo.title')} | ${branding.name}`
   },
   twitterDescription: () => {
     const desc = getCredentialDescription()
     if (desc) return desc
     const name = getCredentialName()
-    if (name) return `View and verify "${name}" issued by ${getIssuerName()} via ${branding.name}.`
-    return `View and verify this digital credential issued via ${branding.name}.`
+    if (name) return t('credential.seo.description', { name, issuer: getIssuerName(), brand: branding.name })
+    return t('credential.seo.descriptionGeneric', { brand: branding.name })
   },
   twitterImage: ogImageUrl,
   twitterImageAlt: () => {
     const name = getCredentialName()
-    return name ? `${name} - verified credential` : `${branding.name} credential`
+    return name ? t('credential.seo.imageAlt', { name }) : t('credential.seo.imageAltGeneric', { brand: branding.name })
   },
 
   // Author
@@ -265,7 +265,7 @@ const imageLoadError = ref(false)
 // Format dates with proper localization
 const formattedIssuanceDate = computed(() => {
   const date = credential.value?.issuanceDate
-  if (!date) return 'Unknown'
+  if (!date) return t('credential.unknown')
   return formatDate(date)
 })
 
@@ -304,7 +304,7 @@ const criterionResults = computed(() => {
 
 const formattedExpirationDate = computed(() => {
   const date = credential.value?.expirationDate
-  if (!date) return 'No expiration'
+  if (!date) return t('credential.noExpiration')
   return formatDate(date)
 })
 
@@ -361,46 +361,33 @@ function handleImageError() {
 // time-of-day is meaningless noise either way. Read it back in UTC.
 function formatAwardedDate(dateString: string) {
   if (!dateString) return null
-
-  try {
-    return new Intl.DateTimeFormat(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(dateString))
-  }
-  catch {
-    return dateString
-  }
+  return formatLocaleDate(dateString, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
 }
 
+// Fecha y hora en el idioma activo (es-MX: «22 de septiembre de 2026,
+// 21:07 CST»), no en el idioma del navegador.
 function formatDate(dateString: string) {
-  if (!dateString) return 'Unknown'
-
-  try {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'short'
-    }).format(date)
-  }
-  catch (err) {
-    console.error('Error formatting date:', err)
-    return dateString
-  }
+  return formatLocaleDate(dateString, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }, t('credential.unknown'))
 }
 
 async function shareCredential() {
   try {
     if (navigator.share) {
       await navigator.share({
-        title: credential.value?.name || 'Credential',
-        text: `View my credential: ${credential.value?.name}`,
+        title: credential.value?.name || t('credential.title'),
+        text: t('credential.shareText', { name: credential.value?.name || '' }),
         url: shareableUrl
       })
     }
@@ -480,14 +467,14 @@ async function submitRenewal() {
   renewalError.value = ''
   try {
     const numericId = verificationData.value?.rawCredential?.id
-    if (!numericId) throw new Error('Credential ID not available')
+    if (!numericId) throw new Error(t('credential.idUnavailable'))
     await apiClient.renewCredential(numericId, renewalNewExpiry.value)
     renewalState.value = 'success'
     await refreshCredentialDetails()
   }
   catch (err: any) {
     renewalState.value = 'error'
-    renewalError.value = err?.data?.error?.message || err?.message || 'Renewal failed'
+    renewalError.value = err?.data?.error?.message || err?.message || t('credential.renewFailed')
   }
 }
 </script>
@@ -538,7 +525,7 @@ async function submitRenewal() {
       <div class="text-center">
         <div class="i-lucide-x-circle w-16 h-16 mx-auto text-red-500 mb-4" />
         <h2 class="text-2xl font-semibold mb-3">
-          Error Loading Credential
+          {{ t('credential.errorLoading') }}
         </h2>
         <p class="text-gray-600 mb-6">
           {{ error }}
@@ -548,7 +535,7 @@ async function submitRenewal() {
           @click="refreshCredentialDetails"
         >
           <div class="i-lucide-refresh-cw mr-2" />
-          Try Again
+          {{ t('common.tryAgain') }}
         </button>
       </div>
     </div>
@@ -562,10 +549,10 @@ async function submitRenewal() {
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#0077b5] text-white rounded hover:bg-[#005983] transition-colors text-sm font-medium"
-          aria-label="Add this certificate to your LinkedIn profile"
+          :aria-label="t('credential.addToLinkedInAria')"
         >
-          <img src="https://download.linkedin.com/desktop/add2profile/buttons/en_US.png" alt="LinkedIn Add to Profile" class="h-5 w-auto">
-          Add to LinkedIn
+          <img :src="linkedInButtonImage(locale)" :alt="t('credential.linkedInButtonAlt')" class="h-5 w-auto">
+          {{ t('credential.addToLinkedIn') }}
         </a>
       </div>
 
@@ -587,10 +574,10 @@ async function submitRenewal() {
           </div>
           <div class="flex-1">
             <h3 class="font-semibold mb-1" :class="isExpired ? 'text-red-700' : 'text-amber-700'">
-              {{ isExpired ? 'This credential has expired' : `Expires in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}` }}
+              {{ isExpired ? t('credential.expiredTitle') : daysUntilExpiry === 1 ? t('credential.expiresInDay') : t('credential.expiresInDays', { days: daysUntilExpiry ?? '' }) }}
             </h3>
             <p class="text-sm" :class="isExpired ? 'text-red-600' : 'text-amber-600'">
-              {{ isExpired ? 'This credential is no longer valid. Contact the issuer to renew it.' : 'Consider asking the issuer to renew this credential soon.' }}
+              {{ isExpired ? t('credential.expiredHelp') : t('credential.expiringSoonHelp') }}
             </p>
 
             <!-- Renewal form (issuer only - shown when logged in) -->
@@ -601,10 +588,10 @@ async function submitRenewal() {
                 :class="isExpired ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'"
                 @click="renewalState = 'picking'"
               >
-                Renew Credential
+                {{ t('credential.renew') }}
               </button>
               <div v-else class="flex flex-wrap items-center gap-2 mt-2">
-                <label class="text-sm font-medium text-gray-700">New expiration date:</label>
+                <label class="text-sm font-medium text-gray-700">{{ t('credential.newExpirationDate') }}</label>
                 <input
                   v-model="renewalNewExpiry"
                   type="date"
@@ -616,21 +603,21 @@ async function submitRenewal() {
                   :disabled="!renewalNewExpiry"
                   @click="submitRenewal"
                 >
-                  Confirm
+                  {{ t('common.confirm') }}
                 </button>
                 <button
                   class="text-sm text-gray-500 hover:text-gray-700"
                   @click="renewalState = 'idle'"
                 >
-                  Cancel
+                  {{ t('common.cancel') }}
                 </button>
               </div>
             </div>
             <div v-else-if="renewalState === 'loading'" class="mt-3 flex items-center gap-2 text-sm text-gray-600">
-              <div class="i-lucide-loader-2 w-4 h-4 animate-spin" /> Renewing…
+              <div class="i-lucide-loader-2 w-4 h-4 animate-spin" /> {{ t('credential.renewing') }}
             </div>
             <div v-else-if="renewalState === 'success'" class="mt-3 text-sm text-green-700 font-medium">
-              ✓ Credential renewed successfully.
+              ✓ {{ t('credential.renewSuccess') }}
             </div>
             <div v-else-if="renewalState === 'error'" class="mt-3 text-sm text-red-700">
               ✗ {{ renewalError }}
@@ -670,13 +657,13 @@ async function submitRenewal() {
                 {{ verificationResult?.verified ? t('credential.verificationSuccess') : t('credential.verificationFailed') }}
               </h3>
               <p class="text-gray-600">
-                {{ verificationResult?.error || 'All verification checks passed successfully.' }}
+                {{ verificationResult?.error || t('credential.allChecksPassed') }}
               </p>
             </div>
           </div>
           <button
             class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            title="Refresh verification"
+            :title="t('credential.refreshVerification')"
             @click="refreshCredentialDetails"
           >
             <div class="i-lucide-refresh-cw w-5 h-5" />
@@ -686,7 +673,7 @@ async function submitRenewal() {
         <!-- Verification Checks -->
         <div v-if="verificationResult?.checks?.length" class="mt-6">
           <h4 class="font-medium mb-4 text-gray-700">
-            Verification Checks
+            {{ t('credential.verificationChecks') }}
           </h4>
           <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <div
@@ -743,7 +730,7 @@ async function submitRenewal() {
                         'bg-red-100 text-red-700': check.result === 'error',
                       }"
                     >
-                      {{ check.result === 'success' ? 'Passed' : check.result === 'warning' ? 'Warning' : 'Failed' }}
+                      {{ check.result === 'success' ? t('credential.checkStatus.passed') : check.result === 'warning' ? t('credential.checkStatus.warning') : t('credential.checkStatus.failed') }}
                     </span>
                   </div>
 
@@ -752,7 +739,7 @@ async function submitRenewal() {
                     {{
                       check.check === 'not_revoked' ? t('credential.checks.not_revoked') :
                       check.check === 'not_expired' ? t('credential.checks.not_expired') :
-                      check.check === 'proof' ? 'Valid Signature' :
+                      check.check === 'proof' ? t('credential.checks.validSignature') :
                       check.check.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
                     }}
                   </div>
@@ -761,11 +748,11 @@ async function submitRenewal() {
                   <p class="mt-1 text-xs text-gray-500">
                     {{
                       check.result === 'error' || check.result === 'warning'
-                        ? (check.message || 'Verification check failed')
-                        : check.check === 'not_revoked' ? 'This credential has not been revoked by the issuer'
-                        : check.check === 'not_expired' ? 'This credential is within its validity period'
-                        : check.check === 'proof' ? 'Cryptographic signature verified successfully'
-                        : 'Verification check completed'
+                        ? (check.message || t('credential.checkDescriptions.failed'))
+                        : check.check === 'not_revoked' ? t('credential.checkDescriptions.not_revoked')
+                        : check.check === 'not_expired' ? t('credential.checkDescriptions.not_expired')
+                        : check.check === 'proof' ? t('credential.checkDescriptions.proof')
+                        : t('credential.checkDescriptions.completed')
                     }}
                   </p>
                 </div>
@@ -784,21 +771,21 @@ async function submitRenewal() {
         >
           <img
             :src="displayImageUrl"
-            :alt="credential.name || 'Credential Image'"
+            :alt="credential.name || t('credential.imageAlt')"
             class="w-full h-full object-contain"
             @error="handleImageError"
           >
           <div class="absolute bottom-4 right-4 flex gap-2">
             <button
               class="p-2 rounded-lg bg-white/90 hover:bg-white shadow-lg transition-colors"
-              title="Download image"
+              :title="t('credential.downloadImage')"
               @click="downloadCredential"
             >
               <div class="i-lucide-download w-5 h-5" />
             </button>
             <button
               class="p-2 rounded-lg bg-white/90 hover:bg-white shadow-lg transition-colors"
-              title="Share credential"
+              :title="t('credential.shareCredential')"
               @click="shareCredential"
             >
               <div class="i-lucide-share w-5 h-5" />
@@ -809,7 +796,7 @@ async function submitRenewal() {
         <!-- Credential Details -->
         <div class="p-6">
           <h1 class="text-3xl font-bold mb-4">
-            {{ credential.name || 'Unnamed Credential' }}
+            {{ credential.name || t('credential.unnamed') }}
           </h1>
 
           <div class="prose max-w-none mb-6">
@@ -850,7 +837,7 @@ async function submitRenewal() {
               <!-- Recipient Name -->
               <div v-if="verificationResult?.rawCredential?.recipient?.name">
                 <div class="text-sm font-medium text-gray-500">
-                  Recipient
+                  {{ t('credential.awardedTo') }}
                 </div>
                 <div class="mt-1">
                   {{ verificationResult?.rawCredential?.recipient?.name }}
@@ -861,7 +848,7 @@ async function submitRenewal() {
             <!-- Issuer -->
             <div v-if="credential.issuer" class="space-y-2">
               <div class="text-sm font-medium text-gray-500">
-                Issued By
+                {{ t('credential.issuedBy') }}
               </div>
               <div class="flex items-center">
                 <img
@@ -881,7 +868,7 @@ async function submitRenewal() {
                     rel="noopener noreferrer"
                     class="text-sm text-primary-500 hover:text-primary-600"
                   >
-                    Visit Website
+                    {{ t('credential.visitWebsite') }}
                   </a>
                 </div>
               </div>
@@ -890,12 +877,12 @@ async function submitRenewal() {
             <!-- Verify -->
             <div class="space-y-2">
               <div class="text-sm font-medium text-gray-500">
-                Verify
+                {{ t('credential.verifyLabel') }}
               </div>
               <img
                 v-if="qrCodeDataUrl"
                 :src="qrCodeDataUrl"
-                alt="QR code linking to this credential's verification page"
+                :alt="t('credential.qrAlt')"
                 class="w-20 h-20"
               >
               <a
@@ -948,7 +935,7 @@ async function submitRenewal() {
         class="mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
       >
         <h2 class="text-2xl font-semibold mb-4">
-          Achievement Details
+          {{ t('achievement.details') }}
         </h2>
 
         <div class="prose max-w-none">
@@ -958,9 +945,15 @@ async function submitRenewal() {
           <!-- Criteria -->
           <div v-if="credential.credentialSubject.achievement.criteria?.narrative" class="mt-6">
             <h4 class="font-medium mb-2">
-              Criteria
+              {{ t('achievement.criteria') }}
             </h4>
-            <p>{{ credential.credentialSubject.achievement.criteria.narrative }}</p>
+            <!-- El backend firma «Criteria not specified» cuando la ficha no
+                 trae criterios; se traduce solo al mostrarlo. -->
+            <p>
+              {{ credential.credentialSubject.achievement.criteria.narrative === 'Criteria not specified'
+                ? t('achievement.criteriaNotSpecified')
+                : credential.credentialSubject.achievement.criteria.narrative }}
+            </p>
           </div>
 
           <!-- Alignments -->
@@ -969,7 +962,7 @@ async function submitRenewal() {
             class="mt-6"
           >
             <h4 class="font-medium mb-2">
-              Alignments
+              {{ t('achievement.alignments') }}
             </h4>
             <div class="space-y-4">
               <div
@@ -990,7 +983,7 @@ async function submitRenewal() {
                     rel="noopener noreferrer"
                     class="text-sm text-primary-500 hover:text-primary-600"
                   >
-                    Learn More
+                    {{ t('achievement.learnMore') }}
                   </a>
                 </div>
               </div>
@@ -1005,7 +998,7 @@ async function submitRenewal() {
         class="mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
       >
         <h2 class="text-2xl font-semibold mb-4">
-          Evidence
+          {{ t('credential.evidence') }}
         </h2>
         <div class="space-y-4">
           <div

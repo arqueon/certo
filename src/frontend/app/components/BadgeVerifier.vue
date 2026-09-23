@@ -1,6 +1,8 @@
 <script setup>
 import { apiClient } from '~/api/api-client'
 
+const { t, formatDate } = useI18n()
+
 const props = defineProps({
   initialIdentifier: {
     type: String,
@@ -56,7 +58,7 @@ async function handleFileUpload(event) {
   }
   uploadedFileName.value = file.name
   if (file.type !== 'application/json') {
-    fileError.value = 'Please upload a valid JSON file.'
+    fileError.value = t('verifier.errors.invalidFileType')
     return
   }
   try {
@@ -66,7 +68,7 @@ async function handleFileUpload(event) {
     JSON.parse(text)
   }
   catch {
-    fileError.value = 'Invalid JSON file.'
+    fileError.value = t('verifier.errors.invalidJsonFile')
     jsonInput.value = ''
   }
 }
@@ -82,7 +84,7 @@ function handleVerify() {
 
 async function verifyById() {
   if (!identifier.value.trim()) {
-    error.value = 'Please enter a credential identifier'
+    error.value = t('verifier.errors.idRequired')
     return
   }
 
@@ -106,7 +108,7 @@ async function verifyById() {
   }
   catch (err) {
     console.error('Error verifying badge:', err)
-    error.value = 'Failed to verify badge. Please check the identifier and try again.'
+    error.value = t('verifier.errors.verifyFailed')
     isVerified.value = false
   }
   finally {
@@ -116,7 +118,7 @@ async function verifyById() {
 
 async function verifyByJson() {
   if (!jsonInput.value.trim()) {
-    error.value = 'Please enter credential JSON'
+    error.value = t('verifier.errors.jsonRequired')
     return
   }
 
@@ -134,7 +136,7 @@ async function verifyByJson() {
       credentialData = JSON.parse(jsonInput.value)
     }
     catch {
-      throw new Error('Invalid JSON format. Please check your input.')
+      throw new Error(t('verifier.errors.invalidJsonFormat'))
     }
 
     // Validate the credential
@@ -150,7 +152,7 @@ async function verifyByJson() {
   }
   catch (err) {
     console.error('Error validating badge:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to validate badge.'
+    error.value = err instanceof Error ? err.message : t('verifier.errors.validateFailed')
     isVerified.value = false
   }
   finally {
@@ -190,10 +192,10 @@ function handleShare() {
   <div class="bg-white/80 backdrop-blur-lg rounded-2xl p-8 shadow-lg">
     <div class="text-center mb-8">
       <h2 class="text-2xl font-bold text-text-primary">
-        Verify Certificate
+        {{ t('verifier.title') }}
       </h2>
       <p class="mt-2 text-text-secondary">
-        Verify the authenticity of a certificate or badge
+        {{ t('verifier.subtitle') }}
       </p>
     </div>
 
@@ -204,14 +206,14 @@ function handleShare() {
         class="px-4 py-2 rounded-full text-sm font-medium transition-colors" :class="[verifyMode === 'id' ? 'bg-[#5AB69F] text-black' : 'bg-gray-100 text-text-secondary hover:text-text-primary']"
         @click="setVerifyMode('id')"
       >
-        By Certificate ID
+        {{ t('verifier.byId') }}
       </button>
       <button
         type="button"
         class="px-4 py-2 rounded-full text-sm font-medium transition-colors" :class="[verifyMode === 'json' ? 'bg-[#5AB69F] text-black' : 'bg-gray-100 text-text-secondary hover:text-text-primary']"
         @click="setVerifyMode('json')"
       >
-        By JSON File
+        {{ t('verifier.byJson') }}
       </button>
     </div>
 
@@ -220,7 +222,7 @@ function handleShare() {
       <!-- Certificate ID Input -->
       <div v-if="verifyMode === 'id'">
         <label for="certificateId" class="block text-sm font-medium text-text-primary">
-          Certificate ID or Hash
+          {{ t('verifier.idLabel') }}
         </label>
         <div class="mt-1">
           <input
@@ -229,7 +231,7 @@ function handleShare() {
             type="text"
             required
             class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00E5C5] focus:border-transparent"
-            placeholder="Enter certificate ID or hash"
+            :placeholder="t('verifier.idPlaceholder')"
           >
         </div>
       </div>
@@ -237,14 +239,14 @@ function handleShare() {
       <!-- File Upload & Preview -->
       <div v-if="verifyMode === 'json'">
         <label for="file-upload" class="block text-sm font-medium text-text-primary mb-2">
-          Certificate JSON File
+          {{ t('verifier.jsonLabel') }}
         </label>
         <div class="flex flex-col items-center justify-center px-6 py-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-[#00E5C5] transition-colors">
           <div class="w-12 h-12 bg-[#00E5C5]/10 rounded-full flex items-center justify-center mb-4">
             <div class="w-6 h-6 i-heroicons-cloud-arrow-up text-[#5AB69F]" />
           </div>
           <label class="relative cursor-pointer rounded-md font-medium text-[#5AB69F] hover:text-[#5AB69F]/80 focus-within:outline-none">
-            <span>Upload a file</span>
+            <span>{{ t('verifier.uploadFile') }}</span>
             <input
               id="file-upload"
               name="file-upload"
@@ -255,13 +257,13 @@ function handleShare() {
             >
           </label>
           <p class="pl-1">
-            or drag and drop
+            {{ t('verifier.dragDrop') }}
           </p>
           <p class="text-xs text-text-secondary mt-2">
-            Supports JSON files containing Open Badges or Verifiable Credentials
+            {{ t('verifier.supportedFiles') }}
           </p>
           <div v-if="uploadedFileName" class="mt-2 text-xs text-text-secondary">
-            Selected: {{ uploadedFileName }}
+            {{ t('verifier.selected', { name: uploadedFileName }) }}
           </div>
           <div v-if="fileError" class="mt-2 text-xs text-red-600">
             {{ fileError }}
@@ -280,7 +282,7 @@ function handleShare() {
           :disabled="loading || (verifyMode === 'id' ? !identifier : !jsonInput || fileError)"
           class="w-full flex justify-center py-2 px-4 border border-transparent rounded-full shadow-sm text-black bg-[#5AB69F] hover:bg-[#5AB69F]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00E5C5] disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span v-if="!loading">Verify Certificate</span>
+          <span v-if="!loading">{{ t('verifier.title') }}</span>
           <div v-else class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
         </button>
       </div>
@@ -333,7 +335,7 @@ function handleShare() {
                   'text-red-800': !isVerified,
                 }"
               >
-                {{ isVerified ? 'Certificate Verified' : 'Verification Failed' }}
+                {{ isVerified ? t('verifier.verified') : t('verifier.failed') }}
               </h3>
               <p
                 class="text-sm"
@@ -350,19 +352,19 @@ function handleShare() {
           <!-- Certificate Details -->
           <div v-if="isVerified" class="mt-6 space-y-4">
             <div class="flex items-center justify-between text-sm">
-              <span class="text-text-secondary">Issuer</span>
-              <span class="font-medium text-text-primary">{{ badge?.issuer?.name || 'Unknown Issuer' }}</span>
+              <span class="text-text-secondary">{{ t('verifier.issuer') }}</span>
+              <span class="font-medium text-text-primary">{{ badge?.issuer?.name || t('verifier.unknownIssuer') }}</span>
             </div>
             <div class="flex items-center justify-between text-sm">
-              <span class="text-text-secondary">Issue Date</span>
-              <span class="font-medium text-text-primary">{{ badge?.issuanceDate ? new Date(badge.issuanceDate).toLocaleDateString() : 'Unknown' }}</span>
+              <span class="text-text-secondary">{{ t('verifier.issueDate') }}</span>
+              <span class="font-medium text-text-primary">{{ formatDate(badge?.issuanceDate, undefined, t('credential.unknown')) }}</span>
             </div>
             <div v-if="badge?.expirationDate" class="flex items-center justify-between text-sm">
-              <span class="text-text-secondary">Expiry Date</span>
-              <span class="font-medium text-text-primary">{{ new Date(badge.expirationDate).toLocaleDateString() }}</span>
+              <span class="text-text-secondary">{{ t('verifier.expiryDate') }}</span>
+              <span class="font-medium text-text-primary">{{ formatDate(badge.expirationDate) }}</span>
             </div>
             <div class="flex items-center justify-between text-sm">
-              <span class="text-text-secondary">ID</span>
+              <span class="text-text-secondary">{{ t('verifier.id') }}</span>
               <span class="font-medium text-text-primary">{{ badge?.id }}</span>
             </div>
           </div>

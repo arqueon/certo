@@ -6,6 +6,6 @@ import BadgeVerifier from '@/components/BadgeVerifier.vue'
 describe('badgeVerifier', () => {
   it('renders the verifier title', async () => {
     const wrapper = await mountSuspended(BadgeVerifier)
-    expect(wrapper.text()).toContain('Verify Certificate')
+    expect(wrapper.text()).toContain('Verificar credencial')
   })
 })
