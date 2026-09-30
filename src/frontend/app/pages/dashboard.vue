@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const websiteUrl = useWebsiteUrl()
+const { enabled: portalTitularEnabled } = useSaberesPrevios()
 import { apiClient } from '~/api/api-client'
 const { t, locale } = useI18n()
 definePageMeta({
@@ -87,6 +88,9 @@ onMounted(async () => {
 
 <template>
   <div class="container mx-auto px-4 py-8">
+    <NuxtLink v-if="portalTitularEnabled" to="/saberes-previos" class="block mb-6 rounded-lg border border-gray-300 bg-white p-4 text-text-primary underline">
+      Reconocimiento de saberes previos: presentar y consultar mis solicitudes
+    </NuxtLink>
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div class="w-8 h-8 border-4 border-[#00E5C5] border-t-transparent rounded-full animate-spin" />

@@ -153,6 +153,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL,
+      // Public visibility switch only; backend authorization remains independent.
+      portalTitularEnabled: false,
       websiteUrl,
       brandName: process.env.NUXT_PUBLIC_BRAND_NAME || 'Certo',
       brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '/certo-logo-text.png',
