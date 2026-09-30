@@ -66,7 +66,11 @@ export default ({ strapi }: { strapi: any }) => ({
    * Idempotent: achievements/credentials/evidence already present (matched
    * by their natural unique key) are skipped, never overwritten.
    */
-  async importProfileData(profile: { id: number | string }, bundle: Partial<ExportBundle>) {
+  async importProfileData(
+    profile: { id: number | string },
+    bundle: Partial<ExportBundle>,
+    options: { restoreCredentials?: boolean } = {}
+  ) {
     const credentialService = strapi.service('api::credential.credential');
 
     const achievementIdMap = new Map<string, number>();
@@ -76,7 +80,15 @@ export default ({ strapi }: { strapi: any }) => ({
     for (const achievement of bundle.achievementsCreated || []) {
       const existing = await strapi.db.query('api::achievement.achievement').findOne({
         where: { achievementId: achievement.achievementId },
+        populate: ['creator'],
       });
+
+      // An achievement that already exists but belongs to another issuer is
+      // never reused: importing must not attach credentials to it.
+      if (existing && existing.creator?.id !== profile.id) {
+        achievementsSkipped.push(achievement.achievementId);
+        continue;
+      }
 
       if (existing) {
         achievementIdMap.set(achievement.achievementId, existing.id);
@@ -105,7 +117,13 @@ export default ({ strapi }: { strapi: any }) => ({
     const credentialsImported: string[] = [];
     const credentialsSkipped: string[] = [];
 
-    for (const credential of bundle.credentialsIssued || []) {
+    // Restoring issued credentials keeps their proof as-is without verifying it,
+    // so it is limited to the service role (the console). A regular user could
+    // otherwise inject forged credentials in the local issuer's name.
+    const credentialsToRestore = options.restoreCredentials ? bundle.credentialsIssued || [] : [];
+    const credentialsRejected = options.restoreCredentials ? [] : (bundle.credentialsIssued || []).map((c) => c.credentialId);
+
+    for (const credential of credentialsToRestore) {
       const existing = await strapi.db.query('api::credential.credential').findOne({
         where: { credentialId: credential.credentialId },
       });
@@ -172,6 +190,7 @@ export default ({ strapi }: { strapi: any }) => ({
       achievementsSkipped,
       credentialsImported,
       credentialsSkipped,
+      credentialsRejected,
     };
   },
 });
