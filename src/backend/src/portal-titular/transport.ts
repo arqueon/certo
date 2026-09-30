@@ -30,9 +30,21 @@ const errors: Record<number, string> = {
   503: 'El servicio no está disponible por el momento. Conserva lo escrito e inténtalo más adelante.',
   429: 'Se recibieron varios intentos. Espera unos minutos antes de volver a enviar.',
 }
+// Solo laboratorio: HTTP hacia un servicio de la red Docker privada (nombre sin
+// punto) con bandera explícita. En la instancia oficial la consola va por HTTPS.
+function consolaUrl(): URL {
+  const raw = process.env.PORTAL_TITULAR_CONSOLA_URL || ''
+  if (process.env.PORTAL_TITULAR_CONSOLA_HTTP_INTERNO === 'true') {
+    let url: URL
+    try { url = new URL(raw) } catch { return fail(503, 'Esta sección no está disponible por el momento.') }
+    if (url.protocol === 'http:' && !url.hostname.includes('.') && !url.username && !url.password && !url.search && !url.hash) return url
+  }
+  return httpsUrl(raw)
+}
+
 export async function proxy(request: PortalRequest, send: typeof fetch = fetch) {
   if (route(request.method, request.target) !== request.action) return fail(403, 'Ruta no permitida.')
-  const url = httpsUrl(process.env.PORTAL_TITULAR_CONSOLA_URL)
+  const url = consolaUrl()
   if (url.pathname !== '/') return fail(503, 'Esta sección no está disponible por el momento.')
   if (!isIP(request.ip)) return fail(503, 'No se pudo comprobar la conexión al portal.')
   if (request.action === 'presentar' ? !/^[A-Za-z0-9_-]{16,128}$/.test(request.idempotencyKey || '') : !!request.idempotencyKey) {

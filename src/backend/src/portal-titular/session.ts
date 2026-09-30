@@ -22,7 +22,11 @@ export function config() {
   const publicUrl = httpsUrl(process.env.PORTAL_TITULAR_PUBLIC_URL)
   const frontend = httpsUrl(process.env.FRONTEND_URL)
   const issuer = httpsUrl(process.env.KEYCLOAK_PUBLIC_URL).href.replace(/\/$/, '')
-  const internal = httpsUrl(process.env.KEYCLOAK_INTERNAL_URL || issuer).href.replace(/\/$/, '')
+  // PORTAL_TITULAR_KEYCLOAK_INTERNAL_URL permite HTTPS aquí sin cambiar el
+  // KEYCLOAK_INTERNAL_URL (HTTP interno) que usa el login del parche 0011.
+  const internalRaw = process.env.PORTAL_TITULAR_KEYCLOAK_INTERNAL_URL
+    || (/^https:/.test(process.env.KEYCLOAK_INTERNAL_URL || '') ? process.env.KEYCLOAK_INTERNAL_URL : '') || issuer
+  const internal = httpsUrl(internalRaw).href.replace(/\/$/, '')
   const key = process.env.PORTAL_TITULAR_SESSION_KEY || ''
   const client = process.env.KEYCLOAK_CLIENT_ID || 'certo'
   const secret = process.env.KEYCLOAK_CLIENT_SECRET || ''

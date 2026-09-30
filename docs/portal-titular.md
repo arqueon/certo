@@ -37,6 +37,8 @@ Solo en **backend**, por el mecanismo administrado de inyección de secretos. Ni
 | `FRONTEND_URL` | Origen HTTPS del frontend, sin subruta. Único Origin admitido y destino fijo tras SSO; puede diferir del backend. |
 | `KEYCLOAK_PUBLIC_URL` | Issuer exacto del realm; HTTPS. Reutiliza el parámetro del parche 0011. |
 | `KEYCLOAK_INTERNAL_URL` | Base del mismo realm para token/JWKS, HTTPS. Si falta se usa el issuer. No reescribe el issuer esperado. |
+| `PORTAL_TITULAR_KEYCLOAK_INTERNAL_URL` | Base HTTPS del realm para token/JWKS del portal. Si falta, se usa `KEYCLOAK_INTERNAL_URL` solo si es HTTPS, y si no, el issuer. Evita tocar el `KEYCLOAK_INTERNAL_URL` HTTP del parche 0011. |
+| `PORTAL_TITULAR_CONSOLA_HTTP_INTERNO` | **Solo laboratorio.** `true` permite `http://` en `PORTAL_TITULAR_CONSOLA_URL` si el host es un nombre de servicio Docker sin punto (red privada). Por omisión, HTTPS obligatorio. |
 | `KEYCLOAK_CLIENT_ID` | Cliente confidencial existente, por omisión `certo`. |
 | `KEYCLOAK_CLIENT_SECRET` | Secreto de ese cliente, requerido. No se reutiliza para la firma a consola. |
 | `PORTAL_TITULAR_TRUST_PROXY` | `false` por omisión. Activa globalmente `server.proxy.koa` solo con `true`; véase la política TLS abajo. No selecciona la IP que se firma. |
