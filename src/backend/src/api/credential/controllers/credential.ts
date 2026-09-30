@@ -487,6 +487,11 @@ export default factories.createCoreController('api::credential.credential', ({ s
    */
   async import(ctx) {
     try {
+      // Attaching external credentials to holders' profiles is a service operation.
+      if (ctx.state.user?.role?.name !== 'Servicio de emision') {
+        return ctx.forbidden('Only the issuing service may import credentials')
+      }
+
       const { certificateData } = ctx.request.body
 
       if (!certificateData) {

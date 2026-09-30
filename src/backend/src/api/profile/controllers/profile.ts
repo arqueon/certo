@@ -139,7 +139,7 @@ export default factories.createCoreController('api::profile.profile', ({ strapi 
       }
 
       const profiles = await strapi.entityService.findMany('api::profile.profile', {
-        filters: { email: ctx.state.user.email },
+        filters: { owner: ctx.state.user.id },
         status: 'published',
         limit: 1,
       });
@@ -225,7 +225,8 @@ export default factories.createCoreController('api::profile.profile', ({ strapi 
       }
 
       const dataPortability = strapi.service('api::profile.data-portability');
-      return await dataPortability.importProfileData(profiles[0], ctx.request.body || {});
+      const isService = ctx.state.user.role?.name === 'Servicio de emision';
+      return await dataPortability.importProfileData(profiles[0], ctx.request.body || {}, { restoreCredentials: isService });
     } catch (err) {
       console.error('Error importing profile data:', err);
       return ctx.badRequest('Error importing profile data', { error: err });
