@@ -69,12 +69,14 @@ export default ({ env }) => {
           return origin
         },
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'],
-        headers: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
+        headers: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'Idempotency-Key'],
         keepHeaderOnError: true,
         credentials: true,
       }
     },
     'strapi::poweredBy',
+    // Handles this namespace before access logging: no OIDC codes or personal payloads in logs.
+    'global::portal-titular',
     'strapi::logger',
     'strapi::query',
     'strapi::body',

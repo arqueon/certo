@@ -15,6 +15,7 @@
  *   RATE_LIMIT_WHITELIST  — comma-separated IPs to exempt (e.g. monitoring IPs)
  */
 import type { Context, Next } from 'koa';
+import { clientIp as portalClientIp } from '../portal-titular/client-ip';
 
 interface RateLimitEntry {
   count: number;
@@ -29,6 +30,8 @@ const DEFAULT_MAX_REQUESTS = 50;
 
 // Auth endpoints are sensitive and get a tighter default limit.
 const AUTH_PATHS = [
+  '/api/portal-titular/auth/iniciar',
+  '/api/portal-titular/auth/callback',
   '/api/auth/local',
   '/api/auth/local/register',
   '/api/auth/forgot-password',
@@ -77,7 +80,16 @@ export default (config: any = {}, { strapi }: { strapi: any }) => {
       return next();
     }
 
-    const ip = getClientIp(ctx);
+    let ip: string;
+    try {
+      // This middleware runs before portal-titular and strapi::errors.
+      ip = path.startsWith('/api/portal-titular/') ? portalClientIp(ctx) : getClientIp(ctx);
+    } catch {
+      ctx.status = 503;
+      ctx.set('Cache-Control', 'no-store');
+      ctx.body = { error: { status: 503, message: 'No se pudo comprobar la conexión al portal.' } };
+      return;
+    }
 
     // Whitelisted IPs (e.g. monitoring/health checks) are exempt.
     if (whitelist.has(ip)) {

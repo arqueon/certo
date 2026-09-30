@@ -427,3 +427,7 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
     </tr>
   </table>
 </div>
+
+### Portal del titular: reconocimiento de saberes previos
+
+La implementación del fork se documenta en [docs/portal-titular.md](docs/portal-titular.md): contrato v1 con consola, sesión SSO, configuración server-side, pruebas locales y pendientes de integración. La sección `/saberes-previos` se enlaza desde la cartera. Está deshabilitada en backend hasta configurar explícitamente `PORTAL_TITULAR_ENABLED=true` y sus dependencias de SSO/TLS. Registro del parche local: [0015](docs/patches/0015-saberes-previos-portal.md).
