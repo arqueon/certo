@@ -135,7 +135,10 @@ export default ({ strapi }) => ({
 
       // Convert to Open Badge format
       const openBadgeService = strapi.service('api::credential.open-badge')
-      const serializedCredential = await openBadgeService.serializeCredential(credential.id)
+      const serializedCredential = await openBadgeService.serializeCredential(credential.id, true)
+      await strapi.entityService.update('api::credential.credential', credential.id, {
+        data: { signedCredential: serializedCredential },
+      })
 
       // Send notification email to recipient
       let emailSent = false

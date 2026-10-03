@@ -241,7 +241,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Set token in cookie for server-side auth checks
       if (import.meta.client) {
-        Cookies.set('token', jwt, {
+        Cookies.set('token', response.jwt, {
           expires: 7,
           path: '/',
           sameSite: 'strict'

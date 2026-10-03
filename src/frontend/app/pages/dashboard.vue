@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const branding = useBranding()
 const websiteUrl = useWebsiteUrl()
 const { enabled: portalTitularEnabled } = useSaberesPrevios()
 import { apiClient } from '~/api/api-client'
@@ -9,6 +10,10 @@ definePageMeta({
 
 interface Certificate {
   id: string
+  credentialId?: string
+  name?: string
+  issuanceDate?: string
+  achievement?: { name?: string }
   title: string
   description: string
   issueDate: string
@@ -35,14 +40,16 @@ const issuedCertificates = ref<Certificate[]>([])
 
 // Utility to generate LinkedIn Add to Profile URL
 function getLinkedInAddToProfileUrl(cert: Certificate) {
+  const date = cert.issuanceDate || cert.issueDate
+  const id = cert.credentialId || cert.id
   const params = new URLSearchParams({
     startTask: 'CERTIFICATION_NAME',
-    name: cert.title,
-    organizationId: '53115782',
-    issueYear: cert.issueDate ? new Date(cert.issueDate).getFullYear().toString() : '',
+    name: cert.name || cert.title || cert.achievement?.name || '',
+    ...(branding.active ? { organizationName: cert.issuer?.name || branding.name } : { organizationId: '53115782' }),
+    issueYear: date ? new Date(date).getFullYear().toString() : '',
     issueMonth: cert.issueDate ? (new Date(cert.issueDate).getMonth() + 1).toString() : '',
-    certId: cert.id,
-    certUrl: `${window.location.origin}/credentials/${cert.id}`
+    certId: id,
+    certUrl: `${window.location.origin}/credentials/${encodeURIComponent(id)}`
   })
   return `https://www.linkedin.com/profile/add?${params.toString()}`
 }
@@ -88,9 +95,11 @@ onMounted(async () => {
 
 <template>
   <div class="container mx-auto px-4 py-8">
-    <NuxtLink v-if="portalTitularEnabled" to="/saberes-previos" class="block mb-6 rounded-lg border border-gray-300 bg-white p-4 text-text-primary underline">
-      Reconocimiento de saberes previos: presentar y consultar mis solicitudes
+    <NuxtLink v-if="portalTitularEnabled || branding.active" to="/saberes-previos" class="block mb-6 rounded-lg border border-gray-300 bg-white p-4 text-text-primary underline">
+      {{ branding.active ? t('nav.priorLearning') : 'Reconocimiento de saberes previos: presentar y consultar mis solicitudes' }}
     </NuxtLink>
+    <h1 v-if="branding.active" class="text-3xl font-bold mb-6">{{ t('nav.myCredentials') }}</h1>
+    <HolderDownloads v-if="branding.active" />
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div class="w-8 h-8 border-4 border-[#00E5C5] border-t-transparent rounded-full animate-spin" />
@@ -134,6 +143,7 @@ onMounted(async () => {
             :show-recipient="false"
           >
             <template #actions>
+              <NuxtLink v-if="branding.active" :to="`/credentials/${encodeURIComponent(cert.credentialId || cert.id)}`" class="brand-button mt-3">{{ t('portal.holder.manage') }}</NuxtLink>
               <a
                 :href="getLinkedInAddToProfileUrl(cert)"
                 target="_blank"
@@ -187,6 +197,7 @@ onMounted(async () => {
             :certificate="cert"
           >
             <template #actions>
+              <NuxtLink v-if="branding.active" :to="`/credentials/${encodeURIComponent(cert.credentialId || cert.id)}`" class="brand-button mt-3">{{ t('portal.holder.manage') }}</NuxtLink>
               <a
                 :href="getLinkedInAddToProfileUrl(cert)"
                 target="_blank"

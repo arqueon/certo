@@ -11,7 +11,8 @@ import { LOCALE_COOKIE, LOCALES } from '~/composables/useI18n'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
-  if (String(config.public.detectBrowserLocale) === 'false') return
+  const detection = String(config.public.detectBrowserLocale)
+  if (detection === 'false' || (!detection && useBranding().active)) return
 
   const { setLocale } = useI18n()
 

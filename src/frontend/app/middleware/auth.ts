@@ -5,6 +5,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   const authStore = useAuthStore()
+  if (!authStore.isAuthenticated && !authStore.isLoading) await authStore.init()
 
   // Wait for store to finish loading if needed
   if (authStore.isLoading) {
@@ -24,7 +25,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // Protected routes that require authentication
   const protectedRoutes = ['/dashboard', '/profile']
-  const isProtectedRoute = protectedRoutes.some(route =>
+  const isProtectedRoute = /^\/credentials\/[^/]+\/imprimir\/?$/.test(to.path) || protectedRoutes.some(route =>
     to.path === route || to.path.startsWith(`${route}/`)
   )
 

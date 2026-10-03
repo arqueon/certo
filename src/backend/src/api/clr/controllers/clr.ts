@@ -3,6 +3,12 @@
  */
 
 import { factories } from '@strapi/strapi'
+import { isCredentialOwner } from '../../credential/services/holder-access'
+
+async function publiclyAvailable(strapi: any, id: string) {
+  const record = await strapi.entityService.findOne('api::clr.clr', id, { populate: ['credentials'] })
+  return record && record.credentials.every((c: any) => c.publicLinkActive !== false && c.publicRecipientName !== false)
+}
 
 export default factories.createCoreController('api::clr.clr', ({ strapi }) => ({
   /**
@@ -39,8 +45,21 @@ export default factories.createCoreController('api::clr.clr', ({ strapi }) => ({
    * wallet/portal) must be able to dereference this without an account,
    * same reasoning as revocation-list's public findOne.
    */
+  async mine(ctx) {
+    if (!ctx.state.user) return ctx.unauthorized()
+    ctx.set('Cache-Control', 'private, no-store')
+    const records = await strapi.entityService.findMany('api::clr.clr', {
+      filters: { subject: { owner: { id: ctx.state.user.id } } },
+      populate: ['credentials.recipient.owner'],
+    })
+    const owned = records.filter((r: any) => r.credentials?.length && r.credentials.every((c: any) => isCredentialOwner(c, ctx.state.user.id)))
+    return { data: await Promise.all(owned.map((r: any) => strapi.service('api::clr.clr').construirDocumento(r.id))) }
+  },
+
   async findOne(ctx) {
     const { id } = ctx.params
+    ctx.set('Cache-Control', 'no-store')
+    if (!(await publiclyAvailable(strapi, id))) return ctx.notFound('CLR is not publicly available')
     try {
       const clrService = strapi.service('api::clr.clr')
       const documento = await clrService.construirDocumento(id)
@@ -66,6 +85,8 @@ export default factories.createCoreController('api::clr.clr', ({ strapi }) => ({
    */
   async verify(ctx) {
     const { id } = ctx.params
+    ctx.set('Cache-Control', 'no-store')
+    if (!(await publiclyAvailable(strapi, id))) return ctx.notFound('CLR is not publicly available')
     try {
       const clrService = strapi.service('api::clr.clr')
       const documento = await clrService.construirDocumento(id)

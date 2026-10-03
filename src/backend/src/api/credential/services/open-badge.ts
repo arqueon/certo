@@ -394,7 +394,7 @@ export default ({ strapi }) => ({
   /**
    * Serialize a credential to Open Badges 3.0 Verifiable Credential format
    */
-  async serializeCredential(credentialId) {
+  async serializeCredential(credentialId, newIssuance = false) {
     try {
       // Fetch the credential with all its relations
       const credential = await strapi.entityService.findOne('api::credential.credential', credentialId, {
@@ -418,6 +418,7 @@ export default ({ strapi }) => ({
       if (!credential) {
         throw new Error('Credential not found')
       }
+      if (credential.signedCredential) return JSON.parse(JSON.stringify(credential.signedCredential))
       if (!credential.achievement.creator) {
         throw new Error('Credential is missing an associated achievement creator')
       }
@@ -482,7 +483,8 @@ export default ({ strapi }) => ({
               type: 'Image'
             } : undefined,
             criteria: credential.achievement.criteria
-              ? { narrative: credential.achievement.criteria.narrative }
+              ? { narrative: credential.achievement.criteria.narrative,
+                  ...((newIssuance || !credential.proof?.length) && credential.achievement.criteria.url ? { id: credential.achievement.criteria.url } : {}) }
               : { narrative: 'Criteria not specified' },
             ...(credential.achievement.alignment && credential.achievement.alignment.length > 0
               ? { alignments: credential.achievement.alignment.map(align => ({
@@ -709,6 +711,7 @@ export default ({ strapi }) => ({
 
       // Create the credential
       const credentialData = {
+        signedCredential: vcData,
         credentialId: vcData.id,
         type: vcData.type,
         name: vcData.name,

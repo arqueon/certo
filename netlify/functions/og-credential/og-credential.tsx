@@ -326,8 +326,8 @@ export const handler: Handler = async (event) => {
     statusCode: 200,
     headers: {
       'Content-Type': 'image/png',
-      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
-      'CDN-Cache-Control': 'public, max-age=86400'
+      'Cache-Control': 'private, no-store',
+      'CDN-Cache-Control': 'no-store'
     },
     body: pngBuffer.toString('base64'),
     isBase64Encoded: true

@@ -31,7 +31,9 @@
     "image": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
     "publicKey": {
       "type": "component",
@@ -40,7 +42,11 @@
     },
     "profileType": {
       "type": "enumeration",
-      "enum": ["Issuer", "Recipient", "Both"],
+      "enum": [
+        "Issuer",
+        "Recipient",
+        "Both"
+      ],
       "default": "Both"
     },
     "owner": {
@@ -61,13 +67,15 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::credential.credential",
-      "mappedBy": "issuer"
+      "mappedBy": "issuer",
+      "private": true
     },
     "receivedCredentials": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::credential.credential",
-      "mappedBy": "recipient"
+      "mappedBy": "recipient",
+      "private": true
     },
     "revocationLists": {
       "type": "relation",
@@ -76,4 +84,4 @@
       "mappedBy": "issuer"
     }
   }
-} 
+}

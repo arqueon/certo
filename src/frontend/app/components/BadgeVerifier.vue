@@ -1,7 +1,9 @@
 <script setup>
+import { credentialIdentifier } from '~/utils/portal'
 import { apiClient } from '~/api/api-client'
 
 const { t, formatDate } = useI18n()
+const branding = useBranding()
 
 const props = defineProps({
   initialIdentifier: {
@@ -52,12 +54,13 @@ function setVerifyMode(mode) {
 
 async function handleFileUpload(event) {
   fileError.value = null
+  jsonInput.value = ''
   const file = event.target.files && event.target.files[0]
   if (!file) {
     return
   }
   uploadedFileName.value = file.name
-  if (file.type !== 'application/json') {
+  if (!/\.(json|jsonld)$/i.test(file.name) && !['application/json', 'application/ld+json'].includes(file.type)) {
     fileError.value = t('verifier.errors.invalidFileType')
     return
   }
@@ -96,7 +99,7 @@ async function verifyById() {
   verificationChecks.value = null
 
   try {
-    const result = await apiClient.verifyBadge(identifier.value)
+    const result = await apiClient.verifyBadge(credentialIdentifier(identifier.value))
     isVerified.value = result.verified
     badge.value = result.credential || null
     rawCredential.value = result.rawCredential || null
@@ -252,7 +255,7 @@ function handleShare() {
               name="file-upload"
               type="file"
               class="sr-only"
-              accept=".json"
+              accept=".json,.jsonld,application/json,application/ld+json"
               @change="handleFileUpload"
             >
           </label>
@@ -270,7 +273,7 @@ function handleShare() {
           </div>
         </div>
         <!-- Preview -->
-        <div v-if="jsonInput && !fileError" class="mt-4 bg-gray-50 rounded-lg p-4 text-xs font-mono overflow-x-auto">
+        <div v-if="!branding.active && jsonInput && !fileError" class="mt-4 bg-gray-50 rounded-lg p-4 text-xs font-mono overflow-x-auto">
           <pre>{{ JSON.stringify(JSON.parse(jsonInput), null, 2) }}</pre>
         </div>
       </div>
@@ -351,21 +354,22 @@ function handleShare() {
 
           <!-- Certificate Details -->
           <div v-if="isVerified" class="mt-6 space-y-4">
-            <div class="flex items-center justify-between text-sm">
+            <h4 v-if="branding.active" class="font-semibold text-lg">{{ badge?.name }}</h4>
+            <div class="flex items-center justify-between gap-3 text-sm">
               <span class="text-text-secondary">{{ t('verifier.issuer') }}</span>
               <span class="font-medium text-text-primary">{{ badge?.issuer?.name || t('verifier.unknownIssuer') }}</span>
             </div>
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex items-center justify-between gap-3 text-sm">
               <span class="text-text-secondary">{{ t('verifier.issueDate') }}</span>
               <span class="font-medium text-text-primary">{{ formatDate(badge?.issuanceDate, undefined, t('credential.unknown')) }}</span>
             </div>
-            <div v-if="badge?.expirationDate" class="flex items-center justify-between text-sm">
+            <div v-if="badge?.expirationDate" class="flex items-center justify-between gap-3 text-sm">
               <span class="text-text-secondary">{{ t('verifier.expiryDate') }}</span>
               <span class="font-medium text-text-primary">{{ formatDate(badge.expirationDate) }}</span>
             </div>
-            <div class="flex items-center justify-between text-sm">
+            <div class="flex items-center justify-between gap-3 text-sm">
               <span class="text-text-secondary">{{ t('verifier.id') }}</span>
-              <span class="font-medium text-text-primary">{{ badge?.id }}</span>
+              <span class="font-medium text-text-primary break-all text-right">{{ badge?.id }}</span>
             </div>
           </div>
         </div>

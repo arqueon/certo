@@ -58,8 +58,9 @@ function resolve(obj: Record<string, any>, key: string): string | undefined {
 
 export function useI18n() {
   const config = useRuntimeConfig()
+  const branding = useBranding()
   const configured = config.public.defaultLocale
-  const defaultLocale: LocaleCode = isLocale(configured) ? configured : FALLBACK_LOCALE
+  const defaultLocale: LocaleCode = isLocale(configured) ? configured : branding.active ? 'es' : FALLBACK_LOCALE
 
   const localeCookie = useCookie<LocaleCode>(LOCALE_COOKIE, { maxAge: 60 * 60 * 24 * 365 })
   // Read the cookie on the server too, so the HTML already comes out in the
@@ -70,7 +71,8 @@ export function useI18n() {
   /** Translate a dot-notation key, with optional `{param}` interpolation */
   function t(key: string, params?: Record<string, string | number>): string {
     const messages = MESSAGES[locale.value] ?? MESSAGES[defaultLocale]
-    let value = resolve(messages, key)
+    let value = (branding.active ? resolve(messages, `portal.overrides.${key}`) ?? resolve(MESSAGES.en, `portal.overrides.${key}`) : undefined)
+      ?? resolve(messages, key)
       ?? resolve(MESSAGES[defaultLocale], key)
       ?? resolve(MESSAGES.en, key)
       ?? key

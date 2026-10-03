@@ -3,6 +3,7 @@
  */
 
 import { factories } from '@strapi/strapi'
+import { isPublicCredential, publicVerification } from '../../credential/services/holder-access'
 import { achievementsCreatedTotal } from '../../../monitoring/metrics'
 
 interface Achievement {
@@ -98,6 +99,7 @@ export default factories.createCoreController('api::achievement.achievement', ({
     try {
       // Get the data from the request body
       const { data } = ctx.request.body;
+      ctx.query = { ...ctx.query, populate: { criteria: true } };
       
       // Handle empty tags
       if (data.tags === '' || data.tags === undefined || data.tags === null) {
@@ -149,13 +151,16 @@ export default factories.createCoreController('api::achievement.achievement', ({
       
       const achievement = await strapi.entityService.findOne('api::achievement.achievement', id, {
         status: 'published',
-        populate: ['credentials', 'credentials.recipient', 'image', 'creator']
+        populate: ['credentials', 'credentials.recipient', 'image', 'creator', 'criteria']
       }) as Achievement
       
       if (!achievement) {
         return ctx.notFound('Achievement not found')
       }
       
+      achievement.credentials = (achievement.credentials || []).filter(isPublicCredential)
+        .map(rawCredential => publicVerification({ rawCredential }).rawCredential)
+      ctx.set('Cache-Control', 'no-store')
       return { data: achievement }
     } catch (err) {
       ctx.badRequest('Error fetching achievement', { error: err })
@@ -172,7 +177,7 @@ export default factories.createCoreController('api::achievement.achievement', ({
       const achievements = await strapi.entityService.findMany('api::achievement.achievement', {
         status: 'published',
         filters: { creator: { id: creatorId } },
-        populate: '*',
+        populate: ['criteria', 'image', 'alignment', 'skills', 'creator'],
       })
       return { data: achievements }
     } catch (err) {

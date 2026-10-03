@@ -396,7 +396,7 @@ export interface ApiAchievementAchievement extends Struct.CollectionTypeSchema {
     credentials: Schema.Attribute.Relation<
       'oneToMany',
       'api::credential.credential'
-    >;
+    > & Schema.Attribute.Private;
     criteria: Schema.Attribute.Component<'badge.criteria', false>;
     description: Schema.Attribute.Text & Schema.Attribute.Required;
     image: Schema.Attribute.Media<'images'>;
@@ -497,6 +497,10 @@ export interface ApiCredentialCredential extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    publicRecipientName: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    publicLinkActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
+    signedCredential: Schema.Attribute.JSON & Schema.Attribute.Private;
+
     achievement: Schema.Attribute.Relation<
       'manyToOne',
       'api::achievement.achievement'
@@ -607,7 +611,7 @@ export interface ApiEvidenceEvidence extends Struct.CollectionTypeSchema {
     credential: Schema.Attribute.Relation<
       'manyToOne',
       'api::credential.credential'
-    >;
+    > & Schema.Attribute.Private;
     description: Schema.Attribute.Text;
     evidenceId: Schema.Attribute.UID<'name'>;
     genre: Schema.Attribute.String;
@@ -691,7 +695,7 @@ export interface ApiProfileProfile extends Struct.CollectionTypeSchema {
     issuedCredentials: Schema.Attribute.Relation<
       'oneToMany',
       'api::credential.credential'
-    >;
+    > & Schema.Attribute.Private;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -710,7 +714,7 @@ export interface ApiProfileProfile extends Struct.CollectionTypeSchema {
     receivedCredentials: Schema.Attribute.Relation<
       'oneToMany',
       'api::credential.credential'
-    >;
+    > & Schema.Attribute.Private;
     revocationLists: Schema.Attribute.Relation<
       'oneToMany',
       'api::revocation-list.revocation-list'

@@ -45,3 +45,19 @@
 html.dark {
   color-scheme: light;
 }
+.brand-button {
+  display: inline-block;
+  background: var(--brand-primary) !important;
+  color: var(--brand-primary-text) !important;
+  padding: .65rem 1.1rem;
+  border-radius: .6rem;
+  font-weight: 600;
+}
+.brand-button:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+.portal-card { background: white; color: #202b38; border: 1px solid #cbd5e1; border-radius: 1rem; padding: 1.5rem; }
+.portal-card h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: .75rem; }
+.portal-card p { margin-bottom: 1.25rem; line-height: 1.6; }
+html[data-branded] [class*="bg-[#5AB69F]"] { background-color: var(--brand-primary); color: var(--brand-primary-text); }
+html[data-branded] [class*="bg-[#00E5C5]"] { background-color: color-mix(in srgb, var(--brand-primary) 12%, white); }
+html[data-branded] [class*="text-[#5AB69F]"], html[data-branded] [class*="text-[#00E5C5]"] { color: var(--brand-primary); }
+html[data-branded] input:focus-visible, html[data-branded] button:focus-visible, html[data-branded] a:focus-visible { outline: 3px solid var(--brand-primary); outline-offset: 3px; }
