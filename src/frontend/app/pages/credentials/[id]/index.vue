@@ -324,9 +324,6 @@ const imageUrlOptions = computed(() => {
   const rawCred = verificationResult.value?.rawCredential
 
   const options = [
-    // Option 1: Direct certificate endpoint URL
-    apiClient.getCertificateUrl(cred.id),
-
     // Option 2: Raw credential achievement image URL (Strapi format)
     rawCred?.achievement?.image?.url,
 
@@ -341,7 +338,11 @@ const imageUrlOptions = computed(() => {
       : null,
 
     // Option 5: OpenBadges issuer image
-    typeof cred.issuer?.image === 'string' ? cred.issuer.image : null
+    typeof cred.issuer?.image === 'string' ? cred.issuer.image : null,
+
+    // Último recurso: el certificado SVG generado. Va al final para que la
+    // insignia real del logro tenga prioridad cuando existe.
+    apiClient.getCertificateUrl(cred.id)
   ].filter(Boolean) as string[]
 
   return [...new Set(options)]
