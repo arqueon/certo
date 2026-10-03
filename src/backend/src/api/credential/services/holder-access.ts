@@ -16,6 +16,12 @@ export function publicVerification(result: any) {
   if (copy.rawCredential.recipient) {
     copy.rawCredential.recipient = { name: copy.rawCredential.recipient.name }
   }
+  // El identificador del sujeto puede ser un correo (mailto:). La firma ya se
+  // verificó en el servidor; la proyección pública nunca lo muestra.
+  if (copy.credential?.credentialSubject) {
+    delete copy.credential.credentialSubject.id
+    delete copy.credential.credentialSubject.identifier
+  }
   if (raw.publicRecipientName === false) {
     copy.recipientNameHidden = true
     copy.rawCredential.recipient = { name: 'Titular verificado por UDGPlus' }
