@@ -4,6 +4,8 @@
 
 import { factories } from '@strapi/strapi'
 import crypto from 'crypto'
+import { matchesRecipient } from '../../../utils/recipient-identity'
+import { isCredentialOwner, isPublicCredential, publicVerification } from '../services/holder-access'
 import { credentialsRevokedTotal } from '../../../monitoring/metrics'
 import { channelAlerts } from '../services/channel-alerts/index'
 
@@ -149,65 +151,38 @@ export default factories.createCoreController('api::credential.credential', ({ s
         return ctx.badRequest('Credential ID is required')
       }
 
-      // Attempt to use the verification service (which looks up by credentialId)
-      try {
-        const verificationService = strapi.service('api::credential.verification')
-        const result = await verificationService.verifyCredential(id)
-        return result
-      } catch (error) {
-        // If there's an error with the verification service, we'll attempt a fallback method
-        console.warn('Using fallback verification method:', error.message)
-        
-        // Find the credential by credentialId field
-        const credentials = await strapi.entityService.findMany('api::credential.credential', {
-          status: 'published',
-          filters: { credentialId: id },
-          populate: [
-            'achievement', 
-            'achievement.image', 
-            'achievement.criteria',
-            'achievement.alignment',
-            'achievement.skills',
-            'issuer', 
-            'issuer.image',
-            'recipient', 
-            'evidence',
-            'proof'
-          ],
-        })
+      ctx.set('Cache-Control', 'no-store')
+      const record = await strapi.service('api::credential.holder-access').find(id)
+      if (!isPublicCredential(record)) return ctx.notFound('Credential is not publicly available')
+      const result = await strapi.service('api::credential.verification').verifyCredential(record.credentialId)
+      return publicVerification(result)
 
-        if (!credentials || credentials.length === 0) {
-          return ctx.notFound('Credential not found')
-        }
-
-        const credential = credentials[0]
-        
-        // Convert to Open Badge format for frontend display
-        const openBadgeService = strapi.service('api::credential.open-badge')
-        const serializedCredential = await openBadgeService.serializeCredential(credential.id)
-
-        // Check if the credential is valid (not revoked and not expired)
-        const isValid = !credential.revoked &&
-          (!credential.expirationDate || new Date(credential.expirationDate as string) > new Date());
-
-        // Return verification result
-        return {
-          verified: isValid,
-          checks: [
-            { check: 'existence', result: 'success', message: 'Credential exists in the system' },
-            { check: 'revocation', result: !credential.revoked ? 'success' : 'error', 
-              message: !credential.revoked ? null : 'Credential has been revoked' },
-            { check: 'expiration', result: (!credential.expirationDate || new Date(credential.expirationDate as string) > new Date()) ? 'success' : 'error',
-              message: (!credential.expirationDate || new Date(credential.expirationDate as string) > new Date()) ? null : 'Credential has expired' }
-          ],
-          credential: serializedCredential,
-          rawCredential: credential
-        }
-      }
     } catch (error) {
       console.error('Error verifying credential:', error)
       return ctx.badRequest(error.message || 'Failed to verify credential')
     }
+  },
+
+  async checkRecipient(ctx) {
+    const started = performance.now()
+    ctx.set('Cache-Control', 'no-store')
+    const email = ctx.request.body?.email
+    if (typeof email !== 'string' || email.length > 320 || !/^[^\s@]+@[^\s@]+$/.test(email.trim())) {
+      return ctx.badRequest('A valid email is required')
+    }
+    const record = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    // Same lookup, dummy comparison and response for missing and disabled links.
+    // Do not serialize here: a public check must never create a signature.
+    const available = isPublicCredential(record)
+    const subject = available
+      ? record.signedCredential?.credentialSubject ?? (record.proof?.length && record.recipient?.email
+        ? { id: `mailto:${record.recipient.email}` } : null)
+      : null
+    const matches = matchesRecipient(subject, email)
+    // Equalize the usual missing/disabled lookup costs, including relation loads.
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, 75 - (performance.now() - started))))
+    if (!available) return ctx.notFound('Credential is not publicly available')
+    return { matches }
   },
   
   /**
@@ -444,41 +419,59 @@ export default factories.createCoreController('api::credential.credential', ({ s
    * @param {Object} ctx - The context object
    */
   async export(ctx) {
-    try {
-      const { id } = ctx.params
+    const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    if (!credential) return ctx.notFound('Credential not found')
+    const publicIssuerExport = credential.publicLinkActive !== false && credential.publicRecipientName !== false
+      && ctx.state.user && credential.issuer?.owner?.id === ctx.state.user.id
+    if (!isCredentialOwner(credential, ctx.state.user?.id) && !publicIssuerExport) return ctx.forbidden('Only the holder may download a private credential')
+    ctx.set('Cache-Control', 'private, no-store')
+    return { data: await strapi.service('api::credential.open-badge').serializeCredential(credential.id), meta: { format: 'OpenBadges3.0' } }
+  },
 
-      if (!id) {
-        return ctx.badRequest('Credential ID is required')
-      }
+  async holder(ctx) {
+    const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    if (!isCredentialOwner(credential, ctx.state.user?.id)) return ctx.forbidden('Only the holder may access this credential')
+    ctx.set('Cache-Control', 'private, no-store')
+    return strapi.service('api::credential.verification').verifyCredential(credential.credentialId)
+  },
 
-      // Find the credential
-      const credential = await strapi.entityService.findOne('api::credential.credential', id, {
-        status: 'published',
-        populate: ['achievement', 'issuer', 'recipient', 'evidence'],
-      })
-
-      if (!credential) {
-        return ctx.notFound('Credential not found')
-      }
-
-      // Use the OpenBadge service to serialize the credential
-      const openBadgeCredential = await strapi.service('api::credential.open-badge').serializeCredential(id)
-
-      // Ensure proof is a single object, not an array (defensive, should be handled in service)
-      if (Array.isArray(openBadgeCredential.proof)) {
-        openBadgeCredential.proof = openBadgeCredential.proof[0]
-      }
-
-      return {
-        data: openBadgeCredential,
-        meta: {
-          format: 'OpenBadges3.0',
-        }
-      }
-    } catch (error) {
-      console.error('Error exporting credential:', error)
-      return ctx.badRequest(error.message || 'Failed to export credential')
+  async privacy(ctx) {
+    const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    if (!isCredentialOwner(credential, ctx.state.user?.id)) return ctx.forbidden('Only the holder may change privacy')
+    const data = ctx.request.body?.data
+    const keys = ['publicRecipientName', 'publicLinkActive']
+    if (!data || !Object.keys(data).length || Object.keys(data).some(k => !keys.includes(k) || typeof data[k] !== 'boolean')) {
+      return ctx.badRequest('Expected only boolean privacy settings')
     }
+    const updated = await strapi.entityService.update('api::credential.credential', credential.id, { data })
+    ctx.set('Cache-Control', 'private, no-store')
+    return { data: { publicRecipientName: updated.publicRecipientName !== false, publicLinkActive: updated.publicLinkActive !== false } }
+  },
+
+  async findOne(ctx) {
+    ctx.set('Cache-Control', 'no-store')
+    const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    if (!isPublicCredential(credential)) return ctx.notFound('Credential is not publicly available')
+    const result = await strapi.service('api::credential.verification').verifyCredential(credential.credentialId)
+    return { data: publicVerification(result).rawCredential }
+  },
+
+  async create(ctx) {
+    const data = ctx.request.body?.data || {}
+    if (['publicRecipientName', 'publicLinkActive', 'signedCredential'].some(k => k in data)) {
+      return ctx.badRequest('Privacy is controlled by the holder; signed documents are created internally')
+    }
+    return super.create(ctx)
+  },
+
+  async update(ctx) {
+    const data = ctx.request.body?.data || {}
+    if (['publicRecipientName', 'publicLinkActive', 'signedCredential'].some(k => k in data)) {
+      return ctx.badRequest('Use the holder privacy endpoint; signed documents are immutable')
+    }
+    const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    if (!credential || !(await callerOwnsIssuer(ctx, credential.issuer?.id))) return ctx.forbidden()
+    return super.update(ctx)
   },
 
   /**
@@ -527,73 +520,15 @@ export default factories.createCoreController('api::credential.credential', ({ s
    * @param {Object} ctx - The context object
    */
   async getCertificate(ctx) {
-    try {
-      const { id } = ctx.params
-      
-      if (!id) {
-        return ctx.badRequest('Credential ID is required')
-      }
-      
-      // Get the certificate service
-      const certificateService = strapi.service('api::credential.certificate')
-      
-      // Generate the certificate SVG
-      const svg = await certificateService.generateCertificate(id)
-      
-      // Set the content type and return the SVG
-      ctx.set('Content-Type', 'image/svg+xml')
-      return svg
-    } catch (error) {
-      console.error('Error generating certificate:', error)
-      return ctx.badRequest(error.message || 'Failed to generate certificate')
-    }
+    ctx.set('Cache-Control', 'no-store')
+    const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    if (!isPublicCredential(credential)) return ctx.notFound('Credential is not publicly available')
+    ctx.set('Content-Type', 'image/svg+xml')
+    return strapi.service('api::credential.certificate').generateCertificate(credential.id)
   },
 
-  /**
-   * Direct certificate endpoint for /verify/:id
-   * Returns the certificate image for a credential
-   */
   async getDirectCertificate(ctx) {
-    try {
-      const { id } = ctx.params;
-      
-      if (!id) {
-        return ctx.badRequest('Credential ID is required');
-      }
-      
-      
-      // Find credential by ID (could be UUID or database ID)
-      let credential;
-      
-      // First try to find by credentialId (UUID)
-      credential = await strapi.db.query('api::credential.credential').findOne({
-        where: { credentialId: id },
-        populate: ['achievement', 'issuer', 'recipient'],
-      });
-      
-      // If not found, try by database ID
-      if (!credential && !isNaN(parseInt(id))) {
-        credential = await strapi.db.query('api::credential.credential').findOne({
-          where: { id: parseInt(id) },
-          populate: ['achievement', 'issuer', 'recipient'],
-        });
-      }
-      
-      if (!credential) {
-        return ctx.notFound('Credential not found');
-      }
-      
-      // Generate the certificate
-      const certificateService = strapi.service('api::credential.certificate');
-      const { image, contentType } = await certificateService.generateCertificate(credential);
-      
-      // Set content type and send the image
-      ctx.type = contentType;
-      return image;
-    } catch (error) {
-      console.error('Error generating certificate:', error);
-      return ctx.badRequest(error.message || 'Failed to generate certificate');
-    }
+    return (this as any).getCertificate(ctx)
   },
 
   /**
@@ -606,8 +541,10 @@ export default factories.createCoreController('api::credential.credential', ({ s
     }
     
     try {
-      const multiTenancy = strapi.service('api::profile.multi-tenancy');
-      const credentials = await multiTenancy.getUserCredentials(ctx.state.user.id);
+      const credentials = await strapi.entityService.findMany('api::credential.credential', {
+        filters: { $or: [{ recipient: { owner: { id: ctx.state.user.id } } }, { issuer: { owner: { id: ctx.state.user.id } } }] },
+        populate: ['achievement', 'issuer', 'recipient'],
+      });
       
       return { data: credentials };
     } catch (err) {

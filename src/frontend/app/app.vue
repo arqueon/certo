@@ -13,7 +13,8 @@ useHead({
   titleTemplate: `%s | ${branding.name}`,
   htmlAttrs: {
     lang: computed(() => locale.value),
-    style: `--brand-primary: ${branding.primaryColor}`,
+    'data-branded': branding.active ? 'true' : undefined,
+    style: `--brand-primary: ${branding.primaryColor}; --brand-primary-text: ${branding.primaryText}`,
   },
 })
 

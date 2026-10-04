@@ -19,6 +19,7 @@ const props = defineProps({
 const emit = defineEmits(['export', 'revoke', 'view', 'download'])
 
 const { t, locale, formatDate: formatLocaleDate } = useI18n()
+const branding = useBranding()
 
 const isMenuOpen = ref(false)
 const isExporting = ref(false)
@@ -198,7 +199,7 @@ function getLinkedInAddToProfileUrl() {
   const params = new URLSearchParams({
     startTask: 'CERTIFICATION_NAME',
     name: certName,
-    organizationId: '53115782',
+    ...(branding.active ? { organizationName: issuerName.value } : { organizationId: '53115782' }),
     issueYear: issueDateValue ? new Date(issueDateValue).getFullYear().toString() : '',
     issueMonth: issueDateValue ? (new Date(issueDateValue).getMonth() + 1).toString() : '',
     certId: certIdValue,
@@ -311,5 +312,6 @@ function getLinkedInAddToProfileUrl() {
     <div class="mt-4 aspect-[16/9] bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
       <img :src="badgeImageUrl" :alt="t('certificateCard.badgeImageAlt')" class="w-full h-full object-contain">
     </div>
+    <slot name="actions" />
   </div>
 </template>

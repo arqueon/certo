@@ -25,9 +25,17 @@ export default ({ strapi }) => ({
       const normalizedResults = normalizeResults(results?.resultDescription, results?.result)
 
       const recipientEntity = await this.findOrCreateRecipientProfile(recipient)
+      if (typeof recipientEntity.email !== 'string' || !recipientEntity.email.trim()) {
+        throw new Error('Recipient email is required for issuance')
+      }
 
       // Find or create user associated with the profile
-      await this.findOrCreateUser(recipientEntity)
+      const recipientUser = await this.findOrCreateUser(recipientEntity)
+      // The holder portal checks ownership explicitly (recipient.owner), not
+      // by email. A recipient profile created here has no owner yet: link it
+      // to the account with the same email, which is the one the holder will
+      // sign in with. Never overwrite an existing owner.
+      await this.claimRecipientProfile(recipientEntity, recipientUser)
 
       // Generate a unique credential ID
       const credentialId = `urn:uuid:${this.generateUUID()}`
@@ -135,7 +143,10 @@ export default ({ strapi }) => ({
 
       // Convert to Open Badge format
       const openBadgeService = strapi.service('api::credential.open-badge')
-      const serializedCredential = await openBadgeService.serializeCredential(credential.id)
+      const serializedCredential = await openBadgeService.serializeCredential(credential.id, true)
+      await strapi.entityService.update('api::credential.credential', credential.id, {
+        data: { signedCredential: serializedCredential, proof: [serializedCredential.proof] },
+      })
 
       // Send notification email to recipient
       let emailSent = false
@@ -198,7 +209,7 @@ export default ({ strapi }) => ({
         recipientEmail: (recipientEntity as any).email ?? '',
       }).catch(() => { /* already logged inside channelAlerts */ })
       return {
-        credential: populatedCredential,
+        credential: { ...populatedCredential, proof: [serializedCredential.proof] },
         openBadge: serializedCredential,
         notification: {
           sent: emailSent,
@@ -261,6 +272,14 @@ export default ({ strapi }) => ({
    * Find or create a user associated with a profile
    * @param {Object} profile - The profile to associate with a user
    */
+  async claimRecipientProfile(profile, user) {
+    if (!profile?.id || !user?.id || !profile.email || !user.email) return
+    if (String(profile.email).trim().toLowerCase() !== String(user.email).trim().toLowerCase()) return
+    const current: any = await strapi.entityService.findOne('api::profile.profile', profile.id, { populate: ['owner'] })
+    if (current?.owner?.id) return
+    await strapi.entityService.update('api::profile.profile', profile.id, { data: { owner: user.id } })
+  },
+
   async findOrCreateUser(profile) {
     try {
       if (!profile.email) {
@@ -423,4 +442,4 @@ export default ({ strapi }) => ({
       return v.toString(16)
     })
   },
-}) 
+})

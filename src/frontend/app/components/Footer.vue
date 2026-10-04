@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const branding = useBranding()
 const { t } = useI18n()
+const authStore = useAuthStore()
 </script>
 
 <template>
@@ -10,7 +11,8 @@ const { t } = useI18n()
         <!-- Logo Column -->
         <div>
           <div class="flex items-center gap-3">
-            <img :src="branding.logoUrl" :alt="`${branding.name} logo`" class="h-14 w-auto">
+            <span v-if="branding.active && branding.logoUrl === '/certo-logo-text.png'" class="text-2xl font-bold">{{ branding.name }}</span>
+            <img v-else :src="branding.logoUrl" :alt="`${branding.name} logo`" class="h-14 w-auto">
           </div>
           <p class="mt-4 text-text-secondary max-w-sm">
             {{ t('footer.description') }}
@@ -31,7 +33,7 @@ const { t } = useI18n()
                 {{ t('footer.links.home') }}
               </NuxtLink>
             </li>
-            <li>
+            <li v-if="!branding.active || authStore.isAuthenticated">
               <NuxtLink
                 to="/dashboard"
                 class="text-text-secondary hover:text-text-primary transition-colors"

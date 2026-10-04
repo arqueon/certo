@@ -27,7 +27,9 @@
     "image": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images"]
+      "allowedTypes": [
+        "images"
+      ]
     },
     "criteria": {
       "type": "component",
@@ -63,7 +65,8 @@
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::credential.credential",
-      "mappedBy": "achievement"
+      "mappedBy": "achievement",
+      "private": true
     }
   }
-} 
+}

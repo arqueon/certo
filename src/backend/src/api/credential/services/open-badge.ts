@@ -4,6 +4,8 @@
 
 import { resolveDidWeb } from '../../../utils/did-web';
 import { documentMismatches } from '../../../utils/signed-content'
+import { createRecipientIdentity } from '../../../utils/recipient-identity'
+import { credentialContext } from '../../../utils/credential-context'
 
 /**
  * The document being verified must say what was signed: a valid JWS over a
@@ -394,7 +396,7 @@ export default ({ strapi }) => ({
   /**
    * Serialize a credential to Open Badges 3.0 Verifiable Credential format
    */
-  async serializeCredential(credentialId) {
+  async serializeCredential(credentialId, newIssuance = false) {
     try {
       // Fetch the credential with all its relations
       const credential = await strapi.entityService.findOne('api::credential.credential', credentialId, {
@@ -418,6 +420,7 @@ export default ({ strapi }) => ({
       if (!credential) {
         throw new Error('Credential not found')
       }
+      if (credential.signedCredential) return JSON.parse(JSON.stringify(credential.signedCredential))
       if (!credential.achievement.creator) {
         throw new Error('Credential is missing an associated achievement creator')
       }
@@ -427,12 +430,14 @@ export default ({ strapi }) => ({
       
       // Base URL for this application
       const baseUrl = strapi.config.get('server.url') || 'http://localhost:1337'
+      const fresh = newIssuance || !credential.proof?.length
       
       // Build the Open Badge Verifiable Credential
       const obCredential: any = {
         '@context': [
           'https://www.w3.org/ns/credentials/v2',
-          'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json'
+          'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
+          ...(fresh ? [credentialContext] : []),
         ],
         id: credential.credentialId,
         type: ['VerifiableCredential', 'OpenBadgeCredential'],
@@ -447,7 +452,9 @@ export default ({ strapi }) => ({
         name: credential.name || credential.achievement.name,
         description: credential.description || credential.achievement.description,
         credentialSubject: {
-          id: credential.recipient?.email ? `mailto:${credential.recipient.email}` : undefined,
+          ...(fresh
+            ? { identifier: [createRecipientIdentity(credential.recipient?.email)] }
+            : { id: credential.recipient?.email ? `mailto:${credential.recipient.email}` : undefined }),
           type: ['AchievementSubject'],
           // Only emitted when set, so a credential without it serializes byte
           // for byte as it always did. awardedDate is when the learning was
@@ -482,10 +489,12 @@ export default ({ strapi }) => ({
               type: 'Image'
             } : undefined,
             criteria: credential.achievement.criteria
-              ? { narrative: credential.achievement.criteria.narrative }
+              ? { narrative: credential.achievement.criteria.narrative,
+                  ...((newIssuance || !credential.proof?.length) && credential.achievement.criteria.url ? { id: credential.achievement.criteria.url } : {}) }
               : { narrative: 'Criteria not specified' },
             ...(credential.achievement.alignment && credential.achievement.alignment.length > 0
-              ? { alignments: credential.achievement.alignment.map(align => ({
+              ? { [fresh ? 'alignment' : 'alignments']: credential.achievement.alignment.map(align => ({
+                  ...(fresh ? { type: 'Alignment' } : {}),
                   targetName: align.targetName,
                   targetUrl: align.targetUrl,
                   targetDescription: align.targetDescription,
@@ -502,7 +511,8 @@ export default ({ strapi }) => ({
       
       // Add evidence if available
       if (credential.evidence && credential.evidence.length > 0) {
-        obCredential.credentialSubject.achievement.evidence = credential.evidence.map(ev => ({
+        const evidenceTarget = fresh ? obCredential : obCredential.credentialSubject.achievement
+        evidenceTarget.evidence = credential.evidence.map(ev => ({
           id: `${baseUrl}/api/evidences/${ev.id}`,
           type: ['Evidence'],
           name: ev.name,
@@ -536,7 +546,7 @@ export default ({ strapi }) => ({
       }
       
       // Add proof if available (use only the first proof object if array)
-      if (credential.proof && credential.proof.length > 0) {
+      if (!fresh && credential.proof && credential.proof.length > 0) {
         const p = credential.proof[0]
         obCredential.proof = {
           type: p.type,
@@ -554,19 +564,8 @@ export default ({ strapi }) => ({
         // Prepare payload for signing (full credential minus proof)
         const credentialPayload = { ...obCredential }
         delete credentialPayload.proof
-        const issuerKeys = strapi.service('api::profile.issuer-keys')
-        const { privateKey } = await issuerKeys.getOrCreateKeyPair(credential.issuer.id)
-        const { SignJWT } = await import('jose')
-        const jws = await new SignJWT(credentialPayload)
-          .setProtectedHeader({ alg: 'EdDSA' })
-          .sign(privateKey)
-        obCredential.proof = {
-          type: 'Ed25519Signature2020',
-          created: new Date().toISOString(),
-          verificationMethod: `${baseUrl}/api/profiles/${credential.issuer.id}/keys`,
-          proofPurpose: 'assertionMethod',
-          jws
-        }
+        obCredential.proof = await strapi.service('api::credential.credential')
+          .generateProof(credential.issuer.id, credentialPayload)
       } else {
         // Remove undefined/null url from issuer
         if (!obCredential.issuer.url) delete obCredential.issuer.url
@@ -709,6 +708,7 @@ export default ({ strapi }) => ({
 
       // Create the credential
       const credentialData = {
+        signedCredential: vcData,
         credentialId: vcData.id,
         type: vcData.type,
         name: vcData.name,
@@ -752,4 +752,4 @@ export default ({ strapi }) => ({
       throw error
     }
   }
-}) 
+})

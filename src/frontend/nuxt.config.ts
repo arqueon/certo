@@ -11,6 +11,7 @@ import { defineNuxtConfig } from 'nuxt/config'
 const websiteUrl = process.env.NUXT_PUBLIC_WEBSITE_URL || 'https://certo.schroedinger-hat.org'
 
 export default defineNuxtConfig({
+  routeRules: { '/credentials/**': { headers: { 'cache-control': 'private, no-store' } } },
   compatibilityDate: '2025-06-12',
   devtools: { enabled: true },
   modules: [
@@ -156,18 +157,19 @@ export default defineNuxtConfig({
       // Public visibility switch only; backend authorization remains independent.
       portalTitularEnabled: false,
       websiteUrl,
-      brandName: process.env.NUXT_PUBLIC_BRAND_NAME || 'Certo',
-      brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '/certo-logo-text.png',
-      brandPrimaryColor: process.env.NUXT_PUBLIC_BRAND_PRIMARY_COLOR || '#5AB69F',
+      brandName: process.env.NUXT_PUBLIC_BRAND_NAME || '',
+      brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '',
+      brandPrimaryColor: process.env.NUXT_PUBLIC_BRAND_PRIMARY_COLOR || '',
       // Comma-separated users-permissions provider names to offer on the
       // login page. Read through runtimeConfig, not import.meta.env, so it
       // stays configurable at container runtime (same bug as WEBSITE_URL had).
       oauthProviders: process.env.NUXT_PUBLIC_OAUTH_PROVIDERS || '',
       // Interface locale when the visitor has not chosen one (certo_locale
       // cookie). Defaults to English, as upstream.
-      defaultLocale: process.env.NUXT_PUBLIC_DEFAULT_LOCALE || 'en',
+      catalogUrl: process.env.NUXT_PUBLIC_CATALOG_URL || '',
+      defaultLocale: process.env.NUXT_PUBLIC_DEFAULT_LOCALE || '',
       // 'false' to skip browser-language detection on first visit.
-      detectBrowserLocale: process.env.NUXT_PUBLIC_DETECT_BROWSER_LOCALE || 'true',
+      detectBrowserLocale: process.env.NUXT_PUBLIC_DETECT_BROWSER_LOCALE || '',
     }
   },
   imports: {

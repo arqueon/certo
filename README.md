@@ -431,3 +431,7 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 ### Portal del titular: reconocimiento de saberes previos
 
 La implementación del fork se documenta en [docs/portal-titular.md](docs/portal-titular.md): contrato v1 con consola, sesión SSO, configuración server-side, pruebas locales y pendientes de integración. La sección `/saberes-previos` se enlaza desde la cartera. Está deshabilitada en backend hasta configurar explícitamente `PORTAL_TITULAR_ENABLED=true` y sus dependencias de SSO/TLS. Registro del parche local: [0015](docs/patches/0015-saberes-previos-portal.md).
+
+### Portal institucional UDGPlus
+
+Con `NUXT_PUBLIC_BRAND_*` configurado, la portada y la navegación se orientan al titular y a la verificación. `NUXT_PUBLIC_CATALOG_URL` añade la entrada al catálogo. La emisión institucional continúa en la consola externa. Descargas OB3/CLR, impresión A4, privacidad aplicada en backend y compatibilidad sin marca: [contrato, configuración y resultados de QA](docs/portal-institucional.md).

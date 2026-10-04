@@ -4,14 +4,24 @@ import { useWindowScroll } from '@vueuse/core'
 const { t } = useI18n()
 const branding = useBranding()
 const router = useRouter()
+const navLinks = computed(() => {
+  if (!branding.active) return HEADER_NAV_LINKS
+  const links = [{ name: 'Home', href: '/', i18nKey: 'home' }, { name: 'Verify', href: '/verify', i18nKey: 'verify' }]
+  if (branding.catalogUrl) links.push({ name: 'Catalog', href: branding.catalogUrl, i18nKey: 'catalog' })
+  if (isAuthenticated.value) {
+    links.push({ name: 'Credentials', href: '/dashboard', i18nKey: 'myCredentials' }, { name: 'Prior learning', href: '/saberes-previos', i18nKey: 'priorLearning' })
+    if (authStore.value?.isIssuer) links.push(...HEADER_NAV_LINKS.filter(link => ['/dashboard', '/issue'].includes(link.href)))
+  }
+  return links
+})
 const { enabled: portalTitularEnabled, request: portalRequest } = useSaberesPrevios()
 const isStoreReady = ref(false)
 const userMenuRef = ref<HTMLElement | null>(null)
 const showUserMenu = ref(false)
 const logoutError = ref('')
-const isAuthenticated = ref(false)
+const isAuthenticated = computed(() => !!authStore.value?.isAuthenticated)
 const authStore = ref<ReturnType<typeof useAuthStore> | null>(null)
-const userName = ref('')
+const userName = computed(() => authStore.value?.user?.username || authStore.value?.user?.email?.split('@')[0] || '')
 const WINDOW_VERTICAL_SCROLL_THRESHOLD = 20
 const { y } = useWindowScroll()
 
@@ -21,24 +31,9 @@ const hasWindowScrolled = computed(() => {
 
 const isMobileMenuOpen = shallowRef(false)
 const mobileMenuRef = useTemplateRef('mobile-menu')
+const mobileToggleRef = useTemplateRef('mobile-toggle')
 
-onClickOutside(mobileMenuRef, () => isMobileMenuOpen.value = false)
-
-watch(
-  [isStoreReady, authStore],
-  ([ready, store]) => {
-    if (ready && store?.user) {
-      isAuthenticated.value = store.isAuthenticated
-      userName.value = store.user.username
-        || (store.user.email ? store.user.email.split('@')[0] : '')
-    }
-    else {
-      isAuthenticated.value = false
-      userName.value = ''
-    }
-  },
-  { immediate: true }
-)
+onClickOutside(mobileMenuRef, () => isMobileMenuOpen.value = false, { ignore: [mobileToggleRef] })
 
 async function handleLogout() {
   // Best effort, bounded by the portal request timeout. Never block global logout.
@@ -52,8 +47,6 @@ async function handleLogout() {
   }
   if (isStoreReady.value && authStore.value) {
     authStore.value.logout()
-    isAuthenticated.value = false
-    userName.value = ''
     router.push('/')
     showUserMenu.value = false
   }
@@ -98,7 +91,8 @@ onUnmounted(() => {
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center gap-2">
-          <NuxtImg
+          <span v-if="branding.active && branding.logoUrl === '/certo-logo-text.png'" class="text-2xl font-bold">{{ branding.name }}</span>
+          <NuxtImg v-else
             :src="branding.logoUrl"
             :alt="`${branding.name} Logo`"
             class="h-10 w-auto"
@@ -108,7 +102,7 @@ onUnmounted(() => {
         <!-- Desktop Navigation -->
         <div class="hidden lg:flex items-center gap-6">
           <NuxtLink
-            v-for="link in HEADER_NAV_LINKS"
+            v-for="link in navLinks"
             :key="link.name"
             :to="link.href"
             class="text-text-secondary hover:text-text-primary transition-colors font-medium"
@@ -157,13 +151,15 @@ onUnmounted(() => {
             <template v-else>
               <NuxtLink
                 to="/login"
+                :class="branding.active ? 'brand-button px-4 py-2 rounded-full' : ''"
                 class="font-medium text-text-primary hover:text-text-secondary transition-colors"
               >
                 {{ t('nav.login') }}
               </NuxtLink>
               <NuxtLink
+                v-if="!branding.active"
                 to="/get-started"
-                class="px-4 py-2 bg-[var(--brand-primary)] rounded-full font-medium hover:opacity-90 transition-colors text-text-primary"
+                class="px-4 py-2 brand-button rounded-full font-medium transition-colors"
               >
                 {{ t('nav.getStarted') }}
               </NuxtLink>
@@ -173,6 +169,7 @@ onUnmounted(() => {
 
         <!-- Mobile Menu Button -->
         <button
+          ref="mobile-toggle"
           :aria-label="t('a11y.toggleMenu')"
           :aria-expanded="isMobileMenuOpen"
           aria-controls="mobile-menu"
@@ -189,7 +186,7 @@ onUnmounted(() => {
     <div v-if="isMobileMenuOpen" id="mobile-menu" ref="mobile-menu" class="lg:hidden bg-white border-t">
       <div class="px-4 py-2 space-y-1">
         <NuxtLink
-          v-for="link in HEADER_NAV_LINKS"
+          v-for="link in navLinks"
           :key="link.name"
           :to="link.href"
           class="block py-2 text-text-secondary hover:text-text-primary transition-colors"
@@ -197,6 +194,7 @@ onUnmounted(() => {
           {{ t(`nav.${link.i18nKey}`) || link.name }}
         </NuxtLink>
         <div class="pt-4 space-y-2">
+          <LanguageSwitcher v-if="branding.active" />
           <template v-if="isAuthenticated && userName">
             <NuxtLink
               to="/profile"
@@ -214,13 +212,15 @@ onUnmounted(() => {
           <template v-else>
             <NuxtLink
               to="/login"
+                :class="branding.active ? 'brand-button px-4 py-2 rounded-full' : ''"
               class="block w-full py-2 text-center text-text-primary hover:text-text-secondary transition-colors"
             >
               {{ t('nav.login') }}
             </NuxtLink>
             <NuxtLink
-              to="/get-started"
-              class="block w-full py-2 text-center bg-[var(--brand-primary)] text-white rounded-full hover:opacity-90 transition-colors"
+              v-if="!branding.active"
+                to="/get-started"
+              class="block w-full py-2 text-center brand-button rounded-full transition-colors"
             >
               {{ t('nav.getStarted') }}
             </NuxtLink>

@@ -28,12 +28,12 @@ export default ({ strapi }) => ({
         }
       )
 
-      if (!credential) {
+      if (!credential || credential.publicLinkActive === false) {
         throw new Error('Credential not found')
       }
 
       // Get required data
-      const recipientName = credential.recipient?.name || 'Recipient'
+      const recipientName = credential.publicRecipientName === false ? 'Titular verificado por UDGPlus' : credential.recipient?.name || 'Recipient'
       const achievementName = credential.achievement?.name || credential.name || 'Achievement'
       const issuerName = credential.issuer?.name || 'Issuer'
       const issueDate = credential.issuanceDate

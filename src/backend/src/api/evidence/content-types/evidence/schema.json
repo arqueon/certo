@@ -39,12 +39,17 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "api::credential.credential",
-      "inversedBy": "evidence"
+      "inversedBy": "evidence",
+      "private": true
     },
     "image": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": ["images", "files", "videos"]
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos"
+      ]
     }
   }
-} 
+}

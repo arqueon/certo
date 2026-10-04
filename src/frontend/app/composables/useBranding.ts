@@ -1,10 +1,17 @@
+import { brandActive, contrastText, safeHttpUrl } from '~/utils/portal'
 export interface BrandingConfig {
+  active: boolean
+  catalogUrl: string
+  primaryText: string
   name: string
   logoUrl: string
   primaryColor: string
 }
 
 const DEFAULT_BRANDING: BrandingConfig = {
+  active: false,
+  catalogUrl: '',
+  primaryText: '#000000',
   name: 'Certo',
   logoUrl: '/certo-logo-text.png',
   primaryColor: '#5AB69F',
@@ -22,7 +29,11 @@ export function useBranding(): BrandingConfig {
   const config = useRuntimeConfig()
   const publicConfig = config.public as Record<string, unknown>
 
+  const primaryColor = validColor(publicConfig.brandPrimaryColor as string)
   return {
+    active: brandActive(publicConfig),
+    catalogUrl: safeHttpUrl(publicConfig.catalogUrl),
+    primaryText: contrastText(primaryColor),
     name: typeof publicConfig.brandName === 'string' && publicConfig.brandName.trim()
       ? publicConfig.brandName.trim()
       : DEFAULT_BRANDING.name,

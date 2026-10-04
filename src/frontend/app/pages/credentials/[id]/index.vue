@@ -5,6 +5,7 @@ import type {
   VerificationResult
 } from '~/types/openbadges'
 import QRCode from 'qrcode'
+import { safeHttpUrl } from '~/utils/portal'
 import { apiClient } from '~/api/api-client'
 
 const { t, locale, formatDate: formatLocaleDate } = useI18n()
@@ -17,9 +18,16 @@ const branding = useBranding()
 // ============================================================================
 const rawId = route.params.id
 const credentialId = rawId
-  ? decodeURIComponent(Array.isArray(rawId) ? rawId[0] : rawId)
+  ? decodeURIComponent((Array.isArray(rawId) ? rawId[0] : rawId) || '')
   : ''
 
+const authStore = useAuthStore()
+const { holderData, holderLoading, loadHolder } = useHolderCredential(credentialId)
+const criteriaUrl = computed(() => safeHttpUrl(
+  verificationResult.value?.rawCredential?.achievement?.criteria?.url
+  || credential.value?.credentialSubject?.achievement?.criteria?.id,
+))
+async function privacySaved() { await loadHolder(); await refresh() }
 const websiteUrl = config.public.websiteUrl || WEBSITE_URL
 const shareableUrl = `${websiteUrl}/credentials/${encodeURIComponent(credentialId)}`
 const ogImageUrl = `${websiteUrl}/.netlify/functions/og-credential?id=${encodeURIComponent(credentialId)}`
@@ -92,13 +100,13 @@ onMounted(async () => {
 // 3. COMPUTED DATA EXTRACTION
 // ============================================================================
 const credential = computed<AchievementCredential | null>(() => {
-  const data = verificationData.value
+  const data = holderData.value || verificationData.value
   if (!data) return null
   return data.credential || data.rawCredential as AchievementCredential || null
 })
 
-const verificationResult = computed(() => verificationData.value)
-const loading = computed(() => status.value === 'pending')
+const verificationResult = computed(() => holderData.value || verificationData.value)
+const loading = computed(() => status.value === 'pending' && !credential.value)
 const error = computed(() => {
   if (fetchError.value) return fetchError.value.message
   if (status.value === 'error' && !verificationData.value && credentialId) {
@@ -313,12 +321,9 @@ const imageUrlOptions = computed(() => {
   if (!credential.value) return []
 
   const cred = credential.value
-  const rawCred = verificationData.value?.rawCredential
+  const rawCred = verificationResult.value?.rawCredential
 
   const options = [
-    // Option 1: Direct certificate endpoint URL
-    apiClient.getCertificateUrl(cred.id),
-
     // Option 2: Raw credential achievement image URL (Strapi format)
     rawCred?.achievement?.image?.url,
 
@@ -333,7 +338,11 @@ const imageUrlOptions = computed(() => {
       : null,
 
     // Option 5: OpenBadges issuer image
-    typeof cred.issuer?.image === 'string' ? cred.issuer.image : null
+    typeof cred.issuer?.image === 'string' ? cred.issuer.image : null,
+
+    // Último recurso: el certificado SVG generado. Va al final para que la
+    // insignia real del logro tenga prioridad cuando existe.
+    apiClient.getCertificateUrl(cred.id)
   ].filter(Boolean) as string[]
 
   return [...new Set(options)]
@@ -427,7 +436,7 @@ function getLinkedInAddToProfileUrl() {
   const params = new URLSearchParams({
     startTask: 'CERTIFICATION_NAME',
     name: cert.name || cert.title || '',
-    organizationId: '53115782',
+    ...(branding.active ? { organizationName: cert.issuer?.name || branding.name } : { organizationId: '53115782' }),
     issueYear: cert.issuanceDate ? new Date(cert.issuanceDate).getFullYear().toString() : '',
     issueMonth: cert.issuanceDate ? (new Date(cert.issuanceDate).getMonth() + 1).toString() : '',
     certId: cert.id,
@@ -482,7 +491,7 @@ async function submitRenewal() {
   <div class="container mx-auto py-10 px-4">
     <!-- Loading State -->
     <div
-      v-if="loading"
+      v-if="loading || (holderLoading && !credential)"
       class="max-w-lg mx-auto p-8 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
     >
       <div class="flex flex-col items-center justify-center">
@@ -493,6 +502,10 @@ async function submitRenewal() {
       </div>
     </div>
 
+    <section v-else-if="!credential && branding.active" class="portal-card max-w-2xl mx-auto">
+      <h1 class="text-2xl font-bold">{{ t('portal.holder.unavailable') }}</h1>
+      <NuxtLink v-if="!authStore.isAuthenticated" to="/login" class="underline">{{ t('portal.holder.ownerLogin') }}</NuxtLink>
+    </section>
     <!-- Invalid Credential ID -->
     <div
       v-else-if="!credentialId"
@@ -555,6 +568,8 @@ async function submitRenewal() {
         </a>
       </div>
 
+      <a v-if="branding.active && criteriaUrl" :href="criteriaUrl" class="brand-button mb-6">{{ t('portal.holder.criteria') }}</a>
+      <HolderDownloads v-if="branding.active && holderData" :credential-id="credentialId" :privacy="holderData.rawCredential" @saved="privacySaved" />
       <!-- Expiration / Renewal Banner -->
       <div
         v-if="isExpired || isExpiringSoon"
@@ -580,7 +595,7 @@ async function submitRenewal() {
             </p>
 
             <!-- Renewal form (issuer only - shown when logged in) -->
-            <div v-if="renewalState === 'idle' || renewalState === 'picking'" class="mt-3">
+            <div v-if="(!branding.active || authStore.isIssuer) && (renewalState === 'idle' || renewalState === 'picking')" class="mt-3">
               <button
                 v-if="renewalState === 'idle'"
                 class="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
@@ -762,6 +777,7 @@ async function submitRenewal() {
       </div>
 
       <!-- Main Credential Card -->
+      <RecipientCheck :credential-id="credentialId" />
       <div class="mb-8 overflow-hidden rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl">
         <!-- Credential Image -->
         <div
@@ -957,7 +973,7 @@ async function submitRenewal() {
 
           <!-- Alignments -->
           <div
-            v-if="credential.credentialSubject.achievement.alignments?.length"
+            v-if="(credential.credentialSubject.achievement.alignment || credential.credentialSubject.achievement.alignments)?.length"
             class="mt-6"
           >
             <h4 class="font-medium mb-2">
@@ -965,7 +981,7 @@ async function submitRenewal() {
             </h4>
             <div class="space-y-4">
               <div
-                v-for="alignment in credential.credentialSubject.achievement.alignments"
+                v-for="alignment in (credential.credentialSubject.achievement.alignment || credential.credentialSubject.achievement.alignments)"
                 :key="alignment.targetUrl"
                 class="p-4 rounded-lg bg-gray-50"
               >

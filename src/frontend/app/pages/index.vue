@@ -1,10 +1,31 @@
 <script setup lang="ts">
 const { t } = useI18n()
+const branding = useBranding()
+const authStore = useAuthStore()
 const { sections, features, trustees } = useHomeContent()
 </script>
 
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+  <section v-if="branding.active" class="max-w-6xl mx-auto px-6 py-16">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6">{{ t('portal.home.title', { brand: branding.name }) }}</h1>
+    <p class="text-xl max-w-3xl mb-4">{{ t('portal.home.intro') }}</p>
+    <p class="max-w-3xl mb-10">{{ t('portal.home.example') }}</p>
+    <div class="grid md:grid-cols-3 gap-6">
+      <article class="portal-card">
+        <h2>{{ t('portal.home.holder') }}</h2><p>{{ t('portal.home.holderText') }}</p>
+        <NuxtLink :to="authStore.isAuthenticated ? '/dashboard' : '/login?redirect=/dashboard'" class="brand-button">{{ t(authStore.isAuthenticated ? 'nav.myCredentials' : 'nav.login') }}</NuxtLink>
+      </article>
+      <article class="portal-card">
+        <h2>{{ t('portal.home.verifier') }}</h2><p>{{ t('portal.home.verifierText') }}</p>
+        <NuxtLink to="/verify" class="brand-button">{{ t('nav.verify') }}</NuxtLink>
+      </article>
+      <article v-if="branding.catalogUrl" class="portal-card">
+        <h2>{{ t('portal.home.catalog', { brand: branding.name }) }}</h2><p>{{ t('portal.home.catalogText') }}</p>
+        <a :href="branding.catalogUrl" class="brand-button">{{ t('nav.catalog') }}</a>
+      </article>
+    </div>
+  </section>
+  <div v-else class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
     <div class="max-w-4xl mx-auto text-center mb-16 mt-16">
       <h1 class="text-5xl md:text-7xl font-display font-bold mb-6">
         {{ t('home.heroTitle').split(t('home.heroHighlight'))[0] }}<span class="text-primary">{{ t('home.heroHighlight') }}</span>{{ t('home.heroTitle').split(t('home.heroHighlight'))[1] }}

@@ -5,6 +5,7 @@
  */
 export default {
   routes: [
+    { method: 'GET', path: '/holder/clrs', handler: 'clr.mine', config: { auth: { strategies: ['users-permissions'], scope: ['api::credential.credential.find'] } } },
     {
       method: 'POST',
       path: '/clrs',

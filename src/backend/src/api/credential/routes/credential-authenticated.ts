@@ -4,6 +4,8 @@
 
 export default {
   routes: [
+    { method: 'GET', path: '/credentials/:id/holder', handler: 'credential.holder', config: { auth: { strategies: ['users-permissions'], scope: ['api::credential.credential.find'] } } },
+    { method: 'PUT', path: '/credentials/:id/privacy', handler: 'credential.privacy', config: { auth: { strategies: ['users-permissions'], scope: ['api::credential.credential.find'] } } },
     // Authenticated route for getting all credentials
     {
       method: 'GET',

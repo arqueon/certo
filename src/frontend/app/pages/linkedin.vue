@@ -1,15 +1,17 @@
 <script setup lang="ts">
+const branding = useBranding()
+const { t } = useI18n()
 const websiteUrl = useWebsiteUrl()
-const pageDescription = ref('Step-by-step guide to adding your Certo certificate to your LinkedIn profile')
+const pageDescription = computed(() => branding.active ? t('portal.linkedin.intro') : 'Step-by-step guide to adding your Certo certificate to your LinkedIn profile')
 
 useSeoMeta({
-  description: pageDescription.value,
-  ogDescription: pageDescription.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
   ogUrl: `${websiteUrl}/linkedin`
 })
 
 useHead({
-  title: 'LinkedIn Guide',
+  title: () => branding.active ? t('portal.linkedin.title') : 'LinkedIn Guide',
   link: [
     { rel: 'canonical', href: `${websiteUrl}/linkedin` }
   ]
@@ -17,7 +19,13 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen">
+  <section v-if="branding.active" class="max-w-3xl mx-auto px-6 py-16">
+    <h1 class="text-4xl font-bold mb-6">{{ t('portal.linkedin.title') }}</h1>
+    <p class="mb-6">{{ t('portal.linkedin.intro') }}</p>
+    <ol class="list-decimal pl-6 space-y-4"><li v-for="n in 3" :key="n">{{ t(`portal.linkedin.step${n}`) }}</li></ol>
+    <NuxtLink to="/dashboard" class="brand-button mt-8">{{ t('nav.myCredentials') }}</NuxtLink>
+  </section>
+  <div v-else class="min-h-screen">
     <!-- Header Section -->
     <section class="py-20">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
