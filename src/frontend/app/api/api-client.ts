@@ -652,10 +652,13 @@ export class ApiClient {
 
     // Handle issuance date
     if (!formatted.issuanceDate) {
-      formatted.issuanceDate = credential.issuanceDate
-        || credential.attributes?.issuanceDate
+      formatted.issuanceDate = credential.validFrom || credential.issuanceDate
+        || credential.attributes?.validFrom || credential.attributes?.issuanceDate
         || credential.issuedOn
         || credential.attributes?.issuedOn
+    }
+    if (!formatted.expirationDate) {
+      formatted.expirationDate = credential.validUntil || credential.attributes?.validUntil
     }
 
     // Extract image URL if available

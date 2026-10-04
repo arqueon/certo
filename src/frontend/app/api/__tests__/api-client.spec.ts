@@ -21,6 +21,15 @@ describe('apiClient', () => {
     vi.resetModules()
   })
 
+  it('normalizes VC 2.0 validity dates for the holder and print views without altering proof', () => {
+    const proof = { type: 'DataIntegrityProof', cryptosuite: 'eddsa-rdfc-2022', proofValue: 'zExample' }
+    const vc = { id: 'urn:example', validFrom: '2026-01-01T00:00:00Z', validUntil: '2030-01-01T00:00:00Z', proof }
+    expect(apiClient.formatCredential(vc)).toMatchObject({ issuanceDate: vc.validFrom, expirationDate: vc.validUntil, proof })
+    expect(vc).not.toHaveProperty('issuanceDate')
+    expect(apiClient.formatCredential({ id: 'urn:legacy', issuanceDate: '2020-01-01T00:00:00Z' }).issuanceDate)
+      .toBe('2020-01-01T00:00:00Z')
+  })
+
   it('setToken and clearToken update localStorage', () => {
     apiClient.setToken('abc123')
     expect(localStorage.setItem).toHaveBeenCalledWith('token', 'abc123')

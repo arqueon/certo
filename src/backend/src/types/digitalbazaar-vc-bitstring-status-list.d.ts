@@ -1,6 +1,7 @@
 // @digitalbazaar/vc-bitstring-status-list ships no type declarations of its
 // own; only the small surface this codebase actually calls is declared here.
 declare module '@digitalbazaar/vc-bitstring-status-list' {
+  export function checkStatus(options: any): Promise<{ verified: boolean; error?: Error }>
   export interface BitstringStatusList {
     setStatus(index: number, status: boolean): void
     getStatus(index: number): boolean

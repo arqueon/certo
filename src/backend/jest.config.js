@@ -12,5 +12,5 @@ module.exports = {
     '^.+\\.tsx?$': 'ts-jest',
     '^.+\\.jsx?$': 'babel-jest',
   },
-  transformIgnorePatterns: ['node_modules/(?!(jose|@digitalbazaar|base64url-universal)/)'],
+  transformIgnorePatterns: ['node_modules/(?!(jose|@digitalbazaar|base64url-universal|base58-universal)/)'],
 }

@@ -34,7 +34,7 @@ async function main() {
   async function request(url, who, body, method) {
     const response = await fetch(`http://127.0.0.1:19337/api${url}`, { method: method || (body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json', ...(who ? { Authorization: `Bearer ${tokens[who]}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) })
     const text = await response.text()
-    return { status: response.status, text, body: text.startsWith('{') ? JSON.parse(text) : text }
+    return { status: response.status, headers: response.headers, text, body: text.startsWith('{') ? JSON.parse(text) : text }
   }
   const ok = (condition, message) => { assert.ok(condition, message); count++ }
   const achievement = await request('/achievements', 'manager', { data: { name: 'Análisis de información · prueba local', description: 'Datos ficticios para comprobar el portal.', achievementId: 'qa-skill', creator: issuer.id, criteria: { narrative: 'Demostrar el aprendizaje en una actividad evaluada.', url: 'https://catalog.example.test/skill' } } })
@@ -43,7 +43,7 @@ async function main() {
   const badge = await app.entityService.create('plugin::upload.file', { data: { name: 'QA badge', hash: 'qa-badge', folderPath: '/', ext: '.png', mime: 'image/png', size: 1, url: 'http://127.0.0.1:19300/placeholder-badge.png', provider: 'local' } })
   await app.entityService.update('api::achievement.achievement', achievement.body.data.id, { data: { image: badge.id } })
   const rubric = [{ id: 'urn:qa:criterion', name: 'Interpretar información', resultType: 'RubricCriterionLevel', rubricCriterionLevel: [{ id: 'urn:qa:level', name: 'Logrado', level: '1', description: 'Distingue lo que los datos permiten afirmar.' }] }]
-  const issued = await request('/credentials/issue', 'manager', { data: { evidence: [{ name: holder.name, description: 'Evidencia ficticia del titular' }], resultDescription: rubric, result: [{ resultDescription: 'urn:qa:criterion', achievedLevel: 'urn:qa:level' }], awardedDate: '2026-09-01T00:00:00Z', achievementId: achievement.body.data.id, recipientId: holder.id, recipient: { id: holder.id, name: holder.name, email: holder.email } } })
+  const issued = await request('/credentials/issue', 'manager', { data: { expirationDate: '2030-10-03T12:00:00Z', evidence: [{ name: holder.name, description: 'Evidencia ficticia del titular' }], resultDescription: rubric, result: [{ resultDescription: 'urn:qa:criterion', achievedLevel: 'urn:qa:level' }], awardedDate: '2026-09-01T00:00:00Z', achievementId: achievement.body.data.id, recipientId: holder.id, recipient: { id: holder.id, name: holder.name, email: holder.email } } })
   ok(issued.status === 200, `issue: ${issued.status} ${issued.text}`)
   const rows = await app.entityService.findMany('api::credential.credential', { filters: { recipient: holder.id } })
   const credential = rows[0]; ok(!!credential, 'credential persisted')
@@ -99,6 +99,53 @@ async function main() {
   ok((await request('/holder/clrs', 'other')).body.data.length === 0, 'other holder sees no CLR')
   // Restore public fixture for an optional local browser check; no private token is printed.
   await request(`/credentials/${id}/privacy`, 'owner', { data: { publicLinkActive: true, publicRecipientName: true } }, 'PUT')
+  // DID/public status responses are raw linked-data documents, not Strapi envelopes.
+  const did = await request('/issuer/did.json')
+  ok(did.status === 200 && did.body.id === 'did:web:127.0.0.1%3A19337', 'public DID identifier')
+  ok(did.headers.get('content-type').includes('application/did+ld+json'), 'DID content type')
+  ok(did.body.assertionMethod.includes(original.body.data.proof.verificationMethod), 'signing method authorized by DID')
+  ok(!did.text.includes('privateKey') && !did.text.includes('secretKey') && !did.text.includes('publicKeyJwk'), 'DID only exposes Multikey public material')
+  const listUrl = original.body.data.credentialStatus.statusListCredential.replace('http://127.0.0.1:19337/api', '')
+  const list = await request(listUrl)
+  ok(list.headers.get('content-type').includes('application/vc+ld+json'), 'status list content type')
+  ok(list.body.type.includes('BitstringStatusListCredential') && list.body.proof.cryptosuite === 'eddsa-rdfc-2022', 'signed VC 2.0 status list')
+  const { verifyDataIntegrity, verificationLoader } = require('../../dist/src/utils/data-integrity')
+  ok((await verifyDataIntegrity(list.body, await verificationLoader(app, list.body))).valid, 'status list signature verifies')
+
+  // A historical full-document JWS remains immutable and verifiable after rotation.
+  const legacy = structuredClone(original.body.data)
+  legacy.id = `urn:uuid:${require('node:crypto').randomUUID()}`
+  legacy['@context'].push(require('../../dist/src/utils/credential-context').credentialContext)
+  legacy.issuer.id = `http://127.0.0.1:19337/api/profiles/${issuer.id}/issuer`
+  legacy.issuanceDate = legacy.validFrom
+  legacy.expirationDate = legacy.validUntil
+  delete legacy.validUntil
+  legacy.proof = await app.service('api::credential.credential').generateLegacyProof(issuer.id, legacy)
+  const legacyRow = await app.entityService.create('api::credential.credential', { data: {
+    credentialId: legacy.id, name: legacy.name, description: legacy.description,
+    issuanceDate: legacy.issuanceDate, expirationDate: legacy.expirationDate, awardedDate: legacy.credentialSubject.awardedDate,
+    result: legacy.credentialSubject.result, resultDescription: legacy.credentialSubject.achievement.resultDescription,
+    achievement: achievement.body.data.id, issuer: issuer.id, recipient: holder.id,
+    signedCredential: legacy, proof: [legacy.proof], revoked: false,
+  } })
+  const legacyId = encodeURIComponent(legacy.id)
+  ok((await request(`/credentials/${legacyId}/verify`)).body.verified, 'historical JWS verifies before rotation')
+  const rotated = await request(`/profiles/${issuer.id}/rotate-key`, 'manager', { reason: 'Fictional local QA' })
+  ok(rotated.status === 200, 'owner can rotate key')
+  const afterDid = await request('/issuer/did.json')
+  ok(afterDid.body.verificationMethod.length === 2, 'DID retains active and retired keys')
+  ok((await request(`/credentials/${id}/verify`)).body.verified, 'Data Integrity still verifies after rotation')
+  ok((await request(`/credentials/${legacyId}/verify`)).body.verified, 'historical JWS still verifies after rotation')
+  ok((await request('/credentials/validate', null, { credential: legacy })).body.verified, 'historical upload still verifies after rotation')
+  const legacyExport = await request(`/credentials/${legacyId}/export`, 'owner')
+  assert.deepEqual(legacyExport.body.data, legacy); count++
+  ok((await request(legacy.proof.verificationMethod.replace('http://127.0.0.1:19337/api', ''))).status === 200, 'historical key URL stays available')
+  ok((await request(`/profiles/${issuer.id}/issuer`)).status === 200, 'historical issuer URL stays available')
+  const mixed = await app.service('api::clr.clr').emitir({ subjectId: holder.id, issuerId: issuer.id, credentialIds: [credential.id, legacyRow.id] })
+  ok(mixed.credentialSubject.achievement.some(vc => vc.proof.type === 'DataIntegrityProof')
+    && mixed.credentialSubject.achievement.some(vc => vc.proof.jws), 'CLR groups both immutable formats')
+  // Keep browser QA's fixture list stable; the historical row was only needed for this regression.
+  await app.entityService.delete('api::credential.credential', legacyRow.id)
   console.log(`PORTAL_HTTP_PASS ${count} assertions`)
   if (process.argv.includes('--browser')) {
     const { writeFileSync } = require('node:fs')

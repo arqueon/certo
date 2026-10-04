@@ -32,6 +32,7 @@ const {
   issuer,
   recipient,
   issuanceDate,
+  validFrom,
   issuedOn,
   image,
   description
@@ -42,7 +43,7 @@ const achievementName = achievement?.name || props.certificate.name || t('certif
 const achievementDescription = computed(() => description || achievement?.description || props.certificate.description || t('certificateCard.noDescription'))
 const issuerName = computed(() => issuer?.name || props.certificate.issuerName || t('certificateCard.unknownIssuer'))
 // Date in the active locale; computed so it follows the language switcher.
-const formattedIssuanceDate = computed(() => formatLocaleDate(issuanceDate || issuedOn, {
+const formattedIssuanceDate = computed(() => formatLocaleDate(validFrom || issuanceDate || issuedOn, {
   year: 'numeric',
   month: 'short',
   day: 'numeric',
@@ -195,7 +196,7 @@ function openCertificateInNewTab() {
 function getLinkedInAddToProfileUrl() {
   const certName = achievementName
   const certIdValue = credentialId || id
-  const issueDateValue = issuanceDate || issuedOn
+  const issueDateValue = validFrom || issuanceDate || issuedOn
   const params = new URLSearchParams({
     startTask: 'CERTIFICATION_NAME',
     name: certName,

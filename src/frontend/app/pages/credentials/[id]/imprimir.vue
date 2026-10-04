@@ -54,9 +54,9 @@ useHead({ title: () => t('portal.holder.printTitle'), meta: [{ name: 'robots', c
       </header>
       <dl>
         <dt>{{ t('credential.issuer') }}</dt><dd>{{ credential.issuer?.name }}</dd>
-        <dt>{{ t('credential.issuedOn') }}</dt><dd>{{ formatDate(credential.issuanceDate) }}</dd>
+        <dt>{{ t('credential.issuedOn') }}</dt><dd>{{ formatDate(credential.validFrom || credential.issuanceDate) }}</dd>
         <template v-if="credential.credentialSubject?.awardedDate"><dt>{{ t('credential.awardedOn') }}</dt><dd>{{ formatDate(credential.credentialSubject.awardedDate, { dateStyle: 'long', timeZone: 'UTC' }) }}</dd></template>
-        <dt>{{ t('credential.expiresOn') }}</dt><dd>{{ credential.expirationDate ? formatDate(credential.expirationDate) : t('credential.noExpiration') }}</dd>
+        <dt>{{ t('credential.expiresOn') }}</dt><dd>{{ (credential.validUntil || credential.expirationDate) ? formatDate(credential.validUntil || credential.expirationDate) : t('credential.noExpiration') }}</dd>
       </dl>
       <table v-if="results.length">
         <caption>{{ t('credential.results') }}</caption>

@@ -72,7 +72,7 @@ await owner.page.getByRole('button', { name: 'Descargar el archivo de la credenc
 const download = await downloadEvent
 await download.saveAs(`${artifacts}/credential.json`)
 const signed = JSON.parse(readFileSync(`${artifacts}/credential.json`, 'utf8'))
-await check(() => expect(signed.proof.jws).toBeTruthy())
+await check(() => expect(signed.proof.jws || (signed.proof.cryptosuite === 'eddsa-rdfc-2022' && signed.proof.proofValue)).toBeTruthy())
 await owner.page.getByLabel('Mostrar mi nombre en la página pública').uncheck()
 await owner.page.getByRole('button', { name: 'Guardar privacidad' }).click()
 await check(() => expect(owner.page.getByText('Privacidad guardada.', { exact: true })).toBeVisible())
@@ -99,6 +99,8 @@ await owner.page.screenshot({ path: `${artifacts}/print-screen.png`, fullPage: t
 await owner.page.evaluate(() => { window.print = () => { window.__qaPrinted = true } })
 await owner.page.getByRole('button', { name: 'Descargar PDF', exact: true }).click()
 await check(() => expect.poll(() => owner.page.evaluate(() => !!window.__qaPrinted)).toBe(true))
+await check(() => expect(owner.page.locator('dt').filter({ hasText: 'Emitida el' }).locator('+ dd')).not.toHaveText(''))
+await check(() => expect(owner.page.locator('dt').filter({ hasText: 'Vence el' }).locator('+ dd')).toContainText('2030'))
 await owner.page.pdf({ path: `${artifacts}/credential-a4.pdf`, preferCSSPageSize: true, printBackground: true })
 const issuer = await session(fixture.issuerUser, fixture.issuerToken)
 await issuer.page.goto(base)

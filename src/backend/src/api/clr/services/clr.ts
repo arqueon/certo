@@ -110,7 +110,7 @@ export default ({ strapi }: { strapi: any }) => ({
     }
 
     const credentialService = strapi.service('api::credential.credential')
-    documento.proof = await credentialService.generateProof(clr.issuer.id, documento)
+    documento.proof = await credentialService.generateLegacyProof(clr.issuer.id, documento)
 
     return documento
   },

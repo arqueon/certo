@@ -5,7 +5,8 @@
 import { resolveDidWeb } from '../../../utils/did-web';
 import { documentMismatches } from '../../../utils/signed-content'
 import { createRecipientIdentity } from '../../../utils/recipient-identity'
-import { credentialContext } from '../../../utils/credential-context'
+import { issuerDid, issuerDidDocument } from '../../../utils/issuer-did'
+import { verifyDataIntegrity, verificationLoader, verifyCredentialStatus } from '../../../utils/data-integrity'
 
 /**
  * The document being verified must say what was signed: a valid JWS over a
@@ -56,20 +57,26 @@ export default ({ strapi }) => ({
       // credentials. Resolves the issuer's verification method (URL or DID),
       // fetches the public key, and verifies the proof's JWS signature.
       const proofResult = await this.verifyExternalProof(credential);
+      const isDataIntegrity = (Array.isArray(credential.proof) ? credential.proof[0] : credential.proof)?.type === 'DataIntegrityProof';
+      const statusResult = isDataIntegrity && proofResult.valid
+        ? await verifyCredentialStatus(strapi, credential) : { valid: true };
       
       // Check expiration
       const now = new Date();
       let expired = false;
-      if (credential.expirationDate) {
-        expired = new Date(credential.expirationDate) < now;
+      if (credential.validUntil || credential.expirationDate) {
+        expired = new Date(credential.validUntil || credential.expirationDate) < now;
       }
+      const notYetValid = new Date(credential.validFrom || credential.issuanceDate) > now;
       
       return {
-        verified: issuerVerified && proofResult.valid && !expired,
+        verified: issuerVerified && proofResult.valid && statusResult.valid && !expired && !notYetValid,
         checks: [
           { check: 'format', result: validFormat.valid ? 'success' : 'error', message: validFormat.error },
           { check: 'issuer', result: issuerVerified ? 'success' : 'warning', message: issuerVerified ? null : 'Issuer not verified' },
           { check: 'proof', result: proofResult.valid ? 'success' : 'error', message: proofResult.message || null },
+          ...(isDataIntegrity ? [{ check: 'not_revoked', result: statusResult.valid ? 'success' : 'error', message: statusResult.message || null }] : []),
+          { check: 'valid_from', result: notYetValid ? 'error' : 'success' },
           { check: 'expiration', result: !expired ? 'success' : 'error', message: expired ? 'Credential has expired' : null }
         ],
         credential: {
@@ -79,9 +86,10 @@ export default ({ strapi }) => ({
           description: credential.description || '',
           issuer: typeof credential.issuer === 'string' ? { id: credential.issuer } : credential.issuer,
           credentialSubject: credential.credentialSubject,
-          issuanceDate: credential.issuanceDate,
-          validFrom: credential.issuanceDate,
-          expirationDate: credential.expirationDate
+          issuanceDate: credential.validFrom || credential.issuanceDate,
+          validFrom: credential.validFrom || credential.issuanceDate,
+          expirationDate: credential.validUntil || credential.expirationDate,
+          validUntil: credential.validUntil || credential.expirationDate
         }
       };
     } catch (error) {
@@ -124,8 +132,13 @@ export default ({ strapi }) => ({
       return { valid: false, error: 'Missing credential subject' };
     }
     
-    if (!credential.issuanceDate) {
+    if (!credential.validFrom && !credential.issuanceDate) {
       return { valid: false, error: 'Missing issuance date' };
+    }
+    for (const field of ['validFrom', 'validUntil', 'issuanceDate', 'expirationDate']) {
+      if (credential[field] && !Number.isFinite(Date.parse(credential[field]))) {
+        return { valid: false, error: `Invalid ${field}` };
+      }
     }
     
     // Validate issuer format
@@ -155,6 +168,10 @@ export default ({ strapi }) => ({
       const proofObj = Array.isArray(proof) ? proof[0] : proof;
       if (!proofObj) {
         return { valid: false, message: 'Credential has no proof to verify' };
+      }
+
+      if (proofObj.type === 'DataIntegrityProof') {
+        return await verifyDataIntegrity(credential, await verificationLoader(strapi, credential));
       }
 
       // The JWS signature is what we cryptographically verify. Some
@@ -189,6 +206,17 @@ export default ({ strapi }) => ({
       const localProfileMatch = String(verificationMethod).match(/\/api\/profiles\/(\d+)\/keys/);
       if (localProfileMatch) {
         const profileId = parseInt(localProfileMatch[1], 10);
+        const keyId = String(verificationMethod).match(/\/keys\/(\d+)$/)?.[1];
+        if (keyId && strapi.db) {
+          const record = await strapi.db.query('api::issuer-key.issuer-key').findOne({
+            where: { id: keyId, profile: profileId }, select: ['publicKeyJwk'],
+          });
+          if (record) {
+            const { jwtVerify, importJWK } = await import('jose');
+            const { payload } = await jwtVerify(jws, await importJWK(record.publicKeyJwk, 'EdDSA'));
+            return documentCheck(payload, credential);
+          }
+        }
         const issuerKeys = strapi.service('api::profile.issuer-keys');
         const publicKey = await issuerKeys.getPublicKey(profileId);
         if (publicKey) {
@@ -343,6 +371,7 @@ export default ({ strapi }) => ({
   async resolveDid(didUrl) {
     try {
       if (didUrl.startsWith('did:web:')) {
+        if (didUrl.split('#')[0] === issuerDid(strapi)) return await issuerDidDocument(strapi);
         return await resolveDidWeb(didUrl);
       }
 
@@ -430,24 +459,26 @@ export default ({ strapi }) => ({
       
       // Base URL for this application
       const baseUrl = strapi.config.get('server.url') || 'http://localhost:1337'
-      const fresh = newIssuance || !credential.proof?.length
+      const fresh = newIssuance
+      if (!fresh && !credential.proof?.length) {
+        throw new Error('Credential has no saved signed document or proof; reissue it explicitly')
+      }
       
       // Build the Open Badge Verifiable Credential
-      const obCredential: any = {
+      let obCredential: any = {
         '@context': [
           'https://www.w3.org/ns/credentials/v2',
           'https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json',
-          ...(fresh ? [credentialContext] : []),
         ],
         id: credential.credentialId,
         type: ['VerifiableCredential', 'OpenBadgeCredential'],
         issuer: {
-          id: `${baseUrl}/api/profiles/${credential.issuer.id}/issuer`,
+          id: fresh ? issuerDid(strapi) : `${baseUrl}/api/profiles/${credential.issuer.id}/issuer`,
           type: ['Profile'],
           name: credential.issuer.name,
           url: credential.issuer.url
         },
-        issuanceDate: credential.issuanceDate,
+        ...(!fresh ? { issuanceDate: credential.issuanceDate } : {}),
         validFrom: credential.issuanceDate,
         name: credential.name || credential.achievement.name,
         description: credential.description || credential.achievement.description,
@@ -490,7 +521,7 @@ export default ({ strapi }) => ({
             } : undefined,
             criteria: credential.achievement.criteria
               ? { narrative: credential.achievement.criteria.narrative,
-                  ...((newIssuance || !credential.proof?.length) && credential.achievement.criteria.url ? { id: credential.achievement.criteria.url } : {}) }
+                  ...(fresh && credential.achievement.criteria.url ? { id: credential.achievement.criteria.url } : {}) }
               : { narrative: 'Criteria not specified' },
             ...(credential.achievement.alignment && credential.achievement.alignment.length > 0
               ? { [fresh ? 'alignment' : 'alignments']: credential.achievement.alignment.map(align => ({
@@ -542,8 +573,13 @@ export default ({ strapi }) => ({
 
       // Add expiration date if available
       if (credential.expirationDate) {
-        obCredential.expirationDate = credential.expirationDate
+        obCredential[fresh ? 'validUntil' : 'expirationDate'] = credential.expirationDate
       }
+
+      // Strapi represents absent optional text fields as null. JSON-LD drops
+      // nulls, but OB3's JSON schema rejects them (e.g. evidence.narrative).
+      // Omit them before signing AND exporting, only for new documents.
+      if (fresh) obCredential = JSON.parse(JSON.stringify(obCredential, (_key, value) => value === null ? undefined : value))
       
       // Add proof if available (use only the first proof object if array)
       if (!fresh && credential.proof && credential.proof.length > 0) {
@@ -553,11 +589,11 @@ export default ({ strapi }) => ({
           created: p.created,
           verificationMethod: p.verificationMethod,
           proofPurpose: p.proofPurpose,
-          jws: p.jws
+          ...(p.jws ? { jws: p.jws } : { cryptosuite: p.cryptosuite, proofValue: p.proofValue })
         }
       }
       
-      // Add JWS proof if not present
+      // Data Integrity for new issuances; existing documents are never re-signed.
       if (!obCredential.proof) {
         // Remove undefined/null url from issuer
         if (!obCredential.issuer.url) delete obCredential.issuer.url
@@ -571,7 +607,7 @@ export default ({ strapi }) => ({
         if (!obCredential.issuer.url) delete obCredential.issuer.url
       }
       
-      return obCredential
+      return JSON.parse(JSON.stringify(obCredential))
     } catch (error) {
       console.error('Error serializing credential:', error)
       throw error
@@ -583,6 +619,9 @@ export default ({ strapi }) => ({
    */
   async importCredential(vcData) {
     try {
+      if ((vcData.issuer?.id || vcData.issuer) === issuerDid(strapi)) {
+        throw new Error('Credentials from a local issuer cannot be imported');
+      }
       // Validate that this is an Open Badge Credential
       if (!vcData.type || !vcData.type.includes('OpenBadgeCredential')) {
         throw new Error('Not a valid Open Badge Credential')
@@ -713,9 +752,14 @@ export default ({ strapi }) => ({
         type: vcData.type,
         name: vcData.name,
         description: vcData.description,
-        issuanceDate: vcData.issuanceDate ? new Date(vcData.issuanceDate) : new Date(),
-        validFrom: vcData.issuanceDate ? new Date(vcData.issuanceDate) : new Date(),
-        expirationDate: vcData.expirationDate ? new Date(vcData.expirationDate) : null,
+        issuanceDate: new Date(vcData.validFrom || vcData.issuanceDate),
+        validFrom: new Date(vcData.validFrom || vcData.issuanceDate),
+        expirationDate: vcData.validUntil || vcData.expirationDate ? new Date(vcData.validUntil || vcData.expirationDate) : null,
+        proof: Array.isArray(vcData.proof) ? vcData.proof : [vcData.proof],
+        ...(vcData.credentialSubject.awardedDate ? { awardedDate: new Date(vcData.credentialSubject.awardedDate) } : {}),
+        ...(vcData.credentialSubject.result ? { result: vcData.credentialSubject.result } : {}),
+        ...(vcData.credentialSubject.achievement?.resultDescription
+          ? { resultDescription: vcData.credentialSubject.achievement.resultDescription } : {}),
         achievement: achievementId,
         issuer: issuerId,
         recipient: recipientId,

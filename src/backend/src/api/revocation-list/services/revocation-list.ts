@@ -5,6 +5,8 @@
 import { factories } from '@strapi/strapi'
 import { errors } from '@strapi/utils'
 import crypto from 'crypto'
+import { issuerDid } from '../../../utils/issuer-did'
+import { signCredential } from '../../../utils/data-integrity'
 const { ApplicationError } = errors
 
 // @digitalbazaar/vc-bitstring-status-list is ESM-only; this backend compiles
@@ -33,6 +35,20 @@ interface RevocationList {
 // going through Strapi's core service factory, which needs a real app
 // instance (strapi.contentType(), etc.) to construct the base CRUD methods.
 export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
+  async serializeCredential(statusList: any) {
+    if (!statusList.issuer?.id) throw new Error('Status list issuer is missing')
+    const baseUrl = strapi.config.get('server.url', 'http://localhost:1337')
+    const { createCredential, decodeList, VC_BSL_VC_V2_CONTEXT } = await bitstringStatusList()
+    const credential = await createCredential({
+      id: `${baseUrl}/api/revocation-lists/${statusList.id}`,
+      list: await decodeList({ encodedList: statusList.encodedList }),
+      statusPurpose: statusList.statusPurpose || 'revocation', context: VC_BSL_VC_V2_CONTEXT,
+    })
+    credential.issuer = issuerDid(strapi)
+    credential.validFrom = new Date(statusList.lastUpdated).toISOString()
+    return signCredential(strapi, statusList.issuer.id, credential)
+  },
+
   /**
    * Check if a credential has been revoked in any revocation list
    */
@@ -79,7 +95,7 @@ export const revocationListExtension = ({ strapi }: { strapi: any }) => ({
       return list.getStatus(statusListIndex)
     } catch (error) {
       console.error('Error checking status in list:', error)
-      return false
+      throw new ApplicationError('Cannot verify status list')
     }
   },
 
