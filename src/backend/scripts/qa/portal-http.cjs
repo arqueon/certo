@@ -52,6 +52,15 @@ async function main() {
   const original = await request(`/credentials/${id}/export`, 'owner')
   ok(original.status === 200, `owner export: ${original.status}`)
   ok(original.body.data.credentialSubject.achievement.criteria.id === 'https://catalog.example.test/skill', 'new OB3 criteria.id')
+  ok(!original.text.toLowerCase().includes(holder.email.toLowerCase()), 'new signed document contains no recipient email')
+  ok(!original.body.data.credentialSubject.id && original.body.data.credentialSubject.identifier[0].hashed, 'OB3 hashed identifier, no subject id')
+  ok((await request(`/credentials/${id}/check-recipient`, null, { email: ` ${holder.email.toUpperCase()} ` })).body.matches === true, 'normalized recipient matches')
+  ok((await request(`/credentials/${id}/check-recipient`, null, { email: 'other@example.test' })).body.matches === false, 'wrong recipient does not match')
+  const tampered = structuredClone(original.body.data)
+  tampered.credentialSubject.identifier[0].salt += '0'
+  ok((await request('/credentials/validate', null, { credential: tampered })).body.verified === false, 'tampered salt invalidates signature')
+  const visible = await request(`/credentials/${id}/verify`)
+  ok(visible.body.verified === true && !visible.body.credential.proof && !visible.body.rawCredential.proof && !visible.text.includes('identityHash'), 'visible-name projection hides identifier and JWS')
   ok((await request(`/credentials/${id}/privacy`, 'other', { data: { publicLinkActive: false } }, 'PUT')).status === 403, 'other holder denied')
   ok((await request(`/credentials/${id}/privacy`, 'manager', { data: { publicLinkActive: false } }, 'PUT')).status === 403, 'issuer denied holder privacy')
   ok((await request(`/credentials/${id}/privacy`, 'owner', { data: { publicRecipientName: false } }, 'PUT')).status === 200, 'owner hides name')
@@ -69,6 +78,9 @@ async function main() {
   const nested = await request(`/achievements/${achievement.body.data.documentId}?populate[credentials][populate]=recipient`)
   ok(!nested.text.includes(holder.name) && !nested.text.includes(holder.email), 'populate cannot bypass privacy')
   ok((await request(`/credentials/${id}/privacy`, 'owner', { data: { publicLinkActive: false } }, 'PUT')).status === 200, 'owner disables link')
+  const disabledRecipient = await request(`/credentials/${id}/check-recipient`, null, { email: holder.email })
+  const missingRecipient = await request('/credentials/urn:uuid:missing/check-recipient', null, { email: holder.email })
+  ok(disabledRecipient.status === 404 && missingRecipient.status === 404 && disabledRecipient.text === missingRecipient.text, 'disabled and missing recipient checks have identical 404 responses')
   for (const suffix of ['', '/verify', '/certificate']) ok((await request(`/credentials/${id}${suffix}`)).status === 404, `public ${suffix || 'detail'} unavailable`)
   ok((await request(`/verify/${id}`)).status === 404, 'direct certificate unavailable')
   ok((await request(`/credentials/${id}/holder`, 'owner')).status === 200, 'owner still has access')
@@ -90,6 +102,7 @@ async function main() {
   console.log(`PORTAL_HTTP_PASS ${count} assertions`)
   if (process.argv.includes('--browser')) {
     const { writeFileSync } = require('node:fs')
+    writeFileSync(path.join(directory, 'credential.json'), JSON.stringify(original.body.data, null, 2))
     writeFileSync(path.join(directory, 'browser-fixture.json'), JSON.stringify({ id: credential.credentialId, token: tokens.owner, user: owner, issuerToken: tokens.manager, issuerUser: manager }))
     console.log(`BROWSER_FIXTURE ${directory}/browser-fixture.json`)
   } else { await app.destroy(); process.exit(0) }

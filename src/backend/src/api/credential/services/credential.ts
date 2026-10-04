@@ -25,6 +25,9 @@ export default ({ strapi }) => ({
       const normalizedResults = normalizeResults(results?.resultDescription, results?.result)
 
       const recipientEntity = await this.findOrCreateRecipientProfile(recipient)
+      if (typeof recipientEntity.email !== 'string' || !recipientEntity.email.trim()) {
+        throw new Error('Recipient email is required for issuance')
+      }
 
       // Find or create user associated with the profile
       await this.findOrCreateUser(recipientEntity)
@@ -137,7 +140,7 @@ export default ({ strapi }) => ({
       const openBadgeService = strapi.service('api::credential.open-badge')
       const serializedCredential = await openBadgeService.serializeCredential(credential.id, true)
       await strapi.entityService.update('api::credential.credential', credential.id, {
-        data: { signedCredential: serializedCredential },
+        data: { signedCredential: serializedCredential, proof: [serializedCredential.proof] },
       })
 
       // Send notification email to recipient
@@ -201,7 +204,7 @@ export default ({ strapi }) => ({
         recipientEmail: (recipientEntity as any).email ?? '',
       }).catch(() => { /* already logged inside channelAlerts */ })
       return {
-        credential: populatedCredential,
+        credential: { ...populatedCredential, proof: [serializedCredential.proof] },
         openBadge: serializedCredential,
         notification: {
           sent: emailSent,
@@ -426,4 +429,4 @@ export default ({ strapi }) => ({
       return v.toString(16)
     })
   },
-}) 
+})

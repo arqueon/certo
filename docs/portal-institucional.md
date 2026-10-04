@@ -171,3 +171,101 @@ Las páginas `verify.vue` y `saberes-previos.vue` se leyeron; sus cambios de voc
 - [`src/frontend/scripts/qa-portal-config.mjs`](../src/frontend/scripts/qa-portal-config.mjs)
 - [`src/frontend/scripts/qa-portal.mjs`](../src/frontend/scripts/qa-portal.mjs)
 
+
+## Identidad del titular sin correo en emisiones nuevas — 3 de octubre de 2026
+
+Aplicación de la decisión comunicada de ADR 0021 de microcredenciales. Las emisiones nuevas identifican al titular con `credentialSubject.identifier`, una lista de `IdentityObject`. Se omite `credentialSubject.id`: es opcional en este caso, como explica la [guía de implementación OB3](https://www.imsglobal.org/spec/ob/v3p0/impl/). Se siguen las definiciones de `IdentityObject`, `IdentityHash` e `IdentifierTypeEnum` de la [especificación OB3](https://www.imsglobal.org/spec/ob/v3p0/).
+
+El correo se normaliza con `trim().toLowerCase()`. Cada credencial usa 16 bytes aleatorios de `crypto.randomBytes`, representados como 32 caracteres hexadecimales. Se calcula SHA-256 sobre los bytes UTF-8 de **correo normalizado + cadena hexadecimal de la sal**, sin separador, y se antepone `sha256$` al resultado hexadecimal. La sal no se decodifica a bytes antes de concatenarla. Un perfil sin correo no puede emitir una identidad vacía.
+
+Este ejemplo usa `ana@example.test` y una sal ficticia fija únicamente para poder reproducir el resultado:
+
+```json
+{
+  "identifier": [
+    {
+      "type": "IdentityObject",
+      "identityType": "emailAddress",
+      "hashed": true,
+      "identityHash": "sha256$cd8e4b3eec1bbc229750b5095d2163d0fb2b18d23dde5c17ab86fb0dac01dd67",
+      "salt": "000102030405060708090a0b0c0d0e0f"
+    }
+  ]
+}
+```
+
+### Firma, JSON-LD y archivos históricos
+
+La rama firmaba un resumen interno que no cubría `credentialSubject`. Para las emisiones nuevas, `open-badge.ts` llama al firmador EdDSA/JWS existente con el documento OB3 completo, sin `proof`; guarda juntos la firma definitiva y `signedCredential`. El documento firmado incluye el hash y la sal. `verification.ts` utiliza la comprobación ampliada de `signed-content.ts`: compara el documento completo con la copia guardada y también los campos del registro. Alterar el hash o la sal invalida tanto la verificación interna como la del archivo.
+
+Las copias históricas de `signedCredential` se devuelven intactas, incluso si se solicita serialización de emisión. Las históricas sin copia conservan su serialización anterior, incluido `mailto:` y su prueba original. No hay migración ni refirma de registros anteriores. Cambiar el correo del perfil después de emitir no cambia el identificador firmado nuevo.
+
+El contexto oficial OB3 se conserva. Solo en documentos nuevos se añade un contexto explícito para las fechas VC heredadas y el sobre JWS existente. También se serializa `alignment` en singular con `type: Alignment` y la evidencia en la raíz de la credencial, para que todo el documento expanda en modo seguro sin términos descartados. La interfaz sigue leyendo el plural histórico. La prueba JSON-LD incluye fechas, resultados, rúbrica, alineación, evidencia, estado e identidad; usa contextos locales, sin red.
+
+**Alcance de `eddsa-rdfc`:** este checkout no contiene un firmador/verificador de producción `eddsa-rdfc-2022`; conserva su firma JWS. Se comprobó por separado que una copia ficticia del documento nuevo admite firma y verificación RDF con Digital Bazaar, y que modificar hash o sal invalida esa firma. Esta prueba de interoperabilidad no convierte el JWS emitido por Certo en una prueba RDF ni añade soporte de importación de pruebas RDF.
+
+### Comprobación pública por correo
+
+`POST /api/credentials/:id/check-recipient`, sin autenticación, recibe `{ "email": "ana@example.test" }` y devuelve exclusivamente `{ "matches": true }` o `{ "matches": false }`. Acepta los mismos identificadores numéricos, documentId y URN que las otras rutas públicas.
+
+La comparación usa la identidad y la sal del documento guardado, nunca el correo actual del perfil para documentos con copia firmada. Para documentos históricos con `mailto:` normaliza ambos correos; si no existe copia histórica, usa la misma reconstrucción histórica que el serializador. No firma ni escribe datos. La comparación final usa `crypto.timingSafeEqual` sobre digests de longitud fija. Un cuerpo inválido produce 400.
+
+Una credencial inexistente y una con `publicLinkActive: false` devuelven el mismo 404, mensaje y cabecera `Cache-Control: no-store`. Ambas pasan por la misma consulta y una comparación ficticia, con un mínimo aproximado de 75 ms para amortiguar diferencias habituales de lectura; no es una garantía de latencia idéntica bajo carga.
+
+Se reutiliza `global::rate-limit`: por defecto, **50 peticiones por IP cada 15 minutos**, con una cuota compartida entre todos los identificadores de credencial. Se respeta la configuración existente `RATE_LIMIT_*`. Para estas peticiones se usa el resolvedor de IP que confía en el socket y solo acepta cabeceras de proxies configurados explícitamente mediante `PORTAL_TITULAR_IP_SOURCE` y `PORTAL_TITULAR_TRUSTED_PROXY_IPS`. Una cabecera `X-Forwarded-For` arbitraria no permite eludir la cuota. El contador reside en memoria por proceso; para varias instancias hace falta un límite compartido en el proxy o almacén común. No se cambió configuración del laboratorio.
+
+La página pública y `/verify` muestran el formulario opcional en español e inglés. Sus resultados distinguen coincidencia, falta de coincidencia y comprobación no disponible; cambiar el correo o la credencial borra el resultado anterior. El texto explica que conocer el correo no demuestra control de esa cuenta. El correo se envía en el cuerpo POST, nunca en la URL. Al verificar un archivo externo, la consulta usa su ID contra esta instancia; si no está alojado aquí o su enlace está desactivado, la comprobación se indica como no disponible.
+
+`publicVerification` sigue eliminando `credentialSubject.id` e `identifier`. Ahora elimina además ambas copias de `proof` aunque el nombre sea visible: el JWS permite decodificar su payload y expondría el hash y la sal. La descarga autenticada conserva el documento firmado completo. La comparación por correo sigue disponible cuando se oculta el nombre, mientras el enlace permanezca activo.
+
+### Resultados de esta modificación
+
+Node 22.23.3; fixtures ficticias; SQLite temporal; servidores locales en loopback y correo desactivado. Se excluyó `.env` en compilaciones y servidor de QA. No se modificaron secretos, sinope ni el laboratorio.
+
+| Comprobación | Resultado exacto |
+| --- | --- |
+| Backend, `npm test -- --runInBand` | **33 suites: 32 aprobadas, 1 fallida. 229 pruebas: 227 aprobadas, 2 fallidas.** Incluye 22 pruebas nuevas. |
+| Fallos heredados | Los mismos dos casos de `data-portability`: importación de credenciales/evidencias e idempotencia al reimportar. Servicio y prueba idénticos a `HEAD` previo a esta modificación. |
+| Frontend, `npm run test:unit` | **13 archivos, 27/27 pruebas aprobadas**; 4 nuevas. Persiste el aviso previo de mock hoisted en `SimpleToast.nuxt.spec.ts`. |
+| Backend, `tsc --noEmit` | **Exit 0**, sin diagnósticos. |
+| Backend, `npm run build` | **Exit 0**, TypeScript y panel compilados. |
+| Frontend, `nuxt build --dotenv /tmp/certo-no-env` | **Exit 0**, cliente y servidor compilados. |
+| `scripts/qa/portal-http.cjs` | **38 comprobaciones HTTP aprobadas**: incluye emisión real, coincidencia normalizada, rechazo, alteración de sal, proyección, 404 uniforme y descarga histórica respecto al cambio de privacidad. |
+| `scripts/qa/recipient-rdfc.mjs` | **6 comprobaciones aprobadas**, offline: expansión segura del exportado, firma/verificación RDF, alteraciones rechazadas, término indefinido rechazado y ausencia de ID de sujeto. |
+| `scripts/qa-recipient.mjs` | **29 comprobaciones aprobadas** en Chromium: ambas páginas, es/en, móvil/escritorio, POST, coincidencia/rechazo, limpieza de resultado y ausencia de desbordamiento. Sin errores JavaScript de página. |
+| Revisión visual | Capturas reales de las dos páginas en ambos idiomas; formulario, ayuda y resultados legibles. Artefactos ficticios en `/tmp/certo-recipient-render`. |
+| `git diff --check` | **Exit 0**. |
+
+La prueba de hash usa el vector publicado por 1EdTech: `jjefferson18@example.com` + `FleurDeSel` → `sha256$658625b25ab3d75d613ca97d9a5a77f70e2192feca5557f4ad09a4d4f121f5fc`. El contexto OB3 de la fixture se descargó de `https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json` el 3 de octubre de 2026 (SHA-256 `3d34f4d4ef1bce691106e63798beb5e7b862ba841423f5ee1e53ab7ddf3bca84`).
+
+Para repetir el ensayo RDF, instalar en un directorio temporal `@digitalbazaar/eddsa-rdfc-2022-cryptosuite@1.3.0`, `@digitalbazaar/data-integrity@2.5.0`, `@digitalbazaar/ed25519-multikey@1.3.1`, `jsonld-signatures@11.6.0` y `jsonld@9.0.0`. Ejecutar desde backend `node scripts/qa/recipient-rdfc.mjs <credential.json-ficticio> <directorio-temporal>`. El JSON lo deja `portal-http.cjs --browser` junto a su fixture de navegador. No se agregaron dependencias de producción.
+
+Pendientes: corregir los dos fallos heredados de portabilidad en otra tarea; comprobar la atribución de IP/cuota del proxy y la ruta con datos del laboratorio cuando se autorice desplegar. La publicación, el despliegue y una eventual implementación nativa de `eddsa-rdfc-2022` quedan fuera de este cambio. Se prepara únicamente el commit local solicitado.
+
+### Archivos de esta modificación
+
+- [`docs/portal-institucional.md`](../docs/portal-institucional.md)
+- [`src/backend/scripts/qa/portal-http.cjs`](../src/backend/scripts/qa/portal-http.cjs)
+- [`src/backend/scripts/qa/recipient-rdfc.mjs`](../src/backend/scripts/qa/recipient-rdfc.mjs)
+- [`src/backend/src/api/credential/controllers/__tests__/check-recipient.test.ts`](../src/backend/src/api/credential/controllers/__tests__/check-recipient.test.ts)
+- [`src/backend/src/api/credential/controllers/__tests__/holder-privacy.test.ts`](../src/backend/src/api/credential/controllers/__tests__/holder-privacy.test.ts)
+- [`src/backend/src/api/credential/controllers/credential.ts`](../src/backend/src/api/credential/controllers/credential.ts)
+- [`src/backend/src/api/credential/routes/credential-public.ts`](../src/backend/src/api/credential/routes/credential-public.ts)
+- [`src/backend/src/api/credential/services/__tests__/recipient-issuance.test.ts`](../src/backend/src/api/credential/services/__tests__/recipient-issuance.test.ts)
+- [`src/backend/src/api/credential/services/credential.ts`](../src/backend/src/api/credential/services/credential.ts)
+- [`src/backend/src/api/credential/services/holder-access.ts`](../src/backend/src/api/credential/services/holder-access.ts)
+- [`src/backend/src/api/credential/services/open-badge.ts`](../src/backend/src/api/credential/services/open-badge.ts)
+- [`src/backend/src/middlewares/rate-limit.ts`](../src/backend/src/middlewares/rate-limit.ts)
+- [`src/backend/src/utils/__tests__/fixtures/ob3-context.json`](../src/backend/src/utils/__tests__/fixtures/ob3-context.json)
+- [`src/backend/src/utils/__tests__/recipient-identity.test.ts`](../src/backend/src/utils/__tests__/recipient-identity.test.ts)
+- [`src/backend/src/utils/credential-context.ts`](../src/backend/src/utils/credential-context.ts)
+- [`src/backend/src/utils/recipient-identity.ts`](../src/backend/src/utils/recipient-identity.ts)
+- [`src/backend/src/utils/signed-content.ts`](../src/backend/src/utils/signed-content.ts)
+- [`src/frontend/app/api/api-client.ts`](../src/frontend/app/api/api-client.ts)
+- [`src/frontend/app/components/BadgeVerifier.vue`](../src/frontend/app/components/BadgeVerifier.vue)
+- [`src/frontend/app/components/RecipientCheck.vue`](../src/frontend/app/components/RecipientCheck.vue)
+- [`src/frontend/app/components/__tests__/RecipientCheck.nuxt.spec.ts`](../src/frontend/app/components/__tests__/RecipientCheck.nuxt.spec.ts)
+- [`src/frontend/app/locales/en.json`](../src/frontend/app/locales/en.json)
+- [`src/frontend/app/locales/es.json`](../src/frontend/app/locales/es.json)
+- [`src/frontend/app/pages/credentials/[id]/index.vue`](../src/frontend/app/pages/credentials/[id]/index.vue)
+- [`src/frontend/scripts/qa-recipient.mjs`](../src/frontend/scripts/qa-recipient.mjs)

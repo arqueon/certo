@@ -1,4 +1,13 @@
 {
+  "recipientCheck": {
+    "label": "Comprobar que pertenece a una persona: escribe su correo",
+    "help": "Esta comprobación es opcional. Compara el correo con el registrado al emitir la credencial; no demuestra que quien lo escribe controle esa cuenta.",
+    "submit": "Comprobar correo",
+    "checking": "Comprobando…",
+    "matches": "El correo coincide con el de esta credencial.",
+    "noMatch": "El correo no coincide con el de esta credencial.",
+    "unavailable": "No se pudo comprobar el correo. La credencial puede no estar disponible o haberse alcanzado el límite de intentos. Inténtalo más tarde."
+  },
   "nav": {
     "dashboard": "Panel de control",
     "verify": "Verificar",

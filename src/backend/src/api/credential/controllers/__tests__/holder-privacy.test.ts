@@ -106,12 +106,13 @@ describe('holder privacy authorization and public surfaces', () => {
 describe('OB3 criteria and immutable download', () => {
   test('new credentials include the catalog URL as criteria.id; legacy proofs keep their document shape', async () => {
     const raw: any = record()
-    const service = openBadge({ strapi: { entityService: { findOne: async () => raw }, config: { get: () => 'https://issuer.example.test' } } })
+    const service = openBadge({ strapi: { entityService: { findOne: async () => raw }, config: { get: () => 'https://issuer.example.test' }, service: () => ({ generateProof: async () => ({ jws: 'new.signature' }) }) } })
     const legacy = await service.serializeCredential(12)
     expect(legacy.credentialSubject.achievement.criteria).toEqual({ narrative: 'Pass assessment' })
     const issued = await service.serializeCredential(12, true)
     expect(issued.credentialSubject.achievement.criteria.id).toBe(raw.achievement.criteria.url)
-    expect(issued.proof.jws).toBe('original.signature')
+    expect(legacy.proof.jws).toBe('original.signature')
+    expect(issued.proof.jws).toBe('new.signature')
     raw.signedCredential = issued
     raw.achievement.criteria.url = 'https://changed.example.test'
     expect(await service.serializeCredential(12)).toEqual(issued)

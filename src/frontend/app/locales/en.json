@@ -1,4 +1,13 @@
 {
+  "recipientCheck": {
+    "label": "Check who this credential belongs to: enter their email",
+    "help": "This check is optional. It compares the email with the one recorded when the credential was issued; it does not prove that the person entering it controls that account.",
+    "submit": "Check email",
+    "checking": "Checking…",
+    "matches": "The email matches this credential.",
+    "noMatch": "The email does not match this credential.",
+    "unavailable": "The email could not be checked. The credential may be unavailable or the attempt limit may have been reached. Try again later."
+  },
   "nav": {
     "dashboard": "Dashboard",
     "verify": "Verify",

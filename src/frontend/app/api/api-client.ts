@@ -347,6 +347,10 @@ export class ApiClient {
     return this.get<VerificationResult>(`/api/credentials/${encodeURIComponent(id)}/verify`)
   }
 
+  async checkRecipient(id: string, email: string): Promise<{ matches: boolean }> {
+    return this.post(`/api/credentials/${encodeURIComponent(id)}/check-recipient`, { email })
+  }
+
   /**
    * Validate an external badge
    */

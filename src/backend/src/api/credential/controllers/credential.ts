@@ -4,6 +4,7 @@
 
 import { factories } from '@strapi/strapi'
 import crypto from 'crypto'
+import { matchesRecipient } from '../../../utils/recipient-identity'
 import { isCredentialOwner, isPublicCredential, publicVerification } from '../services/holder-access'
 import { credentialsRevokedTotal } from '../../../monitoring/metrics'
 import { channelAlerts } from '../services/channel-alerts/index'
@@ -160,6 +161,28 @@ export default factories.createCoreController('api::credential.credential', ({ s
       console.error('Error verifying credential:', error)
       return ctx.badRequest(error.message || 'Failed to verify credential')
     }
+  },
+
+  async checkRecipient(ctx) {
+    const started = performance.now()
+    ctx.set('Cache-Control', 'no-store')
+    const email = ctx.request.body?.email
+    if (typeof email !== 'string' || email.length > 320 || !/^[^\s@]+@[^\s@]+$/.test(email.trim())) {
+      return ctx.badRequest('A valid email is required')
+    }
+    const record = await strapi.service('api::credential.holder-access').find(ctx.params.id)
+    // Same lookup, dummy comparison and response for missing and disabled links.
+    // Do not serialize here: a public check must never create a signature.
+    const available = isPublicCredential(record)
+    const subject = available
+      ? record.signedCredential?.credentialSubject ?? (record.proof?.length && record.recipient?.email
+        ? { id: `mailto:${record.recipient.email}` } : null)
+      : null
+    const matches = matchesRecipient(subject, email)
+    // Equalize the usual missing/disabled lookup costs, including relation loads.
+    await new Promise(resolve => setTimeout(resolve, Math.max(0, 75 - (performance.now() - started))))
+    if (!available) return ctx.notFound('Credential is not publicly available')
+    return { matches }
   },
   
   /**

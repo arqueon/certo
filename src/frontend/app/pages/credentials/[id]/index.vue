@@ -777,6 +777,7 @@ async function submitRenewal() {
       </div>
 
       <!-- Main Credential Card -->
+      <RecipientCheck :credential-id="credentialId" />
       <div class="mb-8 overflow-hidden rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl">
         <!-- Credential Image -->
         <div
@@ -972,7 +973,7 @@ async function submitRenewal() {
 
           <!-- Alignments -->
           <div
-            v-if="credential.credentialSubject.achievement.alignments?.length"
+            v-if="(credential.credentialSubject.achievement.alignment || credential.credentialSubject.achievement.alignments)?.length"
             class="mt-6"
           >
             <h4 class="font-medium mb-2">
@@ -980,7 +981,7 @@ async function submitRenewal() {
             </h4>
             <div class="space-y-4">
               <div
-                v-for="alignment in credential.credentialSubject.achievement.alignments"
+                v-for="alignment in (credential.credentialSubject.achievement.alignment || credential.credentialSubject.achievement.alignments)"
                 :key="alignment.targetUrl"
                 class="p-4 rounded-lg bg-gray-50"
               >

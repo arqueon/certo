@@ -13,6 +13,9 @@ export function publicVerification(result: any) {
   if (!isPublicCredential(raw)) return null
   const copy = JSON.parse(JSON.stringify(result))
   delete copy.rawCredential.signedCredential
+  // A compact JWS exposes its payload even without a verification key.
+  delete copy.rawCredential.proof
+  if (copy.credential) delete copy.credential.proof
   if (copy.rawCredential.recipient) {
     copy.rawCredential.recipient = { name: copy.rawCredential.recipient.name }
   }

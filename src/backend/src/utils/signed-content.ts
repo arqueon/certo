@@ -1,8 +1,8 @@
 /**
  * Does the signed content match the document being verified?
  *
- * Certo signs a compact JWS whose payload is its own summary of the
- * credential (credentialId, name, description, awardedDate, result...). A
+ * New credentials sign the complete OB3 document in a compact JWS. Historical
+ * credentials sign an internal summary (credentialId, name, results...). A
  * valid JWS only proves that payload was signed by the issuer. Unless the
  * payload is compared against the document shown or stored, anything outside
  * it can be changed - the name, the awarded date, the per-criterion results -
@@ -14,6 +14,7 @@
  * added after signing). Credentials signed before a field existed, and that
  * do not carry it either, still verify.
  */
+import { isDeepStrictEqual } from 'node:util'
 
 function normalize(value: unknown): string {
   if (value === undefined || value === null || value === '') return ''
@@ -39,6 +40,22 @@ function differences(pairs: Record<string, [unknown, unknown]>): string[] {
 
 /** Stored credential (Strapi entity) against its signed payload. */
 export function storedCredentialMismatches(payload: any, credential: any): string[] {
+  if (payload?.credentialSubject && payload?.id) {
+    const subject = payload.credentialSubject
+    return [
+      ...documentMismatches(payload, credential.signedCredential),
+      ...differences({
+        credentialId: [payload.id, credential.credentialId],
+        name: [payload.name, credential.name],
+        description: [payload.description, credential.description],
+        issuanceDate: [payload.issuanceDate, credential.issuanceDate],
+        expirationDate: [payload.expirationDate, credential.expirationDate],
+        awardedDate: [subject.awardedDate, credential.awardedDate],
+        result: [subject.result, credential.result],
+        resultDescription: [subject.achievement?.resultDescription, credential.resultDescription],
+      }),
+    ]
+  }
   return differences({
     credentialId: [payload?.credentialId, credential?.credentialId],
     name: [payload?.name, credential?.name],
@@ -53,10 +70,14 @@ export function storedCredentialMismatches(payload: any, credential: any): strin
 
 /**
  * Open Badges document against a signed payload. Understands Certo's own
- * payload (credentialId...) and a VC-JWT payload ({ vc: {...} }). For any
+ * full document, legacy payload (credentialId...) and VC-JWT ({ vc: {...} }). For any
  * other payload shape it cannot tell, and returns no mismatches.
  */
 export function documentMismatches(payload: any, vc: any): string[] {
+  if (payload?.credentialSubject && payload?.id) {
+    const { proof: _proof, ...document } = vc || {}
+    return isDeepStrictEqual(payload, JSON.parse(JSON.stringify(document))) ? [] : ['document']
+  }
   const subject = vc?.credentialSubject || {}
   if (payload && 'credentialId' in payload) {
     return differences({

@@ -353,6 +353,7 @@ function handleShare() {
           </div>
 
           <!-- Certificate Details -->
+          <RecipientCheck v-if="badge?.id" :key="badge.id" :credential-id="badge.id" />
           <div v-if="isVerified" class="mt-6 space-y-4">
             <h4 v-if="branding.active" class="font-semibold text-lg">{{ badge?.name }}</h4>
             <div class="flex items-center justify-between gap-3 text-sm">
