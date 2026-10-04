@@ -152,6 +152,7 @@ export default defineNuxtConfig({
     }
   },
   runtimeConfig: {
+    issuerDidBackendUrl: '',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL,
       // Public visibility switch only; backend authorization remains independent.

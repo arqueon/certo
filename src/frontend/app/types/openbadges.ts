@@ -9,7 +9,9 @@ export interface VerifiableCredential {
   'id': string
   'type': string[]
   'issuer': Issuer
-  'issuanceDate': string
+  'issuanceDate'?: string
+  'validFrom'?: string
+  'validUntil'?: string
   'expirationDate'?: string
   'credentialSubject': CredentialSubject
   'evidence'?: Evidence[] | Evidence
@@ -30,6 +32,7 @@ export interface Proof {
   created: string
   verificationMethod: string
   proofPurpose: string
+  cryptosuite?: string
   proofValue?: string
   jws?: string
   [key: string]: any

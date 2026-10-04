@@ -6,6 +6,8 @@ import { getNotificationProvider } from './notification-providers'
 import { channelAlerts } from './channel-alerts/index'
 import { credentialsIssuedTotal } from '../../../monitoring/metrics'
 import { normalizeResults } from '../../../utils/ob3-results'
+import { signCredential } from '../../../utils/data-integrity'
+import { assertIssuerProfile } from '../../../utils/issuer-did'
 
 export default ({ strapi }) => ({
   /**
@@ -22,6 +24,7 @@ export default ({ strapi }) => ({
     try {
       // Validated before anything is created: a result a verifier cannot
       // resolve must fail the issue, not produce a half-meaningful credential.
+      assertIssuerProfile(achievement.creator?.id)
       const normalizedResults = normalizeResults(results?.resultDescription, results?.result)
 
       const recipientEntity = await this.findOrCreateRecipientProfile(recipient)
@@ -65,8 +68,7 @@ export default ({ strapi }) => ({
         ...(normalizedResults ?? {}),
         ...(expirationDate ? { expirationDate: new Date(expirationDate) } : {})
       }
-      // Generate cryptographic proof (JWS)
-      const proof = await this.generateProof(credentialPayload.issuer, credentialPayload)
+      // Sign only the complete OB3 document after allocating its status slot.
 
       // Reserve a slot for this credential in the issuer's revocation
       // status list (Bitstring Status List), creating the list on first use.
@@ -87,7 +89,7 @@ export default ({ strapi }) => ({
           issuanceDate: new Date(),
           revoked: false,
           publishedAt: new Date(),
-          proof: [proof],
+          proof: [],
           statusList: statusListId,
           statusListIndex,
           ...(awardedDate ? { awardedDate: new Date(awardedDate) } : {}),
@@ -407,6 +409,12 @@ export default ({ strapi }) => ({
    * @param {Object} credentialPayload - The credential payload
    */
   async generateProof(issuerId, credentialPayload) {
+    return (await signCredential(strapi, issuerId, credentialPayload)).proof
+  },
+
+  // CLR envelopes retain their historical format; their embedded credentials
+  // are immutable and may carry either legacy JWS or Data Integrity proofs.
+  async generateLegacyProof(issuerId, credentialPayload) {
     const baseUrl = strapi.config.get('server.url', 'http://localhost:1337')
     const payload = { ...credentialPayload }
     delete payload.proof

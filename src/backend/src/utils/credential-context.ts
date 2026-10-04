@@ -1,6 +1,6 @@
-/** Terms retained by Certo's JWS format but absent from the VC 2 / OB3 contexts.
- * Only new issuances use this context; historical signed documents stay intact.
- * This describes the existing JWS envelope, not an EdDSA RDF canonical proof.
+/** Historical JWS terms, retained for compatibility fixtures and old envelopes.
+ * New OB3 issuances use only the official VC 2.0 and OB3 contexts.
+ * Never add this context to an eddsa-rdfc-2022 document.
  */
 export const credentialContext = {
   issuanceDate: { '@id': 'https://www.w3.org/2018/credentials#issuanceDate', '@type': 'http://www.w3.org/2001/XMLSchema#dateTime' },

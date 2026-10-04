@@ -229,8 +229,8 @@ useHead({
           'description': cred.description ?? '',
           'url': shareableUrl,
           'credentialCategory': 'badge',
-          'dateCreated': cred.issuanceDate ?? undefined,
-          'expires': cred.expirationDate ?? undefined,
+          'dateCreated': cred.validFrom ?? cred.issuanceDate ?? undefined,
+          'expires': cred.validUntil ?? cred.expirationDate ?? undefined,
           'recognizedBy': cred.issuer ? {
             '@type': 'Organization',
             'name': typeof cred.issuer === 'string' ? cred.issuer : cred.issuer.name ?? '',
@@ -272,7 +272,7 @@ const imageLoadError = ref(false)
 
 // Format dates with proper localization
 const formattedIssuanceDate = computed(() => {
-  const date = credential.value?.issuanceDate
+  const date = credential.value?.validFrom || credential.value?.issuanceDate
   if (!date) return t('credential.unknown')
   return formatDate(date)
 })
@@ -311,7 +311,7 @@ const criterionResults = computed(() => {
 })
 
 const formattedExpirationDate = computed(() => {
-  const date = credential.value?.expirationDate
+  const date = credential.value?.validUntil || credential.value?.expirationDate
   if (!date) return t('credential.noExpiration')
   return formatDate(date)
 })
@@ -437,8 +437,8 @@ function getLinkedInAddToProfileUrl() {
     startTask: 'CERTIFICATION_NAME',
     name: cert.name || cert.title || '',
     ...(branding.active ? { organizationName: cert.issuer?.name || branding.name } : { organizationId: '53115782' }),
-    issueYear: cert.issuanceDate ? new Date(cert.issuanceDate).getFullYear().toString() : '',
-    issueMonth: cert.issuanceDate ? (new Date(cert.issuanceDate).getMonth() + 1).toString() : '',
+    issueYear: (cert.validFrom || cert.issuanceDate) ? new Date(cert.validFrom || cert.issuanceDate).getFullYear().toString() : '',
+    issueMonth: (cert.validFrom || cert.issuanceDate) ? (new Date(cert.validFrom || cert.issuanceDate).getMonth() + 1).toString() : '',
     certId: cert.id,
     certUrl: shareableUrl
   })
@@ -449,12 +449,12 @@ function getLinkedInAddToProfileUrl() {
 // EXPIRATION & RENEWAL
 // ============================================================================
 const isExpired = computed(() => {
-  const d = credential.value?.expirationDate
+  const d = credential.value?.validUntil || credential.value?.expirationDate
   return d ? new Date(d) < new Date() : false
 })
 
 const daysUntilExpiry = computed(() => {
-  const d = credential.value?.expirationDate
+  const d = credential.value?.validUntil || credential.value?.expirationDate
   if (!d) return null
   const diff = new Date(d).getTime() - Date.now()
   return Math.ceil(diff / (1000 * 60 * 60 * 24))

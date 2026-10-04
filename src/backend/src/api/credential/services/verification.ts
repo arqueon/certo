@@ -5,6 +5,8 @@
 import { errors } from '@strapi/utils';
 import { credentialsVerifiedTotal } from '../../../monitoring/metrics';
 import { storedCredentialMismatches } from '../../../utils/signed-content';
+import { verificationLoader, verifyDataIntegrity } from '../../../utils/data-integrity';
+import { issuerDid } from '../../../utils/issuer-did';
 const { ApplicationError } = errors;
 
 // Define interface for credential with all required properties
@@ -24,6 +26,7 @@ interface CredentialWithRelations {
   proof?: any[];
   statusList?: any;
   statusListIndex?: number;
+  signedCredential?: any;
 }
 
 /**
@@ -98,7 +101,8 @@ export default {
           'issuer.publicKey',
           'recipient',
           'evidence',
-          'proof'
+          'proof',
+          'statusList'
         ],
       });
 
@@ -171,6 +175,14 @@ export default {
       }
     }
 
+    // Imported Data Integrity documents have no local statusList relation.
+    // Their signed status URL must still be checked on each portal verification.
+    if (!credential.statusList && credential.signedCredential?.credentialStatus
+      && credential.proof?.[0]?.type === 'DataIntegrityProof') {
+      const result = await openBadgeService.validateExternalCredential(credential.signedCredential);
+      if (!result.verified) return { ...result, rawCredential: credential, credential: serializedCredential };
+    }
+
     // Verify proof(s)
     let proofResult: { valid: boolean; message?: string | null } = { valid: true, message: null };
     if (credential.proof && credential.proof.length > 0) {
@@ -219,6 +231,25 @@ export default {
 
       // Get the first proof (in a production system, you might verify multiple proofs)
       const proof = credential.proof[0];
+
+      if (proof.type === 'DataIntegrityProof') {
+        const document = credential.signedCredential;
+        if (!document) return { valid: false, message: 'Signed Data Integrity document is missing' };
+        const result = await verifyDataIntegrity(document, await verificationLoader(strapi, document));
+        if (!result.valid) return result;
+        // A root DID can contain multiple institutional profiles. The local
+        // row must still belong to the profile that actually signed it.
+        if ((document.issuer?.id || document.issuer) === issuerDid(strapi)) {
+          const method = (Array.isArray(document.proof) ? document.proof[0] : document.proof).verificationMethod;
+          const keyId = method.split('#key-')[1];
+          const key = keyId && await strapi.db.query('api::issuer-key.issuer-key').findOne({
+            where: { id: keyId, profile: credential.issuer?.id }, select: ['id'],
+          });
+          if (!key) return { valid: false, message: 'Signing key does not belong to the stored issuer' };
+        }
+        const { proof: _proof, ...payload } = document;
+        return signedContentCheck(payload, credential);
+      }
 
       // Check that the proof has all required fields
       if (!proof.type || !proof.created || !proof.verificationMethod || !proof.proofPurpose) {
@@ -338,4 +369,4 @@ export default {
       return { valid: false, message: `Error verifying proof: ${error.message}` };
     }
   }
-}; 
+};

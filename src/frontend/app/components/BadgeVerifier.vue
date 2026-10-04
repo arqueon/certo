@@ -362,11 +362,11 @@ function handleShare() {
             </div>
             <div class="flex items-center justify-between gap-3 text-sm">
               <span class="text-text-secondary">{{ t('verifier.issueDate') }}</span>
-              <span class="font-medium text-text-primary">{{ formatDate(badge?.issuanceDate, undefined, t('credential.unknown')) }}</span>
+              <span class="font-medium text-text-primary">{{ formatDate(badge?.validFrom || badge?.issuanceDate, undefined, t('credential.unknown')) }}</span>
             </div>
-            <div v-if="badge?.expirationDate" class="flex items-center justify-between gap-3 text-sm">
+            <div v-if="badge?.validUntil || badge?.expirationDate" class="flex items-center justify-between gap-3 text-sm">
               <span class="text-text-secondary">{{ t('verifier.expiryDate') }}</span>
-              <span class="font-medium text-text-primary">{{ formatDate(badge.expirationDate) }}</span>
+              <span class="font-medium text-text-primary">{{ formatDate(badge.validUntil || badge.expirationDate) }}</span>
             </div>
             <div class="flex items-center justify-between gap-3 text-sm">
               <span class="text-text-secondary">{{ t('verifier.id') }}</span>

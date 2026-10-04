@@ -1,5 +1,7 @@
 # Portal institucional y privacidad del titular
 
+La emisión nueva usa ahora did:web, VC 2.0 y Data Integrity `eddsa-rdfc-2022`. Variables, rutas públicas, compatibilidad histórica y pruebas con DCC/LCW están en [Interoperabilidad](interoperabilidad.md). Las secciones de firmas y comprobaciones del 3 de octubre de este documento registran el estado del PR #18, anterior a ese cambio.
+
 Con una variable `NUXT_PUBLIC_BRAND_*` no vacía, Certo funciona como portal del titular y verificador público. UDGPlus emite desde su consola externa; esta portada no ofrece diseñar ni emitir credenciales. Sin marca, se conserva la portada de origen. Las protecciones del backend se aplican siempre, aunque un cliente no use esta interfaz.
 
 ## Configuración pública

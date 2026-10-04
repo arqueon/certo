@@ -1,8 +1,8 @@
 /**
  * Does the signed content match the document being verified?
  *
- * New credentials sign the complete OB3 document in a compact JWS. Historical
- * credentials sign an internal summary (credentialId, name, results...). A
+ * Data Integrity and recent JWS credentials sign the complete OB3 document.
+ * Older credentials sign an internal summary (credentialId, name, results...). A
  * valid JWS only proves that payload was signed by the issuer. Unless the
  * payload is compared against the document shown or stored, anything outside
  * it can be changed - the name, the awarded date, the per-criterion results -
@@ -48,8 +48,8 @@ export function storedCredentialMismatches(payload: any, credential: any): strin
         credentialId: [payload.id, credential.credentialId],
         name: [payload.name, credential.name],
         description: [payload.description, credential.description],
-        issuanceDate: [payload.issuanceDate, credential.issuanceDate],
-        expirationDate: [payload.expirationDate, credential.expirationDate],
+        issuanceDate: [payload.validFrom || payload.issuanceDate, credential.issuanceDate],
+        expirationDate: [payload.validUntil || payload.expirationDate, credential.expirationDate],
         awardedDate: [subject.awardedDate, credential.awardedDate],
         result: [subject.result, credential.result],
         resultDescription: [subject.achievement?.resultDescription, credential.resultDescription],

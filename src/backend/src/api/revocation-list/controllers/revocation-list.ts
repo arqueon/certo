@@ -4,11 +4,6 @@
 
 import { factories } from '@strapi/strapi'
 
-// @digitalbazaar/vc-bitstring-status-list is ESM-only; this backend compiles
-// to CommonJS, so it's loaded with a dynamic import, same as this codebase
-// already does for `jose` in credential.ts's generateProof().
-const bitstringStatusList = () => import('@digitalbazaar/vc-bitstring-status-list')
-
 interface Credential {
   id: any
   credentialId: string
@@ -48,31 +43,9 @@ export default factories.createCoreController('api::revocation-list.revocation-l
       return ctx.notFound('Status list not found')
     }
 
-    const baseUrl = strapi.config.get('server.url', 'http://localhost:1337')
-    const credentialId = `${baseUrl}/api/revocation-lists/${statusList.id}`
-    const { createCredential, decodeList, VC_BSL_VC_V2_CONTEXT } = await bitstringStatusList()
-    const list = await decodeList({ encodedList: statusList.encodedList })
-
-    const credential: any = await createCredential({
-      id: credentialId,
-      list,
-      statusPurpose: statusList.statusPurpose || 'revocation',
-      context: VC_BSL_VC_V2_CONTEXT,
-    })
-    credential.issuer = statusList.issuer
-      ? { id: `${baseUrl}/api/profiles/${statusList.issuer.id}/issuer` }
-      : undefined
-    credential.validFrom = (statusList.lastUpdated
-      ? new Date(statusList.lastUpdated)
-      : new Date()
-    ).toISOString()
-
-    if (statusList.issuer) {
-      const credentialService = strapi.service('api::credential.credential')
-      credential.proof = await credentialService.generateProof(statusList.issuer.id, credential)
-    }
-
-    ctx.body = credential
+    ctx.set('Cache-Control', 'no-store')
+    ctx.body = await strapi.service('api::revocation-list.revocation-list').serializeCredential(statusList)
+    ctx.set('Content-Type', 'application/vc+ld+json')
   },
 
   // Custom controller methods for revocation list
@@ -130,4 +103,4 @@ export default factories.createCoreController('api::revocation-list.revocation-l
       return ctx.internalServerError('Error checking credential status')
     }
   }
-})) 
+}))

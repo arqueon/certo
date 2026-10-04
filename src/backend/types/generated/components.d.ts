@@ -34,6 +34,7 @@ export interface BadgeProof extends Struct.ComponentSchema {
     displayName: 'Proof';
   };
   attributes: {
+    cryptosuite: Schema.Attribute.String;
     created: Schema.Attribute.DateTime & Schema.Attribute.Required;
     jws: Schema.Attribute.Text;
     proofPurpose: Schema.Attribute.String & Schema.Attribute.Required;
