@@ -1,5 +1,7 @@
 # Interoperabilidad Open Badges 3.0, VC 2.0 y did:web
 
+La integración posterior **[Guardar en mi wallet](guardar-en-wallet.md)** implementa el intercambio VC-API, la copia vinculada y las pruebas de revocación conjunta. Incluye fuentes fijadas por revisión y una advertencia de compatibilidad del `main` actual de LCW.
+
 Las credenciales OB3 nuevas se firman con `DataIntegrityProof`, cryptosuite `eddsa-rdfc-2022` y `proofValue` multibase. El emisor es un `Profile` identificado por `did:web`. La API de emisión sigue aceptando `expirationDate`; el documento firmado contiene `validUntil`. La fecha de emisión se representa como `validFrom`.
 
 Las credenciales históricas conservan su firma y su copia `signedCredential`. Para incorporarlas a Learner Credential Wallet hay que **reemitirlas**; cambiar su contexto o sustituir el campo `jws` por `proofValue` no convierte una firma existente.
@@ -169,7 +171,7 @@ El deep link de DCC abre un **intercambio de credenciales**, no una página HTML
 https://lcw.app/request.html?issuer=<host>&auth_type=bearer&challenge=<desafio>&vc_request_url=<URL-HTTPS-del-intercambio-codificada>
 ```
 
-Para probarlo necesitas un exchange-coordinator o endpoint compatible que entregue la credencial previamente firmada y preserve su sujeto. Usa el `directDeepLink` que genere ese servicio; no inventes un desafío ni coloques JWT de sesión en la URL. El [workflow-coordinator de DCC](https://github.com/digitalcredentials/workflow-coordinator) documenta ese flujo. Esta rama no añade un servicio de intercambio ni publica descargas privadas: la importación de archivo/texto permite probar la interoperabilidad solicitada sin cambiar el acceso del titular.
+Ese es el flujo heredado documentado por [workflow-coordinator de DCC](https://github.com/digitalcredentials/workflow-coordinator). PR #19 no añadía un servicio de intercambio y se probó mediante importación de archivo/texto. La integración posterior [Guardar en mi wallet](guardar-en-wallet.md) usa el contrato moderno `request`/`protocols.vcapi`, autentica con challenge y domain y firma una copia con un sujeto vinculado. No coloques JWT de sesión en ninguno de estos enlaces.
 
 ## Resultados de QA de esta rama
 

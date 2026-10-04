@@ -2,6 +2,8 @@
 
 La emisión nueva usa ahora did:web, VC 2.0 y Data Integrity `eddsa-rdfc-2022`. Variables, rutas públicas, compatibilidad histórica y pruebas con DCC/LCW están en [Interoperabilidad](interoperabilidad.md). Las secciones de firmas y comprobaciones del 3 de octubre de este documento registran el estado del PR #18, anterior a ese cambio.
 
+Desde ADR 0022, **[Guardar en mi wallet](guardar-en-wallet.md)** añade el canje de un solo uso con autenticación de cartera, copia vinculada al DID y revocación compartida. Ese documento fija las versiones compatibles de LCW y la prueba móvil pendiente.
+
 Con una variable `NUXT_PUBLIC_BRAND_*` no vacía, Certo funciona como portal del titular y verificador público. UDGPlus emite desde su consola externa; esta portada no ofrece diseñar ni emitir credenciales. Sin marca, se conserva la portada de origen. Las protecciones del backend se aplican siempre, aunque un cliente no use esta interfaz.
 
 ## Configuración pública
@@ -75,7 +77,7 @@ La emisión nueva incluye `criteria.id = criteria.url`, además de `narrative`, 
 
 No hay migración ni refirma de credenciales anteriores. Para las que carecen de `signedCredential`, se conserva la serialización previa y no se añade `criteria.id` a una credencial ya firmada. El sistema anterior no guardaba una copia inmutable del documento OB3 completo: no se puede recuperar retrospectivamente un archivo original perdido a partir de esta modificación. Su ficha sigue accesible mediante el componente `criteria.url` poblado.
 
-La descarga contiene los datos originales aunque se oculte el nombre público. El texto de privacidad lo explica. «Guardar en mi wallet» es una explicación de importación en una cartera compatible con Open Badges 3.0, sin integración nueva.
+La descarga contiene los datos originales aunque se oculte el nombre público. El texto de privacidad lo explica. En PR #18, «Guardar en mi wallet» solo explicaba la importación de archivo; el [canje de ADR 0022](guardar-en-wallet.md) sustituye ese texto por la integración con LCW.
 
 ## Comprobaciones locales del 3 de octubre de 2026
 
