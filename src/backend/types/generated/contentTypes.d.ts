@@ -810,6 +810,125 @@ export interface ApiScheduledIssuanceScheduledIssuance
   };
 }
 
+export interface ApiWalletCopyWalletCopy extends Struct.CollectionTypeSchema {
+  collectionName: 'wallet_copies';
+  info: {
+    displayName: 'wallet-copy';
+    pluralName: 'wallet-copies';
+    singularName: 'wallet-copy';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    boundAt: Schema.Attribute.DateTime &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    credential: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::credential.credential'
+    > &
+      Schema.Attribute.Private;
+    credentialId: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private &
+      Schema.Attribute.Unique;
+    holderDid: Schema.Attribute.Text &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::wallet-copy.wallet-copy'
+    > &
+      Schema.Attribute.Private;
+    offer: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::wallet-offer.wallet-offer'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    signedCredential: Schema.Attribute.JSON &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiWalletOfferWalletOffer extends Struct.CollectionTypeSchema {
+  collectionName: 'wallet_offers';
+  info: {
+    displayName: 'wallet-offer';
+    pluralName: 'wallet-offers';
+    singularName: 'wallet-offer';
+  };
+  options: {
+    draftAndPublish: false;
+  };
+  pluginOptions: {
+    'content-manager': {
+      visible: false;
+    };
+    'content-type-builder': {
+      visible: false;
+    };
+  };
+  attributes: {
+    challenge: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    credential: Schema.Attribute.Relation<
+      'manyToOne',
+      'api::credential.credential'
+    > &
+      Schema.Attribute.Private;
+    domain: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    expiresAt: Schema.Attribute.DateTime &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::wallet-offer.wallet-offer'
+    > &
+      Schema.Attribute.Private;
+    ownerId: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    status: Schema.Attribute.Enumeration<['pending', 'used', 'expired']> &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private &
+      Schema.Attribute.DefaultTo<'pending'>;
+    tokenHash: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Private &
+      Schema.Attribute.Unique;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    usedAt: Schema.Attribute.DateTime & Schema.Attribute.Private;
+  };
+}
+
 export interface ApiWebhookSubscriptionWebhookSubscription
   extends Struct.CollectionTypeSchema {
   collectionName: 'webhook_subscriptions';
@@ -1361,6 +1480,8 @@ declare module '@strapi/strapi' {
       'api::profile.profile': ApiProfileProfile;
       'api::revocation-list.revocation-list': ApiRevocationListRevocationList;
       'api::scheduled-issuance.scheduled-issuance': ApiScheduledIssuanceScheduledIssuance;
+      'api::wallet-copy.wallet-copy': ApiWalletCopyWalletCopy;
+      'api::wallet-offer.wallet-offer': ApiWalletOfferWalletOffer;
       'api::webhook-subscription.webhook-subscription': ApiWebhookSubscriptionWebhookSubscription;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

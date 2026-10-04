@@ -1,0 +1,69 @@
+{
+  "kind": "collectionType",
+  "collectionName": "wallet_offers",
+  "info": {
+    "singularName": "wallet-offer",
+    "pluralName": "wallet-offers",
+    "displayName": "wallet-offer"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": false
+    },
+    "content-type-builder": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "tokenHash": {
+      "type": "string",
+      "unique": true,
+      "required": true,
+      "private": true
+    },
+    "challenge": {
+      "type": "string",
+      "required": true,
+      "private": true
+    },
+    "domain": {
+      "type": "string",
+      "required": true,
+      "private": true
+    },
+    "expiresAt": {
+      "type": "datetime",
+      "required": true,
+      "private": true
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": [
+        "pending",
+        "used",
+        "expired"
+      ],
+      "default": "pending",
+      "required": true,
+      "private": true
+    },
+    "usedAt": {
+      "type": "datetime",
+      "private": true
+    },
+    "ownerId": {
+      "type": "integer",
+      "required": true,
+      "private": true
+    },
+    "credential": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::credential.credential",
+      "private": true
+    }
+  }
+}

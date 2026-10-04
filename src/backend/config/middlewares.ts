@@ -77,7 +77,7 @@ export default ({ env }) => {
     'strapi::poweredBy',
     // Handles this namespace before access logging: no OIDC codes or personal payloads in logs.
     'global::portal-titular',
-    'strapi::logger',
+    'global::access-log',
     'strapi::query',
     'strapi::body',
     'strapi::session',

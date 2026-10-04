@@ -1,0 +1,55 @@
+{
+  "kind": "collectionType",
+  "collectionName": "wallet_copies",
+  "info": {
+    "singularName": "wallet-copy",
+    "pluralName": "wallet-copies",
+    "displayName": "wallet-copy"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": false
+    },
+    "content-type-builder": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "credentialId": {
+      "type": "string",
+      "unique": true,
+      "required": true,
+      "private": true
+    },
+    "holderDid": {
+      "type": "text",
+      "required": true,
+      "private": true
+    },
+    "boundAt": {
+      "type": "datetime",
+      "required": true,
+      "private": true
+    },
+    "signedCredential": {
+      "type": "json",
+      "required": true,
+      "private": true
+    },
+    "credential": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::credential.credential",
+      "private": true
+    },
+    "offer": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::wallet-offer.wallet-offer",
+      "private": true
+    }
+  }
+}

@@ -144,6 +144,8 @@ async function main() {
   const mixed = await app.service('api::clr.clr').emitir({ subjectId: holder.id, issuerId: issuer.id, credentialIds: [credential.id, legacyRow.id] })
   ok(mixed.credentialSubject.achievement.some(vc => vc.proof.type === 'DataIntegrityProof')
     && mixed.credentialSubject.achievement.some(vc => vc.proof.jws), 'CLR groups both immutable formats')
+  if (process.argv.includes('--wallet')) await require('./wallet-http.cjs')({ app, request, credential,
+    original: original.body.data, legacyId, holder, achievement: achievement.body.data })
   // Keep browser QA's fixture list stable; the historical row was only needed for this regression.
   await app.entityService.delete('api::credential.credential', legacyRow.id)
   console.log(`PORTAL_HTTP_PASS ${count} assertions`)

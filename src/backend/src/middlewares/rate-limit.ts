@@ -71,12 +71,15 @@ export default (config: any = {}, { strapi }: { strapi: any }) => {
   return async (ctx: Context, next: Next) => {
     const path = ctx.request.path;
     const recipientCheck = /^\/api\/credentials\/[^/]+\/check-recipient\/?$/.test(path);
-    if (recipientCheck) ctx.set('Cache-Control', 'no-store');
+    const walletExchange = /^\/api\/exchanges(?:\/|$)/.test(path);
+    const walletOffer = /^\/api\/holder\/credentials\/[^/]+\/wallet-offer\/?$/.test(path);
+    const wallet = walletExchange || walletOffer;
+    if (recipientCheck || wallet) ctx.set('Cache-Control', 'no-store');
 
     // Only apply rate limiting to auth endpoints by default.
     // Can be extended with RATE_LIMIT_PATHS env var (comma-separated).
     const extraPaths = (process.env.RATE_LIMIT_PATHS || '').split(',').map((s) => s.trim()).filter(Boolean);
-    const isSensitivePath = recipientCheck || AUTH_PATHS.includes(path) || extraPaths.includes(path);
+    const isSensitivePath = wallet || recipientCheck || AUTH_PATHS.includes(path) || extraPaths.includes(path);
 
     if (!isSensitivePath) {
       return next();
@@ -85,7 +88,7 @@ export default (config: any = {}, { strapi }: { strapi: any }) => {
     let ip: string;
     try {
       // This middleware runs before portal-titular and strapi::errors.
-      ip = recipientCheck || path.startsWith('/api/portal-titular/') ? portalClientIp(ctx) : getClientIp(ctx);
+      ip = wallet || recipientCheck || path.startsWith('/api/portal-titular/') ? portalClientIp(ctx) : getClientIp(ctx);
     } catch {
       ctx.status = 503;
       ctx.set('Cache-Control', 'no-store');
@@ -101,7 +104,7 @@ export default (config: any = {}, { strapi }: { strapi: any }) => {
     const now = Date.now();
     cleanup(now);
 
-    const key = `${ip}:${recipientCheck ? 'check-recipient' : path}`;
+    const key = `${ip}:${wallet ? (walletExchange ? 'wallet-exchange' : 'wallet-offer') : recipientCheck ? 'check-recipient' : path}`;
     const entry = store.get(key);
 
     if (!entry || entry.resetAt <= now) {
