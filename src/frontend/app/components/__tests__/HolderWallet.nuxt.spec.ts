@@ -1,11 +1,14 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it, vi, afterEach } from 'vitest'
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import HolderWallet from '@/components/HolderWallet.vue'
 import { apiClient } from '@/api/api-client'
-import { walletCountdown, shortWalletDid } from '@/utils/wallet'
+import { walletCountdown, shortWalletDid, walletAppLink } from '@/utils/wallet'
 
-afterEach(() => { vi.restoreAllMocks() })
+import { useRuntimeConfig } from '#app'
+let runtime: ReturnType<typeof useRuntimeConfig>
+beforeEach(() => { runtime = useRuntimeConfig() })
+afterEach(() => { vi.restoreAllMocks(); runtime.public.walletAppUrl = ''; runtime.public.walletAppName = 'Cartera UDGPlus' })
 const summary = { eligible: true, legacy: false, walletCount: 0, copies: [] }
 describe('holder wallet', () => {
   it('prepares a QR and mobile link only after the holder acts', async () => {
@@ -21,6 +24,26 @@ describe('holder wallet', () => {
     expect(wrapper.find('img').attributes('src')).toMatch(/^data:image\/png;base64,/)
     expect(wrapper.find('a.wallet-open').attributes('href')).toBe(walletUrl)
     expect(wrapper.find('[role="timer"]').text()).toContain('10:00')
+    wrapper.unmount()
+  })
+  it.each(['Cartera UDGPlus', 'Otra cartera'])('prioritizes the configured web wallet %s and preserves the LCW invitation', async name => {
+    runtime.public.walletAppUrl = 'https://cartera-microcredenciales.arqueonautis.org/'
+    runtime.public.walletAppName = name
+    const exchangeUrl = 'https://issuer.example/api/exchanges/capability'
+    const walletUrl = 'https://lcw.app/request.html?request=example'
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ data: summary })
+    vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { exchangeUrl, walletUrl, qrContent: walletUrl, expiresAt: new Date(Date.now() + 600000).toISOString() } })
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises(); await wrapper.find('button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('a.wallet-web').exists()).toBe(true))
+    const expected = walletAppLink(runtime.public.walletAppUrl, exchangeUrl)
+    expect(wrapper.find('a.wallet-web').attributes('href')).toBe(expected)
+    expect(wrapper.find('a.wallet-web').text()).toBe(`Open in ${name}`)
+    expect(JSON.parse(decodeURIComponent(expected.split('request=')[1]!))).toEqual({ protocols: { vcapi: exchangeUrl } })
+    expect(wrapper.find('details a').attributes('href')).toBe(walletUrl)
+    const { default: QRCode } = await import('qrcode')
+    expect(wrapper.find('img').attributes('src')).toBe(await QRCode.toDataURL(expected, { width: 320, margin: 4, errorCorrectionLevel: 'M' }))
+    expect(wrapper.find('details img').attributes('src')).toBe(await QRCode.toDataURL(walletUrl, { width: 320, margin: 4, errorCorrectionLevel: 'M' }))
     wrapper.unmount()
   })
   it('explains legacy reissuance and prevents offer creation', async () => {

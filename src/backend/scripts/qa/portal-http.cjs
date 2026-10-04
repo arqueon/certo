@@ -11,6 +11,7 @@ Object.assign(process.env, {
   NODE_ENV: 'production', ENV_PATH: path.join(directory, 'absent'),
   DATABASE_CLIENT: 'sqlite', DATABASE_FILENAME: path.relative(root, path.join(directory, 'test.db')),
   HOST: '127.0.0.1', PORT: '19337', PUBLIC_URL: 'http://127.0.0.1:19337', FRONTEND_URL: 'http://127.0.0.1:19300',
+  WALLET_ALLOWED_ORIGINS: 'https://cartera-microcredenciales.arqueonautis.org, http://127.0.0.1:19301',
   CORS_ALLOWED_ORIGINS: 'http://127.0.0.1:19300',
   ENCRYPTION_KEY: randomBytes(32).toString('hex'), APP_KEYS: randomBytes(32).toString('hex'), JWT_SECRET: randomBytes(32).toString('hex'),
   ADMIN_JWT_SECRET: randomBytes(32).toString('hex'), API_TOKEN_SALT: randomBytes(32).toString('hex'),

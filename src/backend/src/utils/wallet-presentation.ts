@@ -53,7 +53,7 @@ export async function walletDocumentLoader(controller: any) {
   return localDocumentLoader(documents)
 }
 
-/** LCW 2.2.9 signs VPs with Ed25519Signature2020 (not its VC cryptosuite).
+/** Freewallet uses eddsa-rdfc-2022; LCW uses Ed25519Signature2020.
  * Verify only a DIDAuth presentation; no remote credential/context loading. */
 export async function verifyWalletPresentation(vp: any, challenge: string, domain: string,
   resolveWeb = resolveWalletDidWeb): Promise<string> {

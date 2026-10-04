@@ -14,7 +14,7 @@ async function identity() {
 async function presentation(identity, overrides: any = {}, dataIntegrity = false) {
   const { default: jsigs } = await import('jsonld-signatures')
   const { Ed25519Signature2020 } = await import('@digitalcredentials/ed25519-signature-2020')
-  return jsigs.sign({ '@context': ['https://www.w3.org/ns/credentials/v2', 'https://w3id.org/security/suites/ed25519-2020/v1'],
+  return jsigs.sign({ '@context': ['https://www.w3.org/ns/credentials/v2', dataIntegrity ? 'https://w3id.org/security/data-integrity/v2' : 'https://w3id.org/security/suites/ed25519-2020/v1'],
     type: ['VerifiablePresentation'], holder: overrides.holder || identity.controller.id }, {
     suite: dataIntegrity ? await dataIntegritySuite({ ...identity.key.signer(), algorithm: 'Ed25519' }) : new Ed25519Signature2020({ key: identity.key }),
     purpose: new jsigs.purposes.AuthenticationProofPurpose({ challenge: 'one-use', domain: 'issuer.example.test', ...overrides }),
@@ -35,15 +35,15 @@ describe('wallet authentication', () => {
     const wallet = await identity()
     expect(await verifyWalletPresentation(await presentation(wallet, {}, true), 'one-use', 'issuer.example.test')).toBe(wallet.controller.id)
   })
-  test.each([{ challenge: 'wrong' }, { domain: 'wrong' }])('rejects signed mismatched options %j', async overrides => {
-    await expect(verifyWalletPresentation(await presentation(await identity(), overrides), 'one-use', 'issuer.example.test')).rejects.toThrow()
+  test.each([false, true].flatMap(dataIntegrity => [{ challenge: 'wrong', dataIntegrity }, { domain: 'wrong', dataIntegrity }]))('rejects signed mismatched options %j', async ({ dataIntegrity, ...overrides }) => {
+    await expect(verifyWalletPresentation(await presentation(await identity(), overrides, dataIntegrity), 'one-use', 'issuer.example.test')).rejects.toThrow()
   })
-  test('rejects unsigned VP, tampering, and a different holder key', async () => {
+  test.each([false, true])('rejects unsigned VP, tampering, and a different holder key (DI=%s)', async dataIntegrity => {
     const wallet = await identity(), other = await identity()
-    const vp = await presentation(wallet)
+    const vp = await presentation(wallet, {}, dataIntegrity)
     await expect(verifyWalletPresentation({ ...vp, proof: undefined }, 'one-use', 'issuer.example.test')).rejects.toThrow()
     await expect(verifyWalletPresentation({ ...vp, holder: other.controller.id }, 'one-use', 'issuer.example.test')).rejects.toThrow()
-    await expect(verifyWalletPresentation(await presentation(wallet, { holder: other.controller.id }), 'one-use', 'issuer.example.test')).rejects.toThrow()
+    await expect(verifyWalletPresentation(await presentation(wallet, { holder: other.controller.id }, dataIntegrity), 'one-use', 'issuer.example.test')).rejects.toThrow()
     await expect(verifyWalletPresentation({ ...vp, proof: { ...vp.proof, proofValue: vp.proof.proofValue.slice(0, -3) + '111' } }, 'one-use', 'issuer.example.test')).rejects.toThrow()
     await expect(verifyWalletPresentation({ ...vp, proof: { ...vp.proof, proofPurpose: 'assertionMethod' } }, 'one-use', 'issuer.example.test')).rejects.toThrow()
     await expect(verifyWalletPresentation({ ...vp, '@context': [...vp['@context'], { holder: 'https://attacker.example/holder' }] }, 'one-use', 'issuer.example.test')).rejects.toThrow()

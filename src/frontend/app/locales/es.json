@@ -702,6 +702,12 @@
       }
     },
     "wallet": {
+      "confirmSavedApp": "Comprueba en tu cartera que aceptaste y guardaste la copia.",
+      "appHelp": "Guarda tu credencial en {name}. Puedes abrir la cartera web aquí o escanear el QR desde tu celular.",
+      "appQrAlt": "QR para guardar la credencial en {name}",
+      "openApp": "Abrir en {name}",
+      "lcwAlternative": "¿Usas Learner Credential Wallet?",
+      "openLcw": "Abrir en LCW",
       "save": "Guardar en mi wallet",
       "creating": "Preparando…",
       "legacy": "Esta credencial usa un formato anterior. Solicita al emisor que la reemita para guardarla en una cartera.",

@@ -11,7 +11,7 @@ function buildOriginFn(extraOrigins: string[] = []) {
 }
 
 function ctxWithOrigin(origin?: string) {
-  return { request: { header: { origin } } }
+  return { path: '/api/credentials', request: { header: { origin } } }
 }
 
 describe('CORS origin function', () => {
@@ -46,4 +46,9 @@ describe('CORS origin function', () => {
     const origin = buildOriginFn()
     expect(origin(ctxWithOrigin('https://deploy-preview-42--certo.netlify.app'))).toBe('https://deploy-preview-42--certo.netlify.app')
   })
+})
+
+test('global CORS does not grant exchange access, even to globally allowed origins', () => {
+  const origin = buildOriginFn(['https://wallet.example'])
+  expect(origin({ ...ctxWithOrigin('https://wallet.example'), path: '/api/exchanges/token' })).toBe('')
 })

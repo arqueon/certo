@@ -68,7 +68,7 @@ export default ({ strapi }) => ({
     const offer = await this.pending(token)
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw unavailable()
     if (Object.keys(body).length === 0) return { verifiablePresentationRequest: {
-      query: [{ type: 'DIDAuthentication', acceptedMethods: [{ method: 'key' }, { method: 'web' }] }],
+      query: [{ type: 'DIDAuthentication', acceptedCryptosuites: [{ cryptosuite: 'eddsa-rdfc-2022' }], acceptedMethods: [{ method: 'key' }, { method: 'web' }] }],
       challenge: offer.challenge, domain: offer.domain,
     } }
     if (Object.keys(body).length !== 1 || !body.verifiablePresentation) throw unavailable()

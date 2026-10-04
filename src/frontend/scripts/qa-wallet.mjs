@@ -1,10 +1,13 @@
 import { chromium, expect } from '@playwright/test'
 import { readFileSync, mkdirSync } from 'node:fs'
+import { createServer } from 'node:http'
 const fixture = JSON.parse(readFileSync(process.argv[2], 'utf8'))
 const browser = await chromium.launch({ executablePath: process.env.QA_CHROMIUM || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] })
-const artifacts = '/tmp/certo-wallet-render'
+const webWallet = process.env.QA_WALLET_APP_URL || ''
+const artifacts = webWallet ? '/tmp/certo-wallet-web-render' : '/tmp/certo-wallet-render'
 mkdirSync(artifacts, { recursive: true })
 const base = 'http://127.0.0.1:19300'
+let walletServer
 let count = 0
 const errors = []
 const check = async fn => { await fn(); count++ }
@@ -24,45 +27,91 @@ try {
   await check(() => expect(control.getByRole('button', { name: 'Guardar en mi wallet', exact: true })).toBeEnabled())
   await check(() => expect(control.locator('abbr').first()).toBeVisible())
   await control.getByRole('button', { name: 'Guardar en mi wallet', exact: true }).click()
-  await check(() => expect(control.locator('img.wallet-qr')).toBeVisible())
+  await check(() => expect(control.locator('img.wallet-qr').first()).toBeVisible())
   await check(() => expect(control.locator('[role="timer"]')).toContainText(/Vence en (10:00|9:\d\d)/))
-  await check(() => expect(control.locator('a.wallet-open')).toBeHidden())
+  await check(() => webWallet ? expect(control.locator('a.wallet-open')).toBeVisible() : expect(control.locator('a.wallet-open')).toBeHidden())
+  if (webWallet) {
+    await check(() => expect(control.locator('a.wallet-open')).toHaveText('Abrir en Cartera UDGPlus'))
+    await control.locator('summary').click()
+    await check(() => expect(control.getByRole('link', { name: 'Abrir en LCW', exact: true })).toBeVisible())
+    await check(() => expect(control.locator('details img')).toBeVisible())
+    await control.locator('summary').click()
+  }
   await check(() => expect(control.getByText(/El QR público de verificación/)).toBeVisible())
-  const previousQr = await control.locator('img').getAttribute('src')
+  const previousQr = await control.locator('img').first().getAttribute('src')
   await control.getByRole('button', { name: 'Generar uno nuevo' }).click()
-  await check(() => expect(control.locator('img')).not.toHaveAttribute('src', previousQr))
+  await check(() => expect(control.locator('img').first()).not.toHaveAttribute('src', previousQr))
   await control.evaluate(el => el.scrollIntoView({ block: 'start' }))
   await control.screenshot({ path: `${artifacts}/desktop-es.png` })
   await desktop.page.goto(`${base}/dashboard`, { waitUntil: 'networkidle' })
   await check(() => expect(desktop.page.getByRole('button', { name: 'Guardar en mi wallet', exact: true })).toBeVisible())
   await desktop.page.getByRole('button', { name: 'Guardar en mi wallet', exact: true }).click()
-  await check(() => expect(desktop.page.locator('img.wallet-qr')).toBeVisible())
+  await check(() => expect(desktop.page.locator('img.wallet-qr').first()).toBeVisible())
   await desktop.page.screenshot({ path: `${artifacts}/dashboard-es.png`, fullPage: true })
   const mobile = await session({ width: 390, height: 844 }, 'en')
   await mobile.page.goto(`${base}/credentials/${encodeURIComponent(fixture.id)}`, { waitUntil: 'networkidle' })
   const mobileControl = mobile.page.getByTestId('holder-wallet')
   await mobileControl.getByRole('button', { name: 'Save to my wallet', exact: true }).click()
-  await check(() => expect(mobileControl.getByRole('link', { name: 'Open in my wallet' })).toBeVisible())
-  await check(() => expect(mobileControl.locator('img')).toBeHidden())
+  await check(() => expect(mobileControl.getByRole('link', { name: webWallet ? 'Open in Cartera UDGPlus' : 'Open in my wallet' })).toBeVisible())
+  await check(() => expect(mobileControl.locator('img').first()).toBeHidden())
   const href = await mobileControl.locator('a.wallet-open').getAttribute('href')
-  await check(() => expect(new URL(href).origin).toBe('https://lcw.app'))
-  const invitation = JSON.parse(new URL(href).searchParams.get('request'))
+  await check(() => expect(new URL(href).origin).toBe(webWallet ? new URL(webWallet).origin : 'https://lcw.app'))
+  const invitation = JSON.parse((webWallet ? new URLSearchParams(new URL(href).hash.split('?')[1]) : new URL(href).searchParams).get('request'))
+  const { default: QRCode } = await import('qrcode')
+  const expectedQr = QRCode.create(href, { errorCorrectionLevel: 'M' }).modules
+  const qrMatches = await mobileControl.locator('img').first().evaluate((img, { size, data }) => {
+    const canvas = document.createElement('canvas'); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight
+    const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0)
+    const scale = canvas.width / (size + 8)
+    return data.every((value, i) => {
+      const pixel = ctx.getImageData(Math.floor((i % size + 4.5) * scale), Math.floor((Math.floor(i / size) + 4.5) * scale), 1, 1).data
+      return (pixel[0] < 128) === !!value
+    })
+  }, { size: expectedQr.size, data: Array.from(expectedQr.data) })
+  await check(() => expect(qrMatches).toBe(true))
+  if (webWallet) {
+    const alternative = await mobileControl.locator('details a').getAttribute('href')
+    await check(() => expect(JSON.parse(new URL(alternative).searchParams.get('request'))).toEqual(invitation))
+  }
   const vpr = await fetch(invitation.protocols.vcapi, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).then(r => r.json())
   await check(() => expect(vpr.verifiablePresentationRequest.query[0].type).toBe('DIDAuthentication'))
   await check(async () => expect(await mobile.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true))
   await mobileControl.screenshot({ path: `${artifacts}/mobile-en.png` })
   const { wallet } = await import('../../backend/scripts/qa/wallet-signer.mjs')
-  const simulated = await wallet()
+  const simulated = await wallet(!!webWallet)
   const beforeCopies = await mobileControl.locator('li').count()
-  const redeemed = await fetch(invitation.protocols.vcapi, { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ verifiablePresentation: await simulated.sign(vpr.verifiablePresentationRequest) }) })
+  const signed = await simulated.sign(vpr.verifiablePresentationRequest)
+  let redeemed
+  if (webWallet) {
+    // An actual cross-origin browser fetch: no cookies, real preflight, real backend.
+    const walletContext = await browser.newContext()
+    const walletPage = await walletContext.newPage()
+    walletPage.on('console', message => { if (message.type() === 'error') console.log('WALLET_TRANSPORT', message.text().replace(/\/api\/exchanges\/[^ ?]+/g, '/api/exchanges/[redacted]')) })
+    walletServer = createServer((_req, res) => { res.setHeader('Content-Type', 'text/html'); res.end('<title>Wallet transport QA</title>') })
+    await new Promise(resolve => walletServer.listen(19301, '127.0.0.1', resolve))
+    await walletPage.goto('http://127.0.0.1:19301/')
+    const result = await walletPage.evaluate(async ({ url, signed }) => {
+      const initial = await fetch(url, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      const vpr = await initial.json()
+      const response = await fetch(url, { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ verifiablePresentation: signed }) })
+      const body = await response.json()
+      let outsideDenied = false
+      try { await fetch(new URL('/api/credentials', url), { method: 'POST', credentials: 'omit', headers: { 'Content-Type': 'application/json' }, body: '{}' }) } catch { outsideDenied = true }
+      return { status: response.status, vpr, body, outsideDenied }
+    }, { url: invitation.protocols.vcapi, signed })
+    await check(() => expect(result.vpr.verifiablePresentationRequest.query[0].acceptedCryptosuites).toEqual([{ cryptosuite: 'eddsa-rdfc-2022' }]))
+    await check(() => expect(result.body.verifiablePresentation.verifiableCredential[0].credentialSubject.id).toBe(simulated.did))
+    await check(() => expect(result.outsideDenied).toBe(true))
+    redeemed = result
+    await walletContext.close()
+  } else redeemed = await fetch(invitation.protocols.vcapi, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ verifiablePresentation: signed }) })
   await check(() => expect(redeemed.status).toBe(200))
   await check(() => expect(mobileControl.locator('li')).toHaveCount(beforeCopies + 1, { timeout: 10000 }))
   await check(() => expect(mobileControl.locator('a.wallet-open')).toHaveCount(0))
   await mobileControl.screenshot({ path: `${artifacts}/mobile-bound-en.png` })
   // Real clock expiry is covered in unit/backend tests; intercept only this UI
   // response to inspect the rendered expired state without a ten-minute wait.
-  await mobile.page.route('**/wallet-offer', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: { walletUrl: href, qrContent: href, expiresAt: '2000-01-01T00:00:00Z' } }) }))
+  await mobile.page.route('**/wallet-offer', route => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: { exchangeUrl: invitation.protocols.vcapi, walletUrl: href, qrContent: href, expiresAt: '2000-01-01T00:00:00Z' } }) }))
   await mobileControl.getByRole('button', { name: 'Save to my wallet', exact: true }).click()
   await check(() => expect(mobileControl.getByText('This link has expired. Generate a new one to continue.')).toBeVisible())
   await check(() => expect(mobileControl.locator('a.wallet-open')).toHaveCount(0))
@@ -78,4 +127,4 @@ try {
   await control.screenshot({ path: `${artifacts}/legacy-es.png` })
   await check(() => expect(errors).toEqual([]))
   console.log(`WALLET_BROWSER_PASS ${count} assertions; screenshots ${artifacts}`)
-} finally { await browser.close() }
+} finally { await browser.close(); if (walletServer) await new Promise(resolve => walletServer.close(resolve)) }

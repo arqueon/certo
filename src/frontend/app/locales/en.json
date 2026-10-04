@@ -702,6 +702,12 @@
       }
     },
     "wallet": {
+      "confirmSavedApp": "Check in your wallet that you accepted and saved the copy.",
+      "appHelp": "Save your credential in {name}. Open the web wallet here or scan the QR code with your phone.",
+      "appQrAlt": "QR code to save the credential in {name}",
+      "openApp": "Open in {name}",
+      "lcwAlternative": "Do you use Learner Credential Wallet?",
+      "openLcw": "Open in LCW",
       "save": "Save to my wallet",
       "creating": "Preparing…",
       "legacy": "This credential uses an older format. Ask the issuer to reissue it before saving it to a wallet.",

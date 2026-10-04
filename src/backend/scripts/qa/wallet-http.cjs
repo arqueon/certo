@@ -44,6 +44,7 @@ module.exports = async function walletHttp({ app, request, credential, original,
   const initial = await request(exchangePath, null, {})
   const vpr = initial.body.verifiablePresentationRequest
   ok(vpr.domain === '127.0.0.1:19337' && vpr.query[0].type === 'DIDAuthentication', 'DIDAuthentication request with configured host')
+  equal(vpr.query[0].acceptedCryptosuites, [{ cryptosuite: 'eddsa-rdfc-2022' }], 'preferred cryptosuite advertised')
   equal(vpr.query[0].acceptedMethods, [{ method: 'key' }, { method: 'web' }], 'accepted DID methods')
   equal((await request(exchangePath, null, {})).body, initial.body, 'repeated initial request retains challenge')
   const missing = await request('/exchanges/nonexistent', null, {})
@@ -100,6 +101,42 @@ module.exports = async function walletHttp({ app, request, credential, original,
   equal(responsePair.map(r => r.status).sort(), [200, 404], 'concurrent redemption has exactly one winner')
   const dbCopies = await app.db.query('api::wallet-copy.wallet-copy').findMany({ where: { credential: credential.id } })
   ok(dbCopies.length === 2, 'only two successful redemptions persisted')
+
+  // Browser CORS and a second real cryptographic exchange using Data Integrity.
+  const webOffer = await makeOffer()
+  const origin = 'https://cartera-microcredenciales.arqueonautis.org'
+  const cors = async (url, source = origin, method = 'POST', requestedHeaders = 'Content-Type') => fetch(url, {
+    method: 'OPTIONS', headers: { Origin: source, 'Access-Control-Request-Method': method, 'Access-Control-Request-Headers': requestedHeaders },
+  })
+  const preflight = await cors(webOffer.exchangeUrl)
+  equal(preflight.status, 204, 'wallet JSON preflight accepted')
+  equal(preflight.headers.get('access-control-allow-origin'), origin, 'exact wallet origin')
+  equal(preflight.headers.get('access-control-allow-methods'), 'POST, OPTIONS', 'only exchange methods')
+  equal(preflight.headers.get('access-control-allow-headers'), 'Content-Type', 'only JSON header')
+  equal(preflight.headers.get('access-control-allow-credentials'), null, 'no preflight credentials')
+  for (const [url, source, method, headers] of [
+    [webOffer.exchangeUrl, 'https://untrusted.example', 'POST', 'Content-Type'],
+    [webOffer.exchangeUrl, origin, 'DELETE', 'Content-Type'],
+    [webOffer.exchangeUrl, origin, 'POST', 'Authorization'],
+    ['http://127.0.0.1:19337/api/credentials', origin, 'POST', 'Content-Type'],
+    ['http://127.0.0.1:19337/api/holder/credentials/x/wallet-offer', origin, 'POST', 'Content-Type'],
+  ]) equal((await cors(url, source, method, headers)).headers.get('access-control-allow-origin'), null, 'no CORS grant outside wallet scope')
+  const postWeb = body => fetch(webOffer.exchangeUrl, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  const webInitial = await postWeb({})
+  equal(webInitial.headers.get('access-control-allow-origin'), origin, 'initial VPR readable by wallet')
+  equal(webInitial.headers.get('access-control-allow-credentials'), null, 'no POST credentials')
+  const webVpr = (await webInitial.json()).verifiablePresentationRequest
+  const webWallet = await wallet(true)
+  const webVp = await webWallet.sign(webVpr)
+  equal(webVp.proof.type, 'DataIntegrityProof', 'web wallet signs Data Integrity')
+  equal(webVp.proof.cryptosuite, 'eddsa-rdfc-2022', 'web wallet signs preferred suite')
+  const webCompleted = await postWeb({ verifiablePresentation: webVp })
+  equal(webCompleted.status, 200, 'Data Integrity exchange succeeds')
+  equal((await webCompleted.json()).verifiablePresentation.verifiableCredential[0].credentialSubject.id, webWallet.did, 'web wallet bound to copy')
+  equal((await postWeb({ verifiablePresentation: webVp })).headers.get('access-control-allow-origin'), origin, 'CORS on replay error')
+  equal((await cors(webOffer.exchangeUrl, 'http://127.0.0.1:19301')).status, 204, 'comma-separated second origin')
+  const portalPreflight = await cors('http://127.0.0.1:19337/api/credentials', 'http://127.0.0.1:19300')
+  equal(portalPreflight.headers.get('access-control-allow-credentials'), 'true', 'existing portal CORS preserved')
 
   const rollbackOffer = await makeOffer(), rollbackPath = pathFor(rollbackOffer)
   const rollbackVpr = (await request(rollbackPath, null, {})).body.verifiablePresentationRequest

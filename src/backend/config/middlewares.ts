@@ -37,6 +37,8 @@ export default ({ env }) => {
     // lifecycle - including whatever strapi::errors catches. See
     // src/middlewares/request-id.ts and config/logger.ts.
     'global::request-id',
+    // Exchange-only CORS runs before errors and rate limits.
+    { name: 'global::wallet-cors', config: { origins: env.array('WALLET_ALLOWED_ORIGINS', []) } },
     // Rate limiting & brute-force protection on auth endpoints.
     // See src/middlewares/rate-limit.ts.
     'global::rate-limit',
@@ -59,6 +61,7 @@ export default ({ env }) => {
       name: 'strapi::cors',
       config: {
         origin: (ctx) => {
+          if (ctx.path.startsWith('/api/exchanges/')) return ''
           const origin = ctx.request.header.origin
           // '' (not false) is the sentinel @strapi/core's cors middleware
           // expects for "no match" - it does `originList.split(',')`

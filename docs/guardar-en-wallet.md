@@ -1,6 +1,6 @@
 # Guardar en mi wallet
 
-La titular inicia sesión, abre su credencial y pulsa **Guardar en mi wallet**. En una computadora escanea el QR con Learner Credential Wallet (LCW); en el celular pulsa **Abrir en mi wallet**. Certo pide a la cartera una firma de autenticación y le entrega una copia de la credencial cuyo sujeto es el DID de esa cartera. La original sigue intacta y descargable. Implementa la decisión comunicada de ADR 0022, 4 de octubre de 2026.
+La titular inicia sesión, abre su credencial y pulsa **Guardar en mi wallet**. Si se configura la cartera web recomendada, pulsa **Abrir en Cartera UDGPlus** o escanea su QR desde el celular; **¿Usas Learner Credential Wallet?** despliega el enlace **Abrir en LCW** y su QR alternativo. Los dos usan la misma oferta de un solo uso. Sin cartera web configurada, se conserva el flujo anterior: en una computadora escanea el QR con Learner Credential Wallet (LCW); en el celular pulsa **Abrir en mi wallet**. Certo pide a la cartera una firma de autenticación y le entrega una copia de la credencial cuyo sujeto es el DID de esa cartera. La original sigue intacta y descargable. Implementa la decisión comunicada de ADR 0022, 4 de octubre de 2026.
 
 El enlace y el QR son una autorización temporal: quien los reciba puede reclamar esa copia. No deben compartirse. Caducan a los diez minutos y permiten **un solo canje exitoso**. El QR público de verificación sigue siendo independiente: no da acceso al intercambio.
 
@@ -97,7 +97,7 @@ El identificador del enlace contiene 32 bytes aleatorios en base64url; la base s
 
 La comprobación de formato, firma, estado y dueño se repite en el canje. La transición a `used` requiere `status = pending AND expiresAt > ahora`; esa actualización y el registro de la copia se ejecutan en una transacción. Si falla el registro, se revierte el consumo. Dos solicitudes concurrentes pueden calcular una firma, pero solo una persiste y obtiene la copia. Una respuesta perdida después del commit no se reenvía: la titular genera otra oferta. Varias ofertas simultáneas para la misma credencial están permitidas; generar una nueva no invalida las anteriores.
 
-La UI cuenta **DID distintos**, no dispositivos físicos. Muestra cada copia con DID abreviado y fecha; el DID completo queda en el atributo `title`. «Guardada» registra el canje, no confirma almacenamiento dentro de LCW: la titular aún debe aceptar la copia en la cartera. La interfaz lo recuerda expresamente.
+La UI cuenta **DID distintos**, no dispositivos físicos. Muestra cada copia con DID abreviado y fecha; el DID completo queda en el atributo `title`. «Guardada» registra el canje, no confirma almacenamiento dentro de la cartera elegida: la titular aún debe aceptar la copia en la cartera. La interfaz lo recuerda expresamente.
 
 **La revocación es conjunta.** La original y todas sus copias comparten exactamente `credentialStatus.statusListCredential` y `statusListIndex`. El mismo bit revoca todas. No se incluye un botón ni un endpoint para revocar una copia individualmente: hacerlo con este modelo afectaría también a la original. Borrar una copia de LCW no revoca los archivos que se hayan compartido. Una revocación independiente exigiría otra entrada de estado y una decisión de modelo distinta de ADR 0022 tal como fue solicitado aquí.
 
@@ -105,7 +105,49 @@ Los enlaces de oferta son capacidades de acceso. El logger de la aplicación sus
 
 ## Variables y dependencias
 
-La única variable nueva es **`WALLET_OFFER_TTL_SECONDS`**, por defecto `600`, entero entre 30 y 3600. Un valor inválido falla al crear una oferta. No requiere un secreto nuevo.
+**`WALLET_OFFER_TTL_SECONDS`** controla la duración de la oferta: por defecto `600`, entero entre 30 y 3600. Un valor inválido falla al crear una oferta. No requiere un secreto nuevo.
+
+Configuración opcional de la cartera web (frontend Nuxt, también configurable al arrancar el servidor construido):
+
+```dotenv
+NUXT_PUBLIC_WALLET_APP_URL=https://cartera-microcredenciales.arqueonautis.org
+NUXT_PUBLIC_WALLET_APP_NAME=Cartera UDGPlus
+```
+
+`NUXT_PUBLIC_WALLET_APP_URL` no tiene valor por defecto: vacío conserva LCW como única opción. `NUXT_PUBLIC_WALLET_APP_NAME` vale **Cartera UDGPlus** por defecto. Los textos están en español e inglés; se usa «credencial» en el flujo genérico. El botón web se muestra tanto en escritorio como en móvil; los QR se muestran en escritorio. La alternativa LCW se despliega mediante un control nativo accesible con teclado.
+
+El enlace web tiene exactamente este contrato de la integración Freewallet comunicado para esta instalación:
+
+```js
+'https://cartera-microcredenciales.arqueonautis.org/#/request?request=' +
+  encodeURIComponent(JSON.stringify({ protocols: { vcapi: exchangeUrl } }))
+```
+
+El hash contiene `/request?request=...`; no es un parámetro de búsqueda antes del hash. El QR principal codifica ese enlace completo. LCW conserva `https://lcw.app/request.html?request=...`. El backend sigue devolviendo `exchangeUrl`, `walletUrl` y `qrContent` compatibles con LCW; el frontend construye el enlace web a partir de `exchangeUrl`.
+
+### CORS exclusivo para los intercambios
+
+En el **backend**, configurar por separado:
+
+```dotenv
+WALLET_ALLOWED_ORIGINS=https://cartera-microcredenciales.arqueonautis.org
+```
+
+Acepta varios orígenes separados por comas, con espacios opcionales; cada entrada debe ser un origen HTTP(S) exacto, sin ruta ni barra final. No acepta comodines ni `null`. Por defecto la lista está vacía. La URL pública del frontend no añade automáticamente permisos al backend.
+
+`global::wallet-cors` se ejecuta después del alias `/api/v1/*` y antes del limitador y los errores. Solo actúa sobre `/api/exchanges/*` (incluido el alias normalizado). Responde **204** al preflight `OPTIONS` de un origen autorizado que pida `POST` y solo `Content-Type`; anuncia `POST, OPTIONS` y `Content-Type`. Otros preflights de ese espacio reciben **403**, sin permiso CORS. En los POST, incluso los errores de intercambio, devuelve el origen exacto permitido y `Vary: Origin`. Nunca anuncia `Access-Control-Allow-Credentials`; la cartera debe usar `credentials: 'omit'`. No modifica el canje nativo sin cabecera Origin ni sustituye la autenticación DID o el token temporal.
+
+La configuración existente `strapi::cors` con `CORS_ALLOWED_ORIGINS`, credenciales y métodos generales sigue vigente para las demás rutas; excluye los intercambios para que no sobrescriba su política. **No agregar el origen de la cartera a `CORS_ALLOWED_ORIGINS`**: esa variable sí permite acceso general de navegador. El archivo histórico `src/middlewares/cors-header.ts` anuncia `*`, pero no está registrado en `config/middlewares.ts` y no se activa con este cambio.
+
+### Suites de la presentación
+
+La VPR inicial añade dentro de `query[0]`:
+
+```json
+{"type":"DIDAuthentication","acceptedCryptosuites":[{"cryptosuite":"eddsa-rdfc-2022"}],"acceptedMethods":[{"method":"key"},{"method":"web"}]}
+```
+
+Se conserva la verificación de **DataIntegrityProof / eddsa-rdfc-2022** y **Ed25519Signature2020** ya presente en la rama. La preferencia anunciada permite a Freewallet elegir eddsa; no elimina la compatibilidad LCW. Ambas suites deben autenticar al holder con el challenge y domain correctos; una firma alterada, un propósito distinto o una llave de otro holder se rechazan. No se añaden dependencias.
 
 Se reutilizan `PUBLIC_URL` (origen público de las URLs y host del dominio; fallback `server.url`), las variables de emisor de [interoperabilidad](interoperabilidad.md), `NUXT_PUBLIC_API_URL`, `NUXT_PUBLIC_WEBSITE_URL` y marca/idioma del [portal](portal-institucional.md). Usar HTTPS público real al desplegar; HTTP loopback se reserva a QA.
 
@@ -124,7 +166,7 @@ Dependencias de producción fijadas: `@digitalcredentials/did-method-key 3.0.0`,
 7. Volver al portal: debe aparecer el DID y la fecha. Reusar el mismo QR/enlace debe fallar sin entregar otra credencial. Probar también una oferta vencida y dos ofertas independientes. Otro usuario no debe poder crear ofertas ni consultar esas copias.
 8. Revocar **la credencial ficticia original** desde la función del emisor y volver a verificar la copia en LCW con red disponible. Debe figurar revocada. El ensayo implica revocar datos de prueba; no usar una credencial real que deba conservarse vigente.
 
-**Cloudflare:** si `/api` ya va al backend, **no se requieren nuevas rutas de ingress ni DNS**: todas las rutas nuevas están bajo `/api`. Revisar Access/WAF/caché y la confianza de IP para permitir los POST públicos de LCW. El DID raíz sigue usando la ruta de Nuxt incorporada en PR #19; no se añade otro hostname. No se operó Cloudflare ni sinope durante este trabajo.
+**Cloudflare (Certo):** si `/api` ya va al backend, **no se requieren nuevas rutas de ingress ni DNS**: todas las rutas nuevas están bajo `/api`. Revisar Access/WAF/caché y la confianza de IP para permitir los POST públicos de LCW. El DID raíz sigue usando la ruta de Nuxt incorporada en PR #19; Certo no añade otro hostname. La publicación de la cartera web en su hostname corresponde a su propio repositorio y despliegue. No se operó Cloudflare ni sinope durante este trabajo.
 
 ## Pruebas locales reproducibles
 
@@ -151,7 +193,44 @@ QA_CHROMIUM=/usr/bin/chromium node scripts/qa-wallet.mjs /tmp/certo-portal-http-
 
 `wallet-signer.mjs` simula el `composeVp` de LCW con claves Ed25519 nuevas y las bibliotecas DCC estándar. `dcc-local.mjs --core` ejecuta **verifier-core 1.0.0-beta.11** completo con transporte local: mantiene su resolver y los verificadores de firma, estado, vigencia y esquema. `registered_issuer` da false porque la instalación ficticia no se añade a un registro de confianza. No se presenta ese resultado como un emisor registrado.
 
-### Resultados del 4 de octubre de 2026
+### QA de la integración Cartera UDGPlus, 4 de octubre de 2026
+
+La integración se probó localmente con el contrato Freewallet proporcionado, firmas reales y bases temporales. No se abrió ni desplegó una instancia real de Freewallet; la aprobación y persistencia dentro de esa aplicación siguen pendientes del ensayo integrado del laboratorio. No se hizo push ni despliegue ni se editaron archivos `.env`.
+
+| Comprobación | Resultado exacto de este cambio |
+| --- | --- |
+| Backend, Jest completo | **36 suites aprobadas, 1 fallida; 274 pruebas aprobadas, 2 fallidas; 276 total**. Los fallos son de `data-portability` (importación y deduplicación). |
+| Baseline en copia temporal de HEAD, `data-portability` | **2 aprobadas, 2 fallidas**: los mismos fallos que en la rama. |
+| Frontend, Vitest | **14 archivos, 35 pruebas aprobadas**; incluye URL y QR web, nombre configurable, alternativa LCW y modo sin variable. |
+| Backend, `tsc --noEmit` | **Exit 0**, sin diagnósticos. |
+| Builds Strapi y Nuxt | **Ambos exit 0**, con dotenv inexistente. |
+| Frontend, Nuxt typecheck | **34 diagnósticos**; comparación con una copia temporal de HEAD: exactamente iguales en ubicación y contenido. |
+| HTTP real, `portal-http.cjs --wallet --browser` | **83 aserciones wallet + 55 del portal**, todas aprobadas. |
+| Chromium con cartera web | **31 aserciones aprobadas**. Canje Data Integrity desde otro origen HTTP local con `credentials: 'omit'`, preflight real y bloqueo fuera de exchanges. |
+| Chromium sin cartera web | **24 aserciones aprobadas**. Flujo LCW con Ed25519Signature2020 conservado. |
+| Render real | Escritorio **1360 × 1000**, móvil **390 × 844**, español e inglés. Capturas en `/tmp/certo-wallet-web-render/` y `/tmp/certo-wallet-render/`. |
+| `git diff --check` | **Exit 0**. |
+
+Las pruebas HTTP comprueban la preferencia anunciada, ambas firmas, dos orígenes separados por comas, ausencia de credenciales, error de canje legible para el origen permitido, rechazo de origen ajeno/método no autorizado/cabecera Authorization, cierre de otras rutas y conservación de CORS del portal. La suite de autenticación prueba challenge/domain equivocados, firma alterada y llave de otro holder con ambas suites. Las pruebas existentes de revocación conjunta, verifier-core, concurrencia y rollback siguen aprobadas.
+
+Para reproducir la variante web, arrancar el mismo servidor Nuxt construido con `NUXT_PUBLIC_WALLET_APP_URL=https://cartera-microcredenciales.arqueonautis.org` además de las variables del ejemplo anterior. Ejecutar:
+
+```sh
+QA_CHROMIUM=/usr/bin/chromium QA_WALLET_APP_URL=https://cartera-microcredenciales.arqueonautis.org node scripts/qa-wallet.mjs /tmp/certo-portal-http-XXXXX/browser-fixture.json
+```
+
+El arnés backend configura únicamente para QA los orígenes de cartera `https://cartera-microcredenciales.arqueonautis.org` y `http://127.0.0.1:19301`. Chromium levanta y cierra un servidor mínimo en `19301` para probar CORS desde otro origen real; no desactiva la seguridad del navegador. El rechazo de `/api/credentials` produce dos mensajes de consola esperados en esa página de transporte; no hay errores JavaScript en las páginas del portal. El QR se compara por sus módulos de píxeles contra el enlace esperado (los PNG de Node y navegador pueden tener compresión distinta).
+
+Reiniciar Nuxt con `NUXT_PUBLIC_WALLET_APP_URL=''` y ejecutar el comando de Chromium sin `QA_WALLET_APP_URL` reproduce la variante anterior. `wallet-signer.mjs` conserva Ed25519Signature2020 por defecto; `wallet(true)` firma con DataIntegrityProof / eddsa-rdfc-2022.
+
+Archivos de implementación de esta ampliación:
+
+- Frontend: `src/frontend/nuxt.config.ts`, `app/components/HolderWallet.vue`, `app/utils/wallet.ts`, `app/locales/es.json`, `app/locales/en.json`.
+- Backend: `src/backend/config/middlewares.ts`, nuevo `src/middlewares/wallet-cors.ts`, `src/api/credential/services/wallet-offer.ts` y comentario de compatibilidad en `src/utils/wallet-presentation.ts` (rutas después del prefijo relativas a backend).
+- Pruebas: `src/backend/config/__tests__/middlewares.test.ts`, nuevo `src/backend/src/middlewares/__tests__/wallet-cors.test.ts`, `src/backend/src/utils/__tests__/wallet-presentation.test.ts`, los tres scripts `src/backend/scripts/qa/{portal-http.cjs,wallet-http.cjs,wallet-signer.mjs}`, `src/frontend/app/components/__tests__/HolderWallet.nuxt.spec.ts` y `src/frontend/scripts/qa-wallet.mjs`.
+- Documentación: `docs/guardar-en-wallet.md`.
+
+### Resultados anteriores de LCW, 4 de octubre de 2026
 
 Node 22.23.3, bases SQLite temporales, Strapi y Nuxt solo en loopback. Builds con dotenv inexistente; ningún mensaje de correo sale de la instancia. No se hizo push ni despliegue, ni se tocaron sinope, `.env` o secretos reales.
 
