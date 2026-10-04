@@ -62,7 +62,7 @@
     "forgotPassword": "Forgot password?",
     "resetPassword": "Reset password",
     "signInTitle": "Welcome back",
-    "signInSubtitle": "Sign in to your Certo account",
+    "signInSubtitle": "Sign in to your {brand} account",
     "signUpTitle": "Create your account",
     "signUpSubtitle": "Join thousands issuing verified credentials",
     "noAccount": "Don't have an account?",

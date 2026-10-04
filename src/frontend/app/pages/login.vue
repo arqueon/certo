@@ -108,7 +108,7 @@ onMounted(() => {
           {{ t('auth.signInTitle') }}
         </h2>
         <p class="mt-2 text-text-secondary">
-          {{ t('auth.signInSubtitle') }}
+          {{ t('auth.signInSubtitle', { brand: branding.active ? branding.name : 'Certo' }) }}
         </p>
       </div>
 

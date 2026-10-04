@@ -62,7 +62,7 @@
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "resetPassword": "Restablecer contraseña",
     "signInTitle": "Iniciar sesión",
-    "signInSubtitle": "Inicia sesión en tu cuenta de Certo",
+    "signInSubtitle": "Inicia sesión en tu cuenta de {brand}",
     "signUpTitle": "Crear una cuenta",
     "signUpSubtitle": "Únete a Certo hoy",
     "noAccount": "¿No tienes una cuenta?",
