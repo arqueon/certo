@@ -1,0 +1,160 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/credentials/v2",
+    "https://purl.imsglobal.org/spec/ob/v3p0/context-3.0.3.json"
+  ],
+  "id": "urn:uuid:217c2c71-4b07-47d4-a5bf-c525d874ba66",
+  "type": [
+    "VerifiableCredential",
+    "OpenBadgeCredential"
+  ],
+  "issuer": {
+    "id": "did:web:credenciales.example.org",
+    "type": [
+      "Profile"
+    ],
+    "name": "Universidad de Guadalajara",
+    "url": "https://www.udg.mx",
+    "image": {
+      "id": "https://credenciales.example.org/marca/escudo-udeg.png",
+      "type": "Image"
+    },
+    "address": {
+      "type": [
+        "Address"
+      ],
+      "addressRegion": "Jalisco",
+      "addressCountryCode": "MX"
+    }
+  },
+  "validFrom": "2026-10-05T01:44:54.540Z",
+  "name": "Análisis de datos",
+  "description": "Compara alternativas con datos y justifica una decisión.",
+  "credentialSubject": {
+    "identifier": [
+      {
+        "type": "IdentityObject",
+        "identityType": "emailAddress",
+        "hashed": true,
+        "identityHash": "sha256$471f6344b21175f78d78bf4b6c49ebd6f435739fb8b599a4e9edd2cc497f9586",
+        "salt": "df173ba6c09d6a5bc56ad414e7799841"
+      },
+      {
+        "type": "IdentityObject",
+        "identityType": "name",
+        "hashed": false,
+        "identityHash": "Persona de prueba"
+      }
+    ],
+    "type": [
+      "AchievementSubject"
+    ],
+    "awardedDate": "2026-10-31T00:00:00.000Z",
+    "achievement": {
+      "id": "https://credenciales.example.org/api/achievements/1",
+      "type": [
+        "Achievement"
+      ],
+      "achievementType": "MicroCredential",
+      "name": "Análisis de datos",
+      "description": "Compara alternativas con datos y justifica una decisión.\nTotal: 32 h; Docencia: 8 h; Trabajo independiente: 12 h; Práctica: 8 h; Evaluación: 4 h\nModalidad: En línea.\nCréditos SNAATCA: 32 h / 16 h por crédito.",
+      "image": {
+        "id": "http://127.0.0.1:19300/placeholder-badge.png",
+        "type": "Image"
+      },
+      "criteria": {
+        "narrative": "Acredita «Análisis de datos» conforme a esta regla: cumplir cada criterio. Juicio humano con rúbrica. Docente; Rúbrica versión 1. Ficha activada por Gestora de prueba; instancia que decide: UDG+.",
+        "id": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
+      },
+      "fieldOfStudy": "061 · Tecnologías de la información y la comunicación",
+      "inLanguage": "es",
+      "humanCode": "UDG-DATOS",
+      "version": "2",
+      "creator": {
+        "type": [
+          "Profile"
+        ],
+        "name": "Dirección General de Universidad Virtual y Aprendizaje Digital para Toda la Vida (UDG+)",
+        "url": "https://udgplus.udg.mx",
+        "id": "https://udgplus.udg.mx",
+        "parentOrg": {
+          "type": [
+            "Profile"
+          ],
+          "name": "Universidad de Guadalajara",
+          "url": "https://www.udg.mx/",
+          "id": "https://www.udg.mx/"
+        }
+      },
+      "creditsAvailable": 2,
+      "tag": [
+        "Microcredencial",
+        "Crediticia",
+        "En línea"
+      ],
+      "alignment": [
+        {
+          "type": [
+            "Alignment"
+          ],
+          "targetName": "Compara alternativas con datos y justifica una decisión",
+          "targetCode": "RA1",
+          "targetFramework": "Resultados de aprendizaje",
+          "targetType": "ceasn:Competency",
+          "targetUrl": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
+        },
+        {
+          "type": [
+            "Alignment"
+          ],
+          "targetName": "nivel_6",
+          "targetCode": "nivel_6",
+          "targetFramework": "Marco Nacional de Cualificaciones (SEP)",
+          "targetType": "ext:QualificationLevel",
+          "targetUrl": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
+        },
+        {
+          "type": [
+            "Alignment"
+          ],
+          "targetName": "Nivel II",
+          "targetCode": "II",
+          "targetFramework": "Marco institucional CGAI",
+          "targetType": "ext:QualificationLevel",
+          "targetUrl": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
+        }
+      ]
+    },
+    "name": "Persona de prueba",
+    "term": "2026-B",
+    "description": "Programa o evento: Curso piloto UDG–ASU.",
+    "source": {
+      "type": [
+        "Profile"
+      ],
+      "name": "Arizona State University",
+      "id": "https://www.asu.edu",
+      "url": "https://www.asu.edu"
+    },
+    "creditsEarned": 2,
+    "activityStartDate": "2026-10-01T00:00:00Z",
+    "activityEndDate": "2026-10-31T00:00:00Z",
+    "narrative": "Programa o evento: Curso piloto UDG–ASU"
+  },
+  "credentialStatus": {
+    "id": "https://credenciales.example.org/api/revocation-lists/1#0",
+    "type": "BitstringStatusListEntry",
+    "statusPurpose": "revocation",
+    "statusListIndex": "0",
+    "statusListCredential": "https://credenciales.example.org/api/revocation-lists/1"
+  },
+  "validUntil": "2029-11-01T12:00:00.000Z",
+  "proof": {
+    "type": "DataIntegrityProof",
+    "created": "2026-10-05T01:44:55Z",
+    "verificationMethod": "did:web:credenciales.example.org#key-1",
+    "cryptosuite": "eddsa-rdfc-2022",
+    "proofPurpose": "assertionMethod",
+    "proofValue": "z2t9YdPZkmvQ698jZ8JBhEtbG2qYQiF5tzftyoV6wFWCPo4vNKg9QmHhCN957tyyTp2YtHMJpqMGhAzqfgEBmSjsV"
+  }
+}

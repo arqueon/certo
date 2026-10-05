@@ -41,7 +41,8 @@ function savePrivacy() {
 
 <template>
   <section class="portal-card my-6 space-y-5">
-    <h2>{{ t('portal.holder.title') }}</h2>
+    <h2>Compartir y guardar</h2>
+    <slot />
     <div v-if="credentialId">
       <NuxtLink :to="`/credentials/${encodeURIComponent(credentialId)}/imprimir`" class="brand-button">{{ t('portal.holder.pdf') }}</NuxtLink>
       <p>{{ t('portal.holder.pdfHelp') }}</p>
@@ -55,7 +56,7 @@ function savePrivacy() {
     <HolderWallet v-if="credentialId" :credential-id="credentialId" />
     <form v-if="credentialId && privacy" class="space-y-4" @submit.prevent="savePrivacy">
       <fieldset :disabled="busy" class="space-y-4">
-        <legend class="text-xl font-semibold">{{ t('portal.holder.privacy') }}</legend>
+        <legend class="text-xl font-semibold">Privacidad</legend>
         <p>{{ t('portal.holder.privacyHelp') }}</p>
         <label class="block"><input v-model="showName" type="checkbox"> {{ t('portal.holder.showName') }}</label>
         <label class="block"><input v-model="publicLink" type="checkbox"> {{ t('portal.holder.publicLink') }}</label>
