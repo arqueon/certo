@@ -8,7 +8,7 @@ const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
 const appName = String(config.public.walletAppName || 'Cartera UDGPlus')
-interface Summary { eligible: boolean; legacy: boolean; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
+interface Summary { eligible: boolean; legacy: boolean; revoked?: boolean; revocationReason?: string; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
 interface Offer { exchangeUrl: string; walletUrl: string; qrContent: string; interactionUrl?: string; deepLink?: string; expiresAt: string }
 const summary = ref<Summary | null>(null)
 const offer = ref<Offer | null>(null)
@@ -75,6 +75,10 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
       {{ busy ? t('portal.wallet.creating') : t('portal.wallet.save') }}
     </button>
     <p v-if="summary?.legacy">{{ t('portal.wallet.legacy') }}</p>
+    <p v-else-if="summary?.revoked" class="wallet-revoked">
+      <strong>{{ t('portal.wallet.revoked') }}</strong>
+      <span v-if="summary.revocationReason"> · {{ summary.revocationReason }}</span>
+    </p>
     <p v-else-if="summary && !summary.eligible">{{ t('portal.wallet.unavailable') }}</p>
     <div v-if="expanded" class="space-y-3">
       <p v-if="appUrl">{{ t('portal.wallet.appHelp', { name: appName }) }}</p>

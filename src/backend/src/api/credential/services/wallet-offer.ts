@@ -104,6 +104,9 @@ export default ({ strapi }) => ({
     const rows = await strapi.db.query(COPY_UID).findMany({ where: { credential: credential.id }, orderBy: { boundAt: 'desc' },
       select: ['holderDid', 'boundAt', 'credentialId'] })
     return { eligible: await this.eligible(credential), legacy: !walletFormat(credential),
+      // A revoked credential says so, with the issuer's reason, instead of the
+      // generic "not available"; a corrected one names its replacement there.
+      revoked: !!credential.revoked, revocationReason: credential.revoked ? credential.revocationReason || '' : '',
       walletCount: new Set(rows.map(row => row.holderDid)).size, copies: rows, revocation: 'shared' }
   },
 })

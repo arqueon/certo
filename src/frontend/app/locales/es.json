@@ -716,6 +716,7 @@
       "save": "Guardar en mi wallet",
       "creating": "Preparando…",
       "legacy": "Esta credencial usa un formato anterior. Solicita al emisor que la reemita para guardarla en una cartera.",
+      "revoked": "Revocada: ya no se puede guardar en una cartera.",
       "unavailable": "Esta credencial no está disponible para guardarse en una cartera. Revisa su vigencia y estado.",
       "help": "Usa en tu celular la aplicación gratuita",
       "once": "Este QR y su enlace sirven una sola vez y vencen. Al aceptarlo, recibirás una copia ligada a la identidad de tu cartera. No compartas este enlace ni el QR.",
