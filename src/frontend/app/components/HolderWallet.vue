@@ -9,7 +9,7 @@ const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
 const appName = String(config.public.walletAppName || 'Cartera UDGPlus')
 interface Summary { eligible: boolean; legacy: boolean; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
-interface Offer { exchangeUrl: string; walletUrl: string; qrContent: string; interactionUrl?: string; expiresAt: string }
+interface Offer { exchangeUrl: string; walletUrl: string; qrContent: string; interactionUrl?: string; deepLink?: string; expiresAt: string }
 const summary = ref<Summary | null>(null)
 const offer = ref<Offer | null>(null)
 const qr = ref('')
@@ -85,6 +85,8 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
         <img :src="qr" :alt="appUrl ? t('portal.wallet.appQrAlt', { name: appName }) : t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
         <p role="timer" aria-live="off">{{ t('portal.wallet.expires', { time: countdown }) }}</p>
         <a :href="primaryUrl" rel="noreferrer" class="brand-button wallet-open" :class="{ 'wallet-web': appUrl }">{{ appUrl ? t('portal.wallet.openApp', { name: appName }) : t('portal.wallet.open') }}</a>
+        <a v-if="offer.deepLink" :href="offer.deepLink" rel="noreferrer" class="underline wallet-deeplink">{{ t('portal.wallet.openInstalled') }}</a>
+        <p v-if="offer.deepLink" class="wallet-deeplink text-sm">{{ t('portal.wallet.openInstalledHelp') }}</p>
         <details v-if="appUrl" class="wallet-alternative space-y-3">
           <summary class="cursor-pointer underline">{{ t('portal.wallet.lcwAlternative') }}</summary>
           <a :href="offer.walletUrl" rel="noreferrer" class="underline">{{ t('portal.wallet.openLcw') }}</a>

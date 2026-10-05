@@ -708,6 +708,8 @@
       "openApp": "Open in {name}",
       "lcwAlternative": "Do you use Learner Credential Wallet?",
       "openLcw": "Open in LCW",
+      "openInstalled": "Open in another wallet installed on this phone",
+      "openInstalledHelp": "Android will ask which wallet to use (Cartera UDGPlus, Learner Credential Wallet, LearnCard or another compatible one).",
       "otherAlternative": "Do you use another compatible wallet, such as LearnCard?",
       "otherHelp": "Scan this code from the wallet. It works with wallets that support VC-API exchanges.",
       "otherLink": "Interaction link",
