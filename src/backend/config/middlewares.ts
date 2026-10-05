@@ -39,6 +39,7 @@ export default ({ env }) => {
     'global::request-id',
     // Exchange-only CORS runs before errors and rate limits.
     { name: 'global::wallet-cors', config: { origins: env.array('WALLET_ALLOWED_ORIGINS', []) } },
+    'global::public-verification-cors',
     // Rate limiting & brute-force protection on auth endpoints.
     // See src/middlewares/rate-limit.ts.
     'global::rate-limit',
