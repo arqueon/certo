@@ -700,6 +700,31 @@
         "title": "Microcredenciales verificables",
         "description": "Una microcredencial reconoce un aprendizaje concreto que has demostrado. Su enlace permite comprobar quién la emitió y si sigue vigente."
       }
+    },
+    "wallet": {
+      "confirmSavedApp": "Comprueba en tu cartera que aceptaste y guardaste la copia.",
+      "appHelp": "Guarda tu credencial en {name}. Puedes abrir la cartera web aquí o escanear el QR desde tu celular.",
+      "appQrAlt": "QR para guardar la credencial en {name}",
+      "openApp": "Abrir en {name}",
+      "lcwAlternative": "¿Usas Learner Credential Wallet?",
+      "openLcw": "Abrir en LCW",
+      "save": "Guardar en mi wallet",
+      "creating": "Preparando…",
+      "legacy": "Esta credencial usa un formato anterior. Solicita al emisor que la reemita para guardarla en una cartera.",
+      "unavailable": "Esta credencial no está disponible para guardarse en una cartera. Revisa su vigencia y estado.",
+      "help": "Usa en tu celular la aplicación gratuita",
+      "once": "Este QR y su enlace sirven una sola vez y vencen. Al aceptarlo, recibirás una copia ligada a la identidad de tu cartera. No compartas este enlace ni el QR.",
+      "publicQr": "El QR público de verificación solo permite comprobar la credencial; no sirve para guardarla en tu cartera.",
+      "qrAlt": "QR de un solo uso para guardar la credencial en LCW",
+      "expires": "Vence en {time}",
+      "open": "Abrir en mi wallet",
+      "expired": "Este enlace venció. Genera uno nuevo para continuar.",
+      "new": "Generar uno nuevo",
+      "error": "No se pudo preparar la oferta. Inténtalo de nuevo.",
+      "saved": "Guardada en {count} carteras",
+      "sharedRevocation": "Estas copias comparten la revocación con la credencial original. No se puede revocar una sola copia: al revocar la original, todas quedan revocadas.",
+      "savedOne": "Guardada en 1 cartera",
+      "confirmSaved": "Comprueba en LCW que aceptaste y guardaste la copia."
     }
   }
 }

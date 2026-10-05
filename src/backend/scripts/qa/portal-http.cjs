@@ -11,6 +11,7 @@ Object.assign(process.env, {
   NODE_ENV: 'production', ENV_PATH: path.join(directory, 'absent'),
   DATABASE_CLIENT: 'sqlite', DATABASE_FILENAME: path.relative(root, path.join(directory, 'test.db')),
   HOST: '127.0.0.1', PORT: '19337', PUBLIC_URL: 'http://127.0.0.1:19337', FRONTEND_URL: 'http://127.0.0.1:19300',
+  WALLET_ALLOWED_ORIGINS: 'https://cartera-microcredenciales.arqueonautis.org, http://127.0.0.1:19301',
   CORS_ALLOWED_ORIGINS: 'http://127.0.0.1:19300',
   ENCRYPTION_KEY: randomBytes(32).toString('hex'), APP_KEYS: randomBytes(32).toString('hex'), JWT_SECRET: randomBytes(32).toString('hex'),
   ADMIN_JWT_SECRET: randomBytes(32).toString('hex'), API_TOKEN_SALT: randomBytes(32).toString('hex'),
@@ -144,6 +145,8 @@ async function main() {
   const mixed = await app.service('api::clr.clr').emitir({ subjectId: holder.id, issuerId: issuer.id, credentialIds: [credential.id, legacyRow.id] })
   ok(mixed.credentialSubject.achievement.some(vc => vc.proof.type === 'DataIntegrityProof')
     && mixed.credentialSubject.achievement.some(vc => vc.proof.jws), 'CLR groups both immutable formats')
+  if (process.argv.includes('--wallet')) await require('./wallet-http.cjs')({ app, request, credential,
+    original: original.body.data, legacyId, holder, achievement: achievement.body.data })
   // Keep browser QA's fixture list stable; the historical row was only needed for this regression.
   await app.entityService.delete('api::credential.credential', legacyRow.id)
   console.log(`PORTAL_HTTP_PASS ${count} assertions`)

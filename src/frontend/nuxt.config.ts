@@ -155,6 +155,8 @@ export default defineNuxtConfig({
     issuerDidBackendUrl: '',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL,
+      walletAppUrl: process.env.NUXT_PUBLIC_WALLET_APP_URL || '',
+      walletAppName: process.env.NUXT_PUBLIC_WALLET_APP_NAME || 'Cartera UDGPlus',
       // Public visibility switch only; backend authorization remains independent.
       portalTitularEnabled: false,
       websiteUrl,

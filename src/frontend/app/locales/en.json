@@ -700,6 +700,31 @@
         "title": "Verifiable microcredentials",
         "description": "A microcredential recognizes a specific skill or learning outcome you have demonstrated. Its link lets others check who issued it and whether it remains valid."
       }
+    },
+    "wallet": {
+      "confirmSavedApp": "Check in your wallet that you accepted and saved the copy.",
+      "appHelp": "Save your credential in {name}. Open the web wallet here or scan the QR code with your phone.",
+      "appQrAlt": "QR code to save the credential in {name}",
+      "openApp": "Open in {name}",
+      "lcwAlternative": "Do you use Learner Credential Wallet?",
+      "openLcw": "Open in LCW",
+      "save": "Save to my wallet",
+      "creating": "Preparing…",
+      "legacy": "This credential uses an older format. Ask the issuer to reissue it before saving it to a wallet.",
+      "unavailable": "This credential cannot be saved to a wallet. Check its validity dates and status.",
+      "help": "On your phone, use the free app",
+      "once": "This QR code and link can be used once and will expire. Accepting the offer gives you a copy bound to your wallet identity. Do not share this link or QR code.",
+      "publicQr": "The public verification QR code only checks the credential; it cannot save it to your wallet.",
+      "qrAlt": "Single-use QR code to save the credential to LCW",
+      "expires": "Expires in {time}",
+      "open": "Open in my wallet",
+      "expired": "This link has expired. Generate a new one to continue.",
+      "new": "Generate a new one",
+      "error": "The offer could not be prepared. Please try again.",
+      "saved": "Saved to {count} wallets",
+      "sharedRevocation": "These copies share revocation with the original credential. A single copy cannot be revoked separately: revoking the original revokes every copy.",
+      "savedOne": "Saved to 1 wallet",
+      "confirmSaved": "Check in LCW that you accepted and saved the copy."
     }
   }
 }

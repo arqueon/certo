@@ -52,10 +52,7 @@ function savePrivacy() {
       <button class="brand-button" :disabled="busy" @click="exportHistory">{{ t('portal.holder.clr') }}</button>
       <p>{{ t('portal.holder.clrHelp') }}</p>
     </div>
-    <div>
-      <h3 class="text-xl font-semibold">{{ t('portal.holder.wallet') }}</h3>
-      <p>{{ t('portal.holder.walletHelp') }}</p>
-    </div>
+    <HolderWallet v-if="credentialId" :credential-id="credentialId" />
     <form v-if="credentialId && privacy" class="space-y-4" @submit.prevent="savePrivacy">
       <fieldset :disabled="busy" class="space-y-4">
         <legend class="text-xl font-semibold">{{ t('portal.holder.privacy') }}</legend>

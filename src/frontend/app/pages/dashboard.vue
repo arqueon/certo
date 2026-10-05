@@ -143,6 +143,7 @@ onMounted(async () => {
             :show-recipient="false"
           >
             <template #actions>
+              <HolderWallet v-if="branding.active" :credential-id="cert.credentialId || cert.id" />
               <NuxtLink v-if="branding.active" :to="`/credentials/${encodeURIComponent(cert.credentialId || cert.id)}`" class="brand-button mt-3">{{ t('portal.holder.manage') }}</NuxtLink>
               <a
                 :href="getLinkedInAddToProfileUrl(cert)"
