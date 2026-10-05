@@ -9,11 +9,12 @@ const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
 const appName = String(config.public.walletAppName || 'Cartera UDGPlus')
 interface Summary { eligible: boolean; legacy: boolean; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
-interface Offer { exchangeUrl: string; walletUrl: string; qrContent: string; expiresAt: string }
+interface Offer { exchangeUrl: string; walletUrl: string; qrContent: string; interactionUrl?: string; expiresAt: string }
 const summary = ref<Summary | null>(null)
 const offer = ref<Offer | null>(null)
 const qr = ref('')
 const lcwQr = ref('')
+const otherQr = ref('')
 const primaryUrl = computed(() => offer.value ? (appUrl ? walletAppLink(appUrl, offer.value.exchangeUrl) : offer.value.walletUrl) : '')
 const busy = ref(false)
 const failed = ref(false)
@@ -36,14 +37,14 @@ async function refresh() {
     if (disposed) return
     summary.value = response.data
     if (offer.value && (!response.data.eligible || response.data.copies.length > copyCount)) {
-      offer.value = null; qr.value = ''; lcwQr.value = ''; stopPolling()
+      offer.value = null; qr.value = ''; lcwQr.value = ''; otherQr.value = ''; stopPolling()
     }
   } finally { polling = false }
 }
 function stopPolling() { if (poll) clearInterval(poll); poll = undefined }
 async function createOffer() {
   busy.value = true; failed.value = false; expanded.value = true
-  offer.value = null; qr.value = ''; lcwQr.value = ''; stopPolling()
+  offer.value = null; qr.value = ''; lcwQr.value = ''; otherQr.value = ''; stopPolling()
   const current = ++generation
   try {
     await refresh()
@@ -52,9 +53,11 @@ async function createOffer() {
     const link = appUrl ? walletAppLink(appUrl, response.data.exchangeUrl) : response.data.qrContent
     const alternativeImage = appUrl ? await QRCode.toDataURL(response.data.qrContent, { width: 320, margin: 4, errorCorrectionLevel: 'M' }) : ''
     const image = await QRCode.toDataURL(link, { width: 320, margin: 4, errorCorrectionLevel: 'M' })
+    // Otras carteras VC-API (p. ej. LearnCard) reconocen la URL de interacción `?iuv=1`.
+    const otherImage = response.data.interactionUrl ? await QRCode.toDataURL(response.data.interactionUrl, { width: 320, margin: 4, errorCorrectionLevel: 'M' }) : ''
     if (disposed || current !== generation) return
     copyCount = summary.value.copies.length
-    now.value = Date.now(); offer.value = response.data; qr.value = image; lcwQr.value = alternativeImage
+    now.value = Date.now(); offer.value = response.data; qr.value = image; lcwQr.value = alternativeImage; otherQr.value = otherImage
     poll = setInterval(() => { void refresh().catch(() => {}) }, 5000)
   } catch { if (!disposed && current === generation) failed.value = true }
   finally { if (!disposed && current === generation) busy.value = false }
@@ -86,6 +89,12 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
           <summary class="cursor-pointer underline">{{ t('portal.wallet.lcwAlternative') }}</summary>
           <a :href="offer.walletUrl" rel="noreferrer" class="underline">{{ t('portal.wallet.openLcw') }}</a>
           <img :src="lcwQr" :alt="t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
+        </details>
+        <details v-if="offer.interactionUrl" class="wallet-alternative space-y-3">
+          <summary class="cursor-pointer underline">{{ t('portal.wallet.otherAlternative') }}</summary>
+          <p>{{ t('portal.wallet.otherHelp') }}</p>
+          <a :href="offer.interactionUrl" rel="noreferrer" class="underline break-all">{{ t('portal.wallet.otherLink') }}</a>
+          <img :src="otherQr" :alt="t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
         </details>
       </div>
       <p v-if="expired" role="status">{{ t('portal.wallet.expired') }}</p>
