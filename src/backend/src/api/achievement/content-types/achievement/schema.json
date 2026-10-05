@@ -67,6 +67,11 @@
       "target": "api::credential.credential",
       "mappedBy": "achievement",
       "private": true
+    },
+    "metadata0023": {
+      "type": "json",
+      "private": true,
+      "description": "Instantánea opcional validada del contrato 0023; solo se escribe desde su operación autorizada."
     }
   }
 }

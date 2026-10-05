@@ -12,6 +12,9 @@ export function publicVerification(result: any) {
   const raw = result.rawCredential
   if (!isPublicCredential(raw)) return null
   const copy = JSON.parse(JSON.stringify(result))
+  delete copy.rawCredential.subjectMetadata0023
+  delete copy.rawCredential.achievementMetadata0023
+  if (copy.rawCredential.achievement) delete copy.rawCredential.achievement.metadata0023
   delete copy.rawCredential.signedCredential
   // A compact JWS exposes its payload even without a verification key.
   delete copy.rawCredential.proof
@@ -35,12 +38,13 @@ export function publicVerification(result: any) {
     if (copy.credential) {
       delete copy.credential.proof
       delete copy.credential.evidence
-      copy.credential.credentialSubject = {
-        type: copy.credential.credentialSubject?.type,
-        achievement: copy.credential.credentialSubject?.achievement,
-        result: copy.credential.credentialSubject?.result,
-        awardedDate: copy.credential.credentialSubject?.awardedDate,
-      }
+      // Keep only public learning claims; historical imports can contain
+      // other identifying fields not understood by the current transport.
+      const subject = copy.credential.credentialSubject || {}
+      copy.credential.credentialSubject = Object.fromEntries([
+        'type', 'achievement', 'result', 'awardedDate', 'term', 'source',
+        'creditsEarned', 'activityStartDate', 'activityEndDate', 'description', 'narrative',
+      ].filter(key => subject[key] !== undefined).map(key => [key, subject[key]]))
       if (copy.credential.credentialSubject.achievement) {
         delete copy.credential.credentialSubject.achievement.evidence
       }

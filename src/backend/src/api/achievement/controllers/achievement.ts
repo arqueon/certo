@@ -1,3 +1,4 @@
+import { normalizeAchievementMetadata, normalizeCriteria } from '../../../utils/ob3-metadata'
 /**
  * achievement controller
  */
@@ -14,6 +15,17 @@ interface Achievement {
   image?: any
   creator?: any
   tags?: any
+}
+
+function extractMetadata(data: Record<string, any>) {
+  const metadata = normalizeAchievementMetadata(data.achievement)
+  delete data.achievement
+  delete data.metadata0023
+  if (data.criteria !== undefined) {
+    const criteria = normalizeCriteria(data.criteria, 'criteria')
+    data.criteria = { ...(criteria.narrative ? { narrative: criteria.narrative } : {}), ...(criteria.id ? { url: criteria.id } : {}) }
+  }
+  return metadata
 }
 
 /**
@@ -78,12 +90,15 @@ export default factories.createCoreController('api::achievement.achievement', ({
     if (!owns) return ctx.forbidden('Only the owner of the issuer profile can change this achievement')
 
     const data = ctx.request.body?.data || {}
+    let metadata
+    try { metadata = extractMetadata(data) } catch (error) { return ctx.badRequest(error.message) }
     const creatorId = extraerCreator(data)
     if (!(await callerOwnsCreator(strapi, ctx, creatorId))) {
       return ctx.forbidden('Cannot move an achievement to an issuer profile you do not own')
     }
     const response = await super.update(ctx)
     await aplicarCreator(strapi, ctx.params.id, creatorId)
+    if (metadata !== undefined) await strapi.documents('api::achievement.achievement').update({ documentId: ctx.params.id, data: { metadata0023: metadata } })
     return response
   },
 
@@ -106,6 +121,8 @@ export default factories.createCoreController('api::achievement.achievement', ({
         data.tags = [];
       }
 
+      let metadata
+      try { metadata = extractMetadata(data) } catch (error) { return ctx.badRequest(error.message) }
       const creatorId = extraerCreator(data)
       if (!(await callerOwnsCreator(strapi, ctx, creatorId))) {
         return ctx.forbidden('Cannot create an achievement under an issuer profile you do not own')
@@ -116,6 +133,7 @@ export default factories.createCoreController('api::achievement.achievement', ({
       const entity = response.data ?? response;
 
       await aplicarCreator(strapi, entity.documentId, creatorId)
+      if (metadata !== undefined) await strapi.documents('api::achievement.achievement').update({ documentId: entity.documentId, data: { metadata0023: metadata } })
       if (creatorId !== undefined) {
         entity.creator = creatorId
       }
