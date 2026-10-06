@@ -706,8 +706,8 @@
       "appHelp": "Save your credential in {name}. Open the web wallet here or scan the QR code with your phone.",
       "appQrAlt": "QR code to save the credential in {name}",
       "openApp": "Open in {name}",
-      "lcwAlternative": "Do you use Learner Credential Wallet?",
-      "openLcw": "Open in LCW",
+      "lcwAlternative": "Do you use the Cartera UDGPlus app or Learner Credential Wallet?",
+      "openLcw": "Open in the app (Cartera UDGPlus or LCW)",
       "openInstalled": "Open in another wallet installed on this phone",
       "openInstalledHelp": "Android will ask which wallet to use (Cartera UDGPlus, Learner Credential Wallet, LearnCard or another compatible one).",
       "otherAlternative": "Do you use another compatible wallet, such as LearnCard?",
@@ -721,7 +721,7 @@
       "help": "On your phone, use the free app",
       "once": "This QR code and link can be used once and will expire. Accepting the offer gives you a copy bound to your wallet identity. Do not share this link or QR code.",
       "publicQr": "The public verification QR code only checks the credential; it cannot save it to your wallet.",
-      "qrAlt": "Single-use QR code to save the credential to LCW",
+      "qrAlt": "Single-use QR code to save the credential in the Cartera UDGPlus app or LCW",
       "expires": "Expires in {time}",
       "open": "Open in my wallet",
       "expired": "This link has expired. Generate a new one to continue.",
@@ -730,7 +730,14 @@
       "saved": "Saved to {count} wallets",
       "sharedRevocation": "These copies share revocation with the original credential. A single copy cannot be revoked separately: revoking the original revokes every copy.",
       "savedOne": "Saved to 1 wallet",
-      "confirmSaved": "Check in LCW that you accepted and saved the copy."
+      "confirmSaved": "Check in LCW that you accepted and saved the copy.",
+      "qrLabelWeb": "Cartera UDGPlus (web)",
+      "qrHowWeb": "Scan it with your phone camera: the wallet opens in the browser.",
+      "qrLabelApp": "Cartera UDGPlus app or Learner Credential Wallet",
+      "qrHowApp": "Scan it from the app: Add credential → scan QR code.",
+      "qrLabelOther": "LearnCard or another VC-API compatible wallet",
+      "qrHowOther": "Scan it with your wallet's QR reader.",
+      "otherQrAlt": "Single-use QR code to save the credential in LearnCard or another VC-API wallet"
     }
   }
 }

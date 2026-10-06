@@ -46,6 +46,18 @@ describe('holder wallet', () => {
     expect(wrapper.find('details img').attributes('src')).toBe(await QRCode.toDataURL(walletUrl, { width: 320, margin: 4, errorCorrectionLevel: 'M' }))
     wrapper.unmount()
   })
+  it('labels each QR with the wallet that reads it', async () => {
+    runtime.public.walletAppUrl = 'https://cartera-microcredenciales.arqueonautis.org/'
+    const walletUrl = 'https://lcw.app/request.html?request=example'
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ data: summary })
+    vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { exchangeUrl: 'https://issuer.example/api/exchanges/x', walletUrl, qrContent: walletUrl, interactionUrl: 'https://issuer.example/api/exchanges/x?iuv=1', expiresAt: new Date(Date.now() + 600000).toISOString() } })
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises(); await wrapper.find('button').trigger('click')
+    await vi.waitFor(() => expect(wrapper.findAll('figure.wallet-qr-figure')).toHaveLength(3))
+    const labels = wrapper.findAll('figcaption strong').map(label => label.text())
+    expect(labels).toEqual(['Cartera UDGPlus (web)', 'Cartera UDGPlus app or Learner Credential Wallet', 'LearnCard or another VC-API compatible wallet'])
+    wrapper.unmount()
+  })
   it('explains legacy reissuance and prevents offer creation', async () => {
     vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { ...summary, eligible: false, legacy: true } })
     const post = vi.spyOn(apiClient, 'post')

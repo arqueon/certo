@@ -86,7 +86,10 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
       <p>{{ t('portal.wallet.once') }}</p>
       <p>{{ t('portal.wallet.publicQr') }}</p>
       <div v-if="offer && !expired" class="space-y-3">
-        <img :src="qr" :alt="appUrl ? t('portal.wallet.appQrAlt', { name: appName }) : t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
+        <figure class="wallet-qr-figure">
+          <figcaption class="wallet-qr-label"><strong>{{ appUrl ? t('portal.wallet.qrLabelWeb') : t('portal.wallet.qrLabelApp') }}</strong> {{ appUrl ? t('portal.wallet.qrHowWeb') : t('portal.wallet.qrHowApp') }}</figcaption>
+          <img :src="qr" :alt="appUrl ? t('portal.wallet.appQrAlt', { name: appName }) : t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
+        </figure>
         <p role="timer" aria-live="off">{{ t('portal.wallet.expires', { time: countdown }) }}</p>
         <a :href="primaryUrl" rel="noreferrer" class="brand-button wallet-open" :class="{ 'wallet-web': appUrl }">{{ appUrl ? t('portal.wallet.openApp', { name: appName }) : t('portal.wallet.open') }}</a>
         <a v-if="offer.deepLink" :href="offer.deepLink" rel="noreferrer" class="underline wallet-deeplink">{{ t('portal.wallet.openInstalled') }}</a>
@@ -94,13 +97,19 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
         <details v-if="appUrl" class="wallet-alternative space-y-3">
           <summary class="cursor-pointer underline">{{ t('portal.wallet.lcwAlternative') }}</summary>
           <a :href="offer.walletUrl" rel="noreferrer" class="underline">{{ t('portal.wallet.openLcw') }}</a>
-          <img :src="lcwQr" :alt="t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
+          <figure class="wallet-qr-figure">
+            <figcaption class="wallet-qr-label"><strong>{{ t('portal.wallet.qrLabelApp') }}</strong> {{ t('portal.wallet.qrHowApp') }}</figcaption>
+            <img :src="lcwQr" :alt="t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
+          </figure>
         </details>
         <details v-if="offer.interactionUrl" class="wallet-alternative space-y-3">
           <summary class="cursor-pointer underline">{{ t('portal.wallet.otherAlternative') }}</summary>
           <p>{{ t('portal.wallet.otherHelp') }}</p>
           <a :href="offer.interactionUrl" rel="noreferrer" class="underline break-all">{{ t('portal.wallet.otherLink') }}</a>
-          <img :src="otherQr" :alt="t('portal.wallet.qrAlt')" class="wallet-qr" width="320" height="320">
+          <figure class="wallet-qr-figure">
+            <figcaption class="wallet-qr-label"><strong>{{ t('portal.wallet.qrLabelOther') }}</strong> {{ t('portal.wallet.qrHowOther') }}</figcaption>
+            <img :src="otherQr" :alt="t('portal.wallet.otherQrAlt')" class="wallet-qr" width="320" height="320">
+          </figure>
         </details>
       </div>
       <p v-if="expired" role="status">{{ t('portal.wallet.expired') }}</p>
@@ -124,10 +133,13 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
 <style scoped>
 .holder-wallet { overflow-wrap: anywhere; scroll-margin-top: 6rem; }
 .wallet-qr { display: block; max-width: 100%; height: auto; background: white; }
+.wallet-qr-figure { margin: 0; max-width: 320px; }
+.wallet-qr-label { margin-bottom: 0.5rem; }
+.wallet-qr-label strong { display: block; }
 .wallet-open { display: none; }
 .wallet-open.wallet-web { display: inline-flex; }
 @media (max-width: 767px), (pointer: coarse) {
   .wallet-open { display: inline-flex; }
-  .wallet-qr { display: none; }
+  .wallet-qr-figure { display: none; }
 }
 </style>

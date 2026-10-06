@@ -706,8 +706,8 @@
       "appHelp": "Guarda tu credencial en {name}. Puedes abrir la cartera web aquí o escanear el QR desde tu celular.",
       "appQrAlt": "QR para guardar la credencial en {name}",
       "openApp": "Abrir en {name}",
-      "lcwAlternative": "¿Usas Learner Credential Wallet?",
-      "openLcw": "Abrir en LCW",
+      "lcwAlternative": "¿Usas la app Cartera UDGPlus o Learner Credential Wallet?",
+      "openLcw": "Abrir en la app (Cartera UDGPlus o LCW)",
       "openInstalled": "Abrir en otra cartera instalada en este teléfono",
       "openInstalledHelp": "Android te preguntará con qué cartera abrirlo (Cartera UDGPlus, Learner Credential Wallet, LearnCard u otra compatible).",
       "otherAlternative": "¿Usas otra cartera compatible, como LearnCard?",
@@ -721,7 +721,7 @@
       "help": "Usa en tu celular la aplicación gratuita",
       "once": "Este QR y su enlace sirven una sola vez y vencen. Al aceptarlo, recibirás una copia ligada a la identidad de tu cartera. No compartas este enlace ni el QR.",
       "publicQr": "El QR público de verificación solo permite comprobar la credencial; no sirve para guardarla en tu cartera.",
-      "qrAlt": "QR de un solo uso para guardar la credencial en LCW",
+      "qrAlt": "QR de un solo uso para guardar la credencial en la app Cartera UDGPlus o en LCW",
       "expires": "Vence en {time}",
       "open": "Abrir en mi wallet",
       "expired": "Este enlace venció. Genera uno nuevo para continuar.",
@@ -730,7 +730,14 @@
       "saved": "Guardada en {count} carteras",
       "sharedRevocation": "Estas copias comparten la revocación con la credencial original. No se puede revocar una sola copia: al revocar la original, todas quedan revocadas.",
       "savedOne": "Guardada en 1 cartera",
-      "confirmSaved": "Comprueba en LCW que aceptaste y guardaste la copia."
+      "confirmSaved": "Comprueba en LCW que aceptaste y guardaste la copia.",
+      "qrLabelWeb": "Cartera UDGPlus (web)",
+      "qrHowWeb": "Escanéalo con la cámara del celular: se abre la cartera en el navegador.",
+      "qrLabelApp": "App Cartera UDGPlus o Learner Credential Wallet",
+      "qrHowApp": "Escanéalo desde la app: Añadir credencial → escanear QR.",
+      "qrLabelOther": "LearnCard u otra cartera compatible con VC-API",
+      "qrHowOther": "Escanéalo desde el lector de QR de tu cartera.",
+      "otherQrAlt": "QR de un solo uso para guardar la credencial en LearnCard u otra cartera VC-API"
     }
   }
 }
