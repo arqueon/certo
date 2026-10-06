@@ -1,3 +1,4 @@
+import { normalizeAchievementMetadata, normalizeSubjectMetadata, issuerProfile } from '../../../utils/ob3-metadata'
 /**
  * Credential service
  */
@@ -20,17 +21,27 @@ export default ({ strapi }) => ({
    * @param {string} [awardedDate] - When the learning was achieved, if not now
    * @param {Object} [results] - Optional { resultDescription, result } per OB 3.0 (see utils/ob3-results)
    */
-  async issue(achievement, recipient, evidence = [], expirationDate = undefined, actorId = undefined, awardedDate = undefined, results = undefined) {
+  async issue(achievement, recipient, evidence = [], expirationDate = undefined, actorId = undefined, awardedDate = undefined, results = undefined, metadata = undefined) {
     try {
       // Validated before anything is created: a result a verifier cannot
       // resolve must fail the issue, not produce a half-meaningful credential.
       assertIssuerProfile(achievement.creator?.id)
+      const achievementMetadata0023 = normalizeAchievementMetadata(metadata?.achievement !== undefined ? metadata.achievement : achievement.metadata0023 ?? undefined)
+      let subjectMetadata0023 = normalizeSubjectMetadata(metadata?.subject)
+      if (recipient.name !== undefined) normalizeSubjectMetadata({ name: recipient.name })
+      issuerProfile(strapi, 'urn:validation:issuer')
       const normalizedResults = normalizeResults(results?.resultDescription, results?.result)
 
       const recipientEntity = await this.findOrCreateRecipientProfile(recipient)
       if (typeof recipientEntity.email !== 'string' || !recipientEntity.email.trim()) {
         throw new Error('Recipient email is required for issuance')
       }
+
+      // Snapshot the incoming name (or stored recipient for older callers).
+      // It must not change later when the recipient edits their profile.
+      subjectMetadata0023 = normalizeSubjectMetadata({ ...subjectMetadata0023,
+        ...((subjectMetadata0023?.name || recipient.name || recipientEntity.name)
+          ? { name: subjectMetadata0023?.name || recipient.name || recipientEntity.name } : {}) })
 
       // Find or create user associated with the profile
       const recipientUser = await this.findOrCreateUser(recipientEntity)
@@ -90,6 +101,8 @@ export default ({ strapi }) => ({
           revoked: false,
           publishedAt: new Date(),
           proof: [],
+          achievementMetadata0023,
+          subjectMetadata0023,
           statusList: statusListId,
           statusListIndex,
           ...(awardedDate ? { awardedDate: new Date(awardedDate) } : {}),
@@ -117,7 +130,7 @@ export default ({ strapi }) => ({
           if (item.name || item.description) {
             await strapi.entityService.create('api::evidence.evidence', {
               data: {
-                name: item.name || 'Evidence',
+                name: item.name || 'Evidencia',
                 description: item.description || '',
                 credential: credential.id,
                 publishedAt: new Date(),

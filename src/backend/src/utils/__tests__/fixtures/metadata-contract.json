@@ -1,0 +1,159 @@
+{
+  "create": {
+    "data": {
+      "achievementId": "udg-datos-v2",
+      "name": "Análisis de datos",
+      "description": "Compara alternativas con datos y justifica una decisión.",
+      "creator": 1,
+      "achievementType": "MicroCredential",
+      "criteria": {
+        "narrative": "Cumple cada criterio.",
+        "url": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
+      },
+      "achievement": {
+        "creator": {
+          "type": [
+            "Profile"
+          ],
+          "name": "Dirección General de Universidad Virtual y Aprendizaje Digital para Toda la Vida (UDG+)",
+          "url": "https://udgplus.udg.mx",
+          "parentOrg": {
+            "type": [
+              "Profile"
+            ],
+            "name": "Universidad de Guadalajara",
+            "url": "https://www.udg.mx/"
+          }
+        },
+        "alignment": [
+          {
+            "type": [
+              "Alignment"
+            ],
+            "targetName": "Compara alternativas con datos y justifica una decisión",
+            "targetCode": "RA1",
+            "targetFramework": "Resultados de aprendizaje"
+          },
+          {
+            "type": [
+              "Alignment"
+            ],
+            "targetName": "nivel_6",
+            "targetCode": "nivel_6",
+            "targetFramework": "Marco Nacional de Cualificaciones (SEP)"
+          },
+          {
+            "type": [
+              "Alignment"
+            ],
+            "targetName": "Nivel II",
+            "targetCode": "II",
+            "targetFramework": "Marco institucional CGAI"
+          }
+        ],
+        "fieldOfStudy": "061 · Tecnologías de la información y la comunicación",
+        "inLanguage": "es",
+        "humanCode": "UDG-DATOS",
+        "version": "2",
+        "creditsAvailable": 2,
+        "description": "Compara alternativas con datos y justifica una decisión.\nTotal: 32 h; Docencia: 8 h; Trabajo independiente: 12 h; Práctica: 8 h; Evaluación: 4 h\nModalidad: En línea.\nCréditos SNAATCA: 32 h / 16 h por crédito.",
+        "tag": [
+          "Microcredencial",
+          "Crediticia",
+          "En línea"
+        ],
+        "criteria": {
+          "narrative": "Acredita «Análisis de datos» conforme a esta regla: cumplir cada criterio. Juicio humano con rúbrica. Docente; Rúbrica versión 1. Ficha activada por Gestora de prueba; instancia que decide: UDG+.",
+          "url": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
+        }
+      }
+    }
+  },
+  "issue": {
+    "data": {
+      "achievementId": 55,
+      "recipient": {
+        "email": "titular@example.org",
+        "name": "Persona de prueba"
+      },
+      "evidence": [],
+      "awardedDate": "2026-10-31",
+      "expirationDate": "2029-11-01T12:00:00.000Z",
+      "achievement": {
+        "creator": {
+          "type": [
+            "Profile"
+          ],
+          "name": "Dirección General de Universidad Virtual y Aprendizaje Digital para Toda la Vida (UDG+)",
+          "url": "https://udgplus.udg.mx",
+          "parentOrg": {
+            "type": [
+              "Profile"
+            ],
+            "name": "Universidad de Guadalajara",
+            "url": "https://www.udg.mx/"
+          }
+        },
+        "alignment": [
+          {
+            "type": [
+              "Alignment"
+            ],
+            "targetName": "Compara alternativas con datos y justifica una decisión",
+            "targetCode": "RA1",
+            "targetFramework": "Resultados de aprendizaje"
+          },
+          {
+            "type": [
+              "Alignment"
+            ],
+            "targetName": "nivel_6",
+            "targetCode": "nivel_6",
+            "targetFramework": "Marco Nacional de Cualificaciones (SEP)"
+          },
+          {
+            "type": [
+              "Alignment"
+            ],
+            "targetName": "Nivel II",
+            "targetCode": "II",
+            "targetFramework": "Marco institucional CGAI"
+          }
+        ],
+        "fieldOfStudy": "061 · Tecnologías de la información y la comunicación",
+        "inLanguage": "es",
+        "humanCode": "UDG-DATOS",
+        "version": "2",
+        "creditsAvailable": 2,
+        "description": "Compara alternativas con datos y justifica una decisión.\nTotal: 32 h; Docencia: 8 h; Trabajo independiente: 12 h; Práctica: 8 h; Evaluación: 4 h\nModalidad: En línea.\nCréditos SNAATCA: 32 h / 16 h por crédito.",
+        "tag": [
+          "Microcredencial",
+          "Crediticia",
+          "En línea"
+        ],
+        "criteria": {
+          "narrative": "Acredita «Análisis de datos» conforme a esta regla: cumplir cada criterio. Juicio humano con rúbrica. Docente; Rúbrica versión 1. Ficha activada por Gestora de prueba; instancia que decide: UDG+.",
+          "url": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
+        }
+      },
+      "subject": {
+        "name": "Persona de prueba",
+        "term": "2026-B",
+        "description": "Programa o evento: Curso piloto UDG–ASU.",
+        "tag": [
+          "Curso piloto UDG–ASU"
+        ],
+        "source": {
+          "type": [
+            "Profile"
+          ],
+          "name": "Arizona State University",
+          "url": "https://www.asu.edu"
+        },
+        "creditsEarned": 2,
+        "activityStartDate": "2026-10-01T00:00:00Z",
+        "activityEndDate": "2026-10-31T00:00:00Z"
+      }
+    }
+  }
+}

@@ -127,7 +127,8 @@ export default factories.createCoreController('api::credential.credential', ({ s
         expirationDate,
         ctx.state.user?.id,
         awardedDate,
-        results
+        results,
+        { achievement: data.achievement, subject: data.subject }
       )
 
       return credential

@@ -385,6 +385,7 @@ export interface ApiAchievementAchievement extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    metadata0023: Schema.Attribute.JSON & Schema.Attribute.Private;
     achievementId: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
     achievementType: Schema.Attribute.String &
       Schema.Attribute.DefaultTo<'Achievement'>;
@@ -497,6 +498,8 @@ export interface ApiCredentialCredential extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    achievementMetadata0023: Schema.Attribute.JSON & Schema.Attribute.Private;
+    subjectMetadata0023: Schema.Attribute.JSON & Schema.Attribute.Private;
     publicRecipientName: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     publicLinkActive: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<true>;
     signedCredential: Schema.Attribute.JSON & Schema.Attribute.Private;

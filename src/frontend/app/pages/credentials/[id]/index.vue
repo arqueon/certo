@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import type {
   AchievementCredential,
-  Evidence,
   VerificationResult
 } from '~/types/openbadges'
 import QRCode from 'qrcode'
+import { credentialMetadata, resolvedResults } from '~/utils/credential-metadata'
 import { safeHttpUrl } from '~/utils/portal'
 import { apiClient } from '~/api/api-client'
 
-const { t, locale, formatDate: formatLocaleDate } = useI18n()
+const { t, formatDate: formatLocaleDate } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig()
 const branding = useBranding()
@@ -23,10 +23,6 @@ const credentialId = rawId
 
 const authStore = useAuthStore()
 const { holderData, holderLoading, loadHolder } = useHolderCredential(credentialId)
-const criteriaUrl = computed(() => safeHttpUrl(
-  verificationResult.value?.rawCredential?.achievement?.criteria?.url
-  || credential.value?.credentialSubject?.achievement?.criteria?.id,
-))
 async function privacySaved() { await loadHolder(); await refresh() }
 const websiteUrl = config.public.websiteUrl || WEBSITE_URL
 const shareableUrl = `${websiteUrl}/credentials/${encodeURIComponent(credentialId)}`
@@ -106,6 +102,8 @@ const credential = computed<AchievementCredential | null>(() => {
 })
 
 const verificationResult = computed(() => holderData.value || verificationData.value)
+const info = computed(() => credentialMetadata(credential.value, verificationResult.value?.rawCredential))
+const evaluated = computed(() => resolvedResults(credential.value))
 const loading = computed(() => status.value === 'pending' && !credential.value)
 const error = computed(() => {
   if (fetchError.value) return fetchError.value.message
@@ -138,7 +136,7 @@ function getIssuerName(): string {
 }
 
 function getRecipientName(): string {
-  return verificationData.value?.rawCredential?.recipient?.name || ''
+  return verificationData.value?.credential?.credentialSubject?.name || verificationData.value?.rawCredential?.recipient?.name || ''
 }
 
 // SEO with getter functions (Nuxt 3 documented pattern)
@@ -287,29 +285,6 @@ const formattedAwardedDate = computed(() => {
   return formatAwardedDate(date)
 })
 
-// Level reached on each rubric criterion (OB 3.0 result + resultDescription).
-// Only credentials issued with results have them; the block stays hidden
-// otherwise. Each result is resolved against the rubric snapshot signed
-// into this same credential, so it reads the rubric the learner was
-// actually assessed with.
-const criterionResults = computed(() => {
-  const subject = credential.value?.credentialSubject
-  const results = subject?.result
-  const descriptions = subject?.achievement?.resultDescription
-  if (!Array.isArray(results) || !Array.isArray(descriptions)) return []
-  return results.map((r: any) => {
-    const description = descriptions.find((d: any) => d.id === r.resultDescription)
-    const levels = description?.rubricCriterionLevel || []
-    const achieved = levels.find((l: any) => l.id === r.achievedLevel)
-    return {
-      criterion: description?.name || r.resultDescription,
-      level: achieved?.name || r.value || r.status || '',
-      detail: achieved?.description || '',
-      position: achieved ? `${levels.indexOf(achieved) + 1} / ${levels.length}` : '',
-    }
-  })
-})
-
 const formattedExpirationDate = computed(() => {
   const date = credential.value?.validUntil || credential.value?.expirationDate
   if (!date) return t('credential.noExpiration')
@@ -324,6 +299,7 @@ const imageUrlOptions = computed(() => {
   const rawCred = verificationResult.value?.rawCredential
 
   const options = [
+    safeHttpUrl(cred.credentialSubject?.achievement?.image?.id),
     // Option 2: Raw credential achievement image URL (Strapi format)
     rawCred?.achievement?.image?.url,
 
@@ -408,27 +384,6 @@ async function shareCredential() {
   }
 }
 
-async function downloadCredential() {
-  const imageUrl = displayImageUrl.value
-  if (!imageUrl) return
-
-  try {
-    const response = await fetch(imageUrl)
-    const blob = await response.blob()
-    const downloadUrl = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = downloadUrl
-    a.download = `${credential.value?.name || 'credential'}.png`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(downloadUrl)
-    document.body.removeChild(a)
-  }
-  catch (err) {
-    console.error('Error downloading credential:', err)
-  }
-}
-
 function getLinkedInAddToProfileUrl() {
   if (!credential.value) return '#'
 
@@ -437,602 +392,98 @@ function getLinkedInAddToProfileUrl() {
     startTask: 'CERTIFICATION_NAME',
     name: cert.name || cert.title || '',
     ...(branding.active ? { organizationName: cert.issuer?.name || branding.name } : { organizationId: '53115782' }),
-    issueYear: (cert.validFrom || cert.issuanceDate) ? new Date(cert.validFrom || cert.issuanceDate).getFullYear().toString() : '',
-    issueMonth: (cert.validFrom || cert.issuanceDate) ? (new Date(cert.validFrom || cert.issuanceDate).getMonth() + 1).toString() : '',
+    issueYear: (cert.validFrom || cert.issuanceDate) ? new Date((cert.validFrom || cert.issuanceDate)!).getFullYear().toString() : '',
+    issueMonth: (cert.validFrom || cert.issuanceDate) ? (new Date((cert.validFrom || cert.issuanceDate)!).getMonth() + 1).toString() : '',
     certId: cert.id,
     certUrl: shareableUrl
   })
   return `https://www.linkedin.com/profile/add?${params.toString()}`
 }
 
-// ============================================================================
-// EXPIRATION & RENEWAL
-// ============================================================================
-const isExpired = computed(() => {
-  const d = credential.value?.validUntil || credential.value?.expirationDate
-  return d ? new Date(d) < new Date() : false
-})
-
-const daysUntilExpiry = computed(() => {
-  const d = credential.value?.validUntil || credential.value?.expirationDate
-  if (!d) return null
-  const diff = new Date(d).getTime() - Date.now()
-  return Math.ceil(diff / (1000 * 60 * 60 * 24))
-})
-
-const isExpiringSoon = computed(() => {
-  const days = daysUntilExpiry.value
-  return days !== null && days > 0 && days <= 30
-})
-
-const renewalState = ref<'idle' | 'picking' | 'loading' | 'success' | 'error'>('idle')
-const renewalError = ref('')
-const renewalNewExpiry = ref('')
-
-async function submitRenewal() {
-  if (!renewalNewExpiry.value) return
-  renewalState.value = 'loading'
-  renewalError.value = ''
-  try {
-    const numericId = verificationData.value?.rawCredential?.id
-    if (!numericId) throw new Error(t('credential.idUnavailable'))
-    await apiClient.renewCredential(numericId, renewalNewExpiry.value)
-    renewalState.value = 'success'
-    await refreshCredentialDetails()
-  }
-  catch (err: any) {
-    renewalState.value = 'error'
-    renewalError.value = err?.data?.error?.message || err?.message || t('credential.renewFailed')
-  }
-}
 </script>
 
 <template>
-  <div class="container mx-auto py-10 px-4">
-    <!-- Loading State -->
-    <div
-      v-if="loading || (holderLoading && !credential)"
-      class="max-w-lg mx-auto p-8 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
-    >
-      <div class="flex flex-col items-center justify-center">
-        <div class="i-lucide-loader-2 w-12 h-12 animate-spin text-primary-500 mb-4" />
-        <h2 class="text-xl font-medium">
-          {{ t('credential.loadingVerification') }}
-        </h2>
-      </div>
-    </div>
-
-    <section v-else-if="!credential && branding.active" class="portal-card max-w-2xl mx-auto">
-      <h1 class="text-2xl font-bold">{{ t('portal.holder.unavailable') }}</h1>
+  <main class="credential-page">
+    <p v-if="loading || (holderLoading && !credential)" role="status">{{ t('credential.loadingVerification') }}</p>
+    <section v-else-if="!credential" class="portal-card">
+      <h1>{{ t('portal.holder.unavailable') }}</h1>
       <NuxtLink v-if="!authStore.isAuthenticated" to="/login" class="underline">{{ t('portal.holder.ownerLogin') }}</NuxtLink>
     </section>
-    <!-- Invalid Credential ID -->
-    <div
-      v-else-if="!credentialId"
-      class="max-w-lg mx-auto p-8 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
-    >
-      <div class="text-center">
-        <div class="i-lucide-alert-triangle w-16 h-16 mx-auto text-amber-500 mb-4" />
-        <h2 class="text-2xl font-semibold mb-3">
-          {{ t('errors.notFound') }}
-        </h2>
-        <p class="text-gray-600 mb-6">
-          {{ t('errors.notFoundMessage') }}
-        </p>
-        <NuxtLink
-          to="/verify"
-          class="inline-flex items-center px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
-        >
-          <div class="i-lucide-search mr-2" />
-          {{ t('credential.verifyAnother') }}
-        </NuxtLink>
-      </div>
-    </div>
-
-    <!-- Error State -->
-    <div
-      v-else-if="error"
-      class="max-w-lg mx-auto p-8 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
-    >
-      <div class="text-center">
-        <div class="i-lucide-x-circle w-16 h-16 mx-auto text-red-500 mb-4" />
-        <h2 class="text-2xl font-semibold mb-3">
-          {{ t('credential.errorLoading') }}
-        </h2>
-        <p class="text-gray-600 mb-6">
-          {{ error }}
-        </p>
-        <button
-          class="inline-flex items-center px-4 py-2 rounded-lg bg-primary-500 hover:bg-primary-600 text-white transition-colors"
-          @click="refreshCredentialDetails"
-        >
-          <div class="i-lucide-refresh-cw mr-2" />
-          {{ t('common.tryAgain') }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Credential Details -->
-    <div v-else-if="credential" class="max-w-4xl mx-auto">
-      <!-- LinkedIn Add to Profile Button at the Top -->
-      <div class="flex flex-wrap gap-4 mb-6">
-        <a
-          :href="getLinkedInAddToProfileUrl()"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 px-3 py-1.5 bg-[#0077b5] text-white rounded hover:bg-[#005983] transition-colors text-sm font-medium"
-          :aria-label="t('credential.addToLinkedInAria')"
-        >
-          <img :src="linkedInButtonImage(locale)" :alt="t('credential.linkedInButtonAlt')" class="h-5 w-auto">
-          {{ t('credential.addToLinkedIn') }}
-        </a>
-      </div>
-
-      <a v-if="branding.active && criteriaUrl" :href="criteriaUrl" class="brand-button mb-6">{{ t('portal.holder.criteria') }}</a>
-      <HolderDownloads v-if="branding.active && holderData" :credential-id="credentialId" :privacy="holderData.rawCredential" @saved="privacySaved" />
-      <!-- Expiration / Renewal Banner -->
-      <div
-        v-if="isExpired || isExpiringSoon"
-        class="mb-6 p-5 rounded-2xl border shadow-md"
-        :class="isExpired ? 'bg-red-50 border-red-300' : 'bg-amber-50 border-amber-300'"
-      >
-        <div class="flex items-start gap-4">
-          <div
-            class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-            :class="isExpired ? 'bg-red-100' : 'bg-amber-100'"
-          >
-            <div
-              class="w-6 h-6"
-              :class="isExpired ? 'i-lucide-clock-alert text-red-600' : 'i-lucide-alarm-clock text-amber-600'"
-            />
-          </div>
-          <div class="flex-1">
-            <h3 class="font-semibold mb-1" :class="isExpired ? 'text-red-700' : 'text-amber-700'">
-              {{ isExpired ? t('credential.expiredTitle') : daysUntilExpiry === 1 ? t('credential.expiresInDay') : t('credential.expiresInDays', { days: daysUntilExpiry ?? '' }) }}
-            </h3>
-            <p class="text-sm" :class="isExpired ? 'text-red-600' : 'text-amber-600'">
-              {{ isExpired ? t('credential.expiredHelp') : t('credential.expiringSoonHelp') }}
-            </p>
-
-            <!-- Renewal form (issuer only - shown when logged in) -->
-            <div v-if="(!branding.active || authStore.isIssuer) && (renewalState === 'idle' || renewalState === 'picking')" class="mt-3">
-              <button
-                v-if="renewalState === 'idle'"
-                class="text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-                :class="isExpired ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-amber-500 hover:bg-amber-600 text-white'"
-                @click="renewalState = 'picking'"
-              >
-                {{ t('credential.renew') }}
-              </button>
-              <div v-else class="flex flex-wrap items-center gap-2 mt-2">
-                <label class="text-sm font-medium text-gray-700">{{ t('credential.newExpirationDate') }}</label>
-                <input
-                  v-model="renewalNewExpiry"
-                  type="date"
-                  :min="new Date(Date.now() + 86400000).toISOString().split('T')[0]"
-                  class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                >
-                <button
-                  class="text-sm font-medium px-4 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50"
-                  :disabled="!renewalNewExpiry"
-                  @click="submitRenewal"
-                >
-                  {{ t('common.confirm') }}
-                </button>
-                <button
-                  class="text-sm text-gray-500 hover:text-gray-700"
-                  @click="renewalState = 'idle'"
-                >
-                  {{ t('common.cancel') }}
-                </button>
-              </div>
-            </div>
-            <div v-else-if="renewalState === 'loading'" class="mt-3 flex items-center gap-2 text-sm text-gray-600">
-              <div class="i-lucide-loader-2 w-4 h-4 animate-spin" /> {{ t('credential.renewing') }}
-            </div>
-            <div v-else-if="renewalState === 'success'" class="mt-3 text-sm text-green-700 font-medium">
-              ✓ {{ t('credential.renewSuccess') }}
-            </div>
-            <div v-else-if="renewalState === 'error'" class="mt-3 text-sm text-red-700">
-              ✗ {{ renewalError }}
-            </div>
-          </div>
+    <template v-else>
+      <header class="portal-card credential-header">
+        <img v-if="displayImageUrl && !imageLoadError" :src="displayImageUrl" :alt="`Insignia de ${credential.name}`" class="credential-badge" @error="handleImageError">
+        <div class="credential-heading">
+          <p v-if="info.holder" class="holder-name">{{ info.holder }}</p>
+          <p class="credential-kind">{{ info.kind }}</p>
+          <h1>{{ credential.name }}</h1>
+          <p class="institution">{{ credential.issuer?.name }}<span v-if="info.creator"> › {{ info.creator }}</span></p>
+          <p v-if="info.event">{{ info.event }}</p>
+          <p v-if="info.subject.term">Periodo: {{ info.subject.term }}</p>
+          <p v-if="info.subject.source?.name">Institución aliada: {{ info.subject.source.name }}</p>
+          <details class="verification-seal" :class="{ invalid: !verificationResult?.verified }">
+            <summary>{{ verificationResult?.verified ? '✓ Verificada' : 'No verificada' }}<span v-if="verificationResult?.verified"> · {{ (credential.validUntil || credential.expirationDate) ? `vigente hasta ${formatLocaleDate(credential.validUntil || credential.expirationDate, { dateStyle: 'long' })}` : 'sin fecha de vencimiento' }}</span></summary>
+            <p>Estas comprobaciones revisan la firma, la vigencia y el estado de la credencial.</p>
+            <ul><li v-for="check in verificationResult?.checks" :key="check.check">
+              {{ ({ proof: 'Firma del emisor', not_revoked: 'No revocada', not_expired: 'Vigencia', valid_from: 'Inicio de vigencia', format: 'Formato', issuer: 'Emisor', expiration: 'Vencimiento' } as Record<string, string>)[check.check] || 'Comprobación' }}:
+              {{ check.result === 'success' ? 'Correcta' : check.result === 'warning' ? 'Requiere revisión' : 'No superada' }}
+            </li></ul>
+            <button class="underline" @click="refreshCredentialDetails">Actualizar comprobaciones</button>
+          </details>
         </div>
-      </div>
-
-      <!-- Verification Status -->
-      <div
-        class="mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
-        :class="{
-          'border-green-500': verificationResult?.verified,
-          'border-red-500': verificationResult && !verificationResult.verified,
-        }"
-      >
-        <div class="flex items-center justify-between">
-          <div class="flex items-center">
-            <div
-              class="w-12 h-12 rounded-full flex items-center justify-center mr-4"
-              :class="{
-                'bg-green-100': verificationResult?.verified,
-                'bg-red-100': verificationResult && !verificationResult.verified,
-              }"
-            >
-              <div
-                v-if="verificationResult?.verified"
-                class="i-lucide-check-circle w-8 h-8 text-green-500"
-              />
-              <div
-                v-else
-                class="i-lucide-x-circle w-8 h-8 text-red-500"
-              />
-            </div>
-            <div>
-              <h3 class="text-xl font-semibold mb-1">
-                {{ verificationResult?.verified ? t('credential.verificationSuccess') : t('credential.verificationFailed') }}
-              </h3>
-              <p class="text-gray-600">
-                {{ verificationResult?.error || t('credential.allChecksPassed') }}
-              </p>
-            </div>
-          </div>
-          <button
-            class="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            :title="t('credential.refreshVerification')"
-            @click="refreshCredentialDetails"
-          >
-            <div class="i-lucide-refresh-cw w-5 h-5" />
-          </button>
-        </div>
-
-        <!-- Verification Checks -->
-        <div v-if="verificationResult?.checks?.length" class="mt-6">
-          <h4 class="font-medium mb-4 text-gray-700">
-            {{ t('credential.verificationChecks') }}
-          </h4>
-          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div
-              v-for="check in verificationResult.checks"
-              :key="check.check"
-              class="group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg"
-              :class="{
-                'bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/60': check.result === 'success',
-                'bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200/60': check.result === 'warning',
-                'bg-gradient-to-br from-red-50 to-rose-50 border border-red-200/60': check.result === 'error',
-              }"
-            >
-              <!-- Background decoration -->
-              <div
-                class="absolute -right-4 -top-4 h-20 w-20 rounded-full opacity-20 blur-2xl transition-opacity group-hover:opacity-30"
-                :class="{
-                  'bg-green-400': check.result === 'success',
-                  'bg-amber-400': check.result === 'warning',
-                  'bg-red-400': check.result === 'error',
-                }"
-              />
-
-              <div class="relative flex items-start gap-3">
-                <!-- Icon container with ring -->
-                <div
-                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full ring-4 transition-transform group-hover:scale-110"
-                  :class="{
-                    'bg-green-100 ring-green-200/50': check.result === 'success',
-                    'bg-amber-100 ring-amber-200/50': check.result === 'warning',
-                    'bg-red-100 ring-red-200/50': check.result === 'error',
-                  }"
-                >
-                  <div
-                    class="h-5 w-5"
-                    :class="{
-                      'i-lucide-shield-check text-green-600': check.check === 'not_revoked' && check.result === 'success',
-                      'i-lucide-calendar-check text-green-600': check.check === 'not_expired' && check.result === 'success',
-                      'i-lucide-file-check-2 text-green-600': check.check === 'proof' && check.result === 'success',
-                      'i-lucide-check-circle text-green-600': check.result === 'success' && !['not_revoked', 'not_expired', 'proof'].includes(check.check),
-                      'i-lucide-alert-triangle text-amber-600': check.result === 'warning',
-                      'i-lucide-x-circle text-red-600': check.result === 'error',
-                    }"
-                  />
-                </div>
-
-                <div class="min-w-0 flex-1">
-                  <!-- Status badge -->
-                  <div class="mb-1.5 flex items-center gap-2">
-                    <span
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold uppercase tracking-wide"
-                      :class="{
-                        'bg-green-100 text-green-700': check.result === 'success',
-                        'bg-amber-100 text-amber-700': check.result === 'warning',
-                        'bg-red-100 text-red-700': check.result === 'error',
-                      }"
-                    >
-                      {{ check.result === 'success' ? t('credential.checkStatus.passed') : check.result === 'warning' ? t('credential.checkStatus.warning') : t('credential.checkStatus.failed') }}
-                    </span>
-                  </div>
-
-                  <!-- Check name with friendly label -->
-                  <div class="font-semibold text-gray-800">
-                    {{
-                      check.check === 'not_revoked' ? t('credential.checks.not_revoked') :
-                      check.check === 'not_expired' ? t('credential.checks.not_expired') :
-                      check.check === 'proof' ? t('credential.checks.validSignature') :
-                      check.check.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
-                    }}
-                  </div>
-
-                  <!-- Description based on check type and result -->
-                  <p class="mt-1 text-xs text-gray-500">
-                    {{
-                      check.result === 'error' || check.result === 'warning'
-                        ? (check.message || t('credential.checkDescriptions.failed'))
-                        : check.check === 'not_revoked' ? t('credential.checkDescriptions.not_revoked')
-                        : check.check === 'not_expired' ? t('credential.checkDescriptions.not_expired')
-                        : check.check === 'proof' ? t('credential.checkDescriptions.proof')
-                        : t('credential.checkDescriptions.completed')
-                    }}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Main Credential Card -->
-      <RecipientCheck :credential-id="credentialId" />
-      <div class="mb-8 overflow-hidden rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl">
-        <!-- Credential Image -->
-        <div
-          v-if="displayImageUrl && !imageLoadError"
-          class="relative aspect-video bg-gray-100"
-        >
-          <img
-            :src="displayImageUrl"
-            :alt="credential.name || t('credential.imageAlt')"
-            class="w-full h-full object-contain"
-            @error="handleImageError"
-          >
-          <div class="absolute bottom-4 right-4 flex gap-2">
-            <button
-              class="p-2 rounded-lg bg-white/90 hover:bg-white shadow-lg transition-colors"
-              :title="t('credential.downloadImage')"
-              @click="downloadCredential"
-            >
-              <div class="i-lucide-download w-5 h-5" />
-            </button>
-            <button
-              class="p-2 rounded-lg bg-white/90 hover:bg-white shadow-lg transition-colors"
-              :title="t('credential.shareCredential')"
-              @click="shareCredential"
-            >
-              <div class="i-lucide-share w-5 h-5" />
-            </button>
-          </div>
-        </div>
-
-        <!-- Credential Details -->
-        <div class="p-6">
-          <h1 class="text-3xl font-bold mb-4">
-            {{ credential.name || t('credential.unnamed') }}
-          </h1>
-
-          <div class="prose max-w-none mb-6">
-            <p>{{ credential.description }}</p>
-          </div>
-
-          <!-- Metadata Grid -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- Dates -->
-            <div class="space-y-4">
-              <div v-if="formattedAwardedDate">
-                <div class="text-sm font-medium text-gray-500">
-                  {{ t('credential.awardedOn') }}
-                </div>
-                <div class="mt-1">
-                  {{ formattedAwardedDate }}
-                </div>
-                <div class="mt-0.5 text-xs text-gray-400">
-                  {{ t('credential.awardedOnHelp') }}
-                </div>
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-500">
-                  {{ t('credential.issuedOn') }}
-                </div>
-                <div class="mt-1">
-                  {{ formattedIssuanceDate }}
-                </div>
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-500">
-                  {{ t('credential.expiresOn') }}
-                </div>
-                <div class="mt-1">
-                  {{ formattedExpirationDate }}
-                </div>
-              </div>
-              <!-- Recipient Name -->
-              <div v-if="verificationResult?.rawCredential?.recipient?.name">
-                <div class="text-sm font-medium text-gray-500">
-                  {{ t('credential.awardedTo') }}
-                </div>
-                <div class="mt-1">
-                  {{ verificationResult?.rawCredential?.recipient?.name }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Issuer -->
-            <div v-if="credential.issuer" class="space-y-2">
-              <div class="text-sm font-medium text-gray-500">
-                {{ t('credential.issuedBy') }}
-              </div>
-              <div class="flex items-center">
-                <img
-                  v-if="typeof credential.issuer.image === 'string'"
-                  :src="credential.issuer.image"
-                  :alt="credential.issuer.name"
-                  class="w-10 h-10 rounded-full object-cover mr-3"
-                >
-                <div>
-                  <div class="font-medium">
-                    {{ credential.issuer.name }}
-                  </div>
-                  <a
-                    v-if="credential.issuer.url"
-                    :href="credential.issuer.url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-sm text-primary-500 hover:text-primary-600"
-                  >
-                    {{ t('credential.visitWebsite') }}
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            <!-- Verify -->
-            <div class="space-y-2">
-              <div class="text-sm font-medium text-gray-500">
-                {{ t('credential.verifyLabel') }}
-              </div>
-              <img
-                v-if="qrCodeDataUrl"
-                :src="qrCodeDataUrl"
-                :alt="t('credential.qrAlt')"
-                class="w-20 h-20"
-              >
-              <a
-                :href="shareableUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="block text-sm text-primary-500 hover:text-primary-600 break-all"
-              >
-                {{ shareableUrl }}
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Results per criterion -->
-      <div
-        v-if="criterionResults.length"
-        class="mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
-      >
-        <h2 class="text-2xl font-semibold mb-1">
-          {{ t('credential.results') }}
-        </h2>
-        <p class="text-sm text-gray-500 mb-4">
-          {{ t('credential.resultsHelp') }}
-        </p>
-        <dl class="divide-y divide-gray-100">
-          <div
-            v-for="(item, index) in criterionResults"
-            :key="index"
-            class="py-3 grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-4"
-          >
-            <dt class="text-sm font-medium text-gray-700">
-              {{ item.criterion }}
-            </dt>
-            <dd class="md:col-span-2">
-              <span class="font-medium">{{ item.level }}</span>
-              <span v-if="item.position" class="ml-2 text-xs text-gray-400">{{ item.position }}</span>
-              <p v-if="item.detail" class="mt-0.5 text-sm text-gray-500">
-                {{ item.detail }}
-              </p>
-            </dd>
-          </div>
+      </header>
+      <CredentialLearning :credential="credential" :raw="verificationResult?.rawCredential" class="portal-card" />
+      <section v-if="evaluated.length || info.criteria" class="portal-card">
+        <h2>Cómo se evaluó</h2>
+        <p v-if="info.criteria" class="preserve-lines">{{ info.criteria }}</p>
+        <dl class="criterion-results"><template v-for="(result, i) in evaluated" :key="i">
+          <dt>{{ result.name }}</dt><dd><strong>{{ result.value }}</strong><p v-if="result.detail">{{ result.detail }}</p></dd>
+        </template></dl>
+      </section>
+      <section class="portal-card verification-section">
+        <h2>Verificar</h2>
+        <p>Abre este enlace o escanea el código para consultar el estado actual de la credencial.</p>
+        <div class="verify-link"><img v-if="qrCodeDataUrl" :src="qrCodeDataUrl" :alt="t('portal.holder.qrAlt')" width="160" height="160"><a :href="shareableUrl">{{ shareableUrl }}</a></div>
+        <dl class="dates">
+          <dt>Fecha de emisión</dt><dd>{{ formattedIssuanceDate }}</dd>
+          <template v-if="formattedAwardedDate"><dt>Fecha del logro</dt><dd>{{ formattedAwardedDate }}</dd></template>
+          <dt>Vencimiento</dt><dd>{{ formattedExpirationDate }}</dd>
+          <template v-if="info.subject.activityStartDate"><dt>Inicio de la actividad</dt><dd>{{ formatAwardedDate(info.subject.activityStartDate) }}</dd></template>
+          <template v-if="info.subject.activityEndDate"><dt>Fin de la actividad</dt><dd>{{ formatAwardedDate(info.subject.activityEndDate) }}</dd></template>
         </dl>
-      </div>
-
-      <!-- Achievement Details -->
-      <div
-        v-if="credential.credentialSubject?.achievement"
-        class="mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
-      >
-        <h2 class="text-2xl font-semibold mb-4">
-          {{ t('achievement.details') }}
-        </h2>
-
-        <div class="prose max-w-none">
-          <h3>{{ credential.credentialSubject.achievement.name }}</h3>
-          <p>{{ credential.credentialSubject.achievement.description }}</p>
-
-          <!-- Criteria -->
-          <div v-if="credential.credentialSubject.achievement.criteria?.narrative" class="mt-6">
-            <h4 class="font-medium mb-2">
-              {{ t('achievement.criteria') }}
-            </h4>
-            <!-- The backend signs "Criteria not specified" when an achievement
-                 has no criteria; it is translated only for display. -->
-            <p>
-              {{ credential.credentialSubject.achievement.criteria.narrative === 'Criteria not specified'
-                ? t('achievement.criteriaNotSpecified')
-                : credential.credentialSubject.achievement.criteria.narrative }}
-            </p>
-          </div>
-
-          <!-- Alignments -->
-          <div
-            v-if="(credential.credentialSubject.achievement.alignment || credential.credentialSubject.achievement.alignments)?.length"
-            class="mt-6"
-          >
-            <h4 class="font-medium mb-2">
-              {{ t('achievement.alignments') }}
-            </h4>
-            <div class="space-y-4">
-              <div
-                v-for="alignment in (credential.credentialSubject.achievement.alignment || credential.credentialSubject.achievement.alignments)"
-                :key="alignment.targetUrl"
-                class="p-4 rounded-lg bg-gray-50"
-              >
-                <h5 class="font-medium">
-                  {{ alignment.targetName }}
-                </h5>
-                <p v-if="alignment.targetDescription" class="text-sm">
-                  {{ alignment.targetDescription }}
-                </p>
-                <div class="mt-2">
-                  <a
-                    :href="alignment.targetUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-sm text-primary-500 hover:text-primary-600"
-                  >
-                    {{ t('achievement.learnMore') }}
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
+        <RecipientCheck :credential-id="credentialId" />
+      </section>
+      <HolderDownloads v-if="holderData" :credential-id="credentialId" :privacy="holderData.rawCredential" @saved="privacySaved">
+        <div class="share-actions">
+          <button class="brand-button" @click="shareCredential">Compartir enlace</button>
+          <a :href="getLinkedInAddToProfileUrl()" target="_blank" rel="noopener noreferrer" class="brand-button">Añadir a LinkedIn</a>
         </div>
-      </div>
-
-      <!-- Evidence -->
-      <div
-        v-if="credential.evidence?.length"
-        class="mb-8 p-6 rounded-2xl bg-white/80 backdrop-blur-lg border border-gray-200 shadow-xl"
-      >
-        <h2 class="text-2xl font-semibold mb-4">
-          {{ t('credential.evidence') }}
-        </h2>
-        <div class="space-y-4">
-          <div
-            v-for="item in (credential.evidence as Evidence[])"
-            :key="item.id"
-            class="p-4 rounded-lg bg-gray-50"
-          >
-            <h3 class="font-medium mb-2">
-              {{ item.name }}
-            </h3>
-            <p v-if="item.description" class="text-gray-600">
-              {{ item.description }}
-            </p>
-            <div v-if="item.narrative" class="mt-2 text-sm">
-              {{ item.narrative }}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+      </HolderDownloads>
+    </template>
+  </main>
 </template>
+
+<style scoped>
+.credential-page { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; overflow-wrap: anywhere; }
+.portal-card { margin-bottom: 1.5rem; }
+.credential-header { display: flex; align-items: flex-start; gap: 2rem; }
+.credential-badge { width: 220px; height: 220px; object-fit: contain; flex-shrink: 0; }
+.credential-heading { min-width: 0; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.2; font-weight: 750; margin: .5rem 0 1rem; }
+h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; }
+p { margin: .6rem 0; line-height: 1.6; }
+.holder-name { font-size: 1.4rem; font-weight: 600; }
+.credential-kind { font-size: .9rem; }
+.institution { font-weight: 600; }
+.verification-seal { padding: .7rem 1rem; background: #edf7f0; color: #185330; border: 1px solid #a5cbb3; border-radius: .75rem; margin-top: 1.25rem; }
+.verification-seal.invalid { background: #fff2ed; color: #852d12; border-color: #d9a597; }
+summary { cursor: pointer; font-weight: 600; }
+.verification-seal ul { padding-left: 1rem; list-style: disc; }
+.verify-link { display: flex; align-items: center; gap: 1.5rem; }
+.verify-link img { flex-shrink: 0; }
+a { text-decoration: underline; }
+.dates, .criterion-results { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .75rem 1rem; margin: 1rem 0; }
+dt { font-weight: 600; }
+.preserve-lines { white-space: pre-line; }
+.share-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+@media (max-width: 640px) { .credential-header { flex-direction: column; gap: 1rem; } .credential-badge { align-self: center; width: 200px; height: 200px; } .verify-link { flex-direction: column; align-items: flex-start; } .dates, .criterion-results { grid-template-columns: 1fr; gap: .3rem; } dt { margin-top: .5rem; } }
+</style>

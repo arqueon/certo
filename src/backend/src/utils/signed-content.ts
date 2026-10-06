@@ -15,6 +15,7 @@
  * do not carry it either, still verify.
  */
 import { isDeepStrictEqual } from 'node:util'
+import { achievementClaims, subjectClaims } from './ob3-metadata'
 
 function normalize(value: unknown): string {
   if (value === undefined || value === null || value === '') return ''
@@ -45,6 +46,10 @@ export function storedCredentialMismatches(payload: any, credential: any): strin
     return [
       ...documentMismatches(payload, credential.signedCredential),
       ...differences({
+        ...(credential.subjectMetadata0023 ? Object.fromEntries(Object.entries(subjectClaims(credential.subjectMetadata0023))
+          .map(([key, value]) => [`subject.${key}`, [subject[key], value]])) : {}),
+        ...(credential.achievementMetadata0023 ? Object.fromEntries(Object.entries(achievementClaims(credential.achievementMetadata0023, subject.achievement?.id, subject.achievement?.criteria))
+          .map(([key, value]) => [`achievement.${key}`, [subject.achievement?.[key], value]])) : {}),
         credentialId: [payload.id, credential.credentialId],
         name: [payload.name, credential.name],
         description: [payload.description, credential.description],

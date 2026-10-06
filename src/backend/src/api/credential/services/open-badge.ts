@@ -1,3 +1,4 @@
+import { achievementClaims, subjectClaims, issuerProfile } from '../../../utils/ob3-metadata'
 /**
  * Open Badges service
  */
@@ -522,7 +523,7 @@ export default ({ strapi }) => ({
             criteria: credential.achievement.criteria
               ? { narrative: credential.achievement.criteria.narrative,
                   ...(fresh && credential.achievement.criteria.url ? { id: credential.achievement.criteria.url } : {}) }
-              : { narrative: 'Criteria not specified' },
+              : (fresh ? {} : { narrative: 'Criteria not specified' }),
             ...(credential.achievement.alignment && credential.achievement.alignment.length > 0
               ? { [fresh ? 'alignment' : 'alignments']: credential.achievement.alignment.map(align => ({
                   ...(fresh ? { type: 'Alignment' } : {}),
@@ -540,6 +541,15 @@ export default ({ strapi }) => ({
         }
       }
       
+      if (fresh) {
+        obCredential.issuer = issuerProfile(strapi, issuerDid(strapi))
+        const subject = obCredential.credentialSubject
+        Object.assign(subject, subjectClaims(credential.subjectMetadata0023))
+        if (subject.name) subject.identifier.push({ type: 'IdentityObject', identityType: 'name', hashed: false, identityHash: subject.name })
+        Object.assign(subject.achievement, achievementClaims(credential.achievementMetadata0023,
+          subject.achievement.id, subject.achievement.criteria))
+      }
+
       // Add evidence if available
       if (credential.evidence && credential.evidence.length > 0) {
         const evidenceTarget = fresh ? obCredential : obCredential.credentialSubject.achievement

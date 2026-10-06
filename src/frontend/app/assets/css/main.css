@@ -54,6 +54,7 @@ html.dark {
   font-weight: 600;
 }
 .brand-button:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; }
+.brand-button:disabled { opacity: .45; cursor: not-allowed; }
 .portal-card { background: white; color: #202b38; border: 1px solid #cbd5e1; border-radius: 1rem; padding: 1.5rem; }
 .portal-card h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: .75rem; }
 .portal-card p { margin-bottom: 1.25rem; line-height: 1.6; }
