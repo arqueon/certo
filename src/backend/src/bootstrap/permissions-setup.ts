@@ -77,6 +77,56 @@ const AUTHENTICATED_PERMISSIONS = [
   'api::webhook-subscription.webhook-subscription.delete',
 ];
 
+// Holder-only set for Authenticated. Used when AUTHENTICATED_ROLE_MODE=holder:
+// deployments where Authenticated is what any person gets on login (e.g. an
+// institutional SSO) and issuing happens through a separate service role.
+// Most issuer-side actions don't check profile ownership, so leaving the
+// default list on Authenticated lets any logged-in person issue, revoke or
+// rotate keys.
+const HOLDER_PERMISSIONS = [
+  'api::profile.profile.me',
+  'api::profile.profile.myReceivedCredentials',
+  'api::profile.profile.findReceivedCredentials',
+  'api::profile.profile.exportMyData',
+  'api::profile.profile.dashboardStats',
+
+  'api::achievement.achievement.find',
+  'api::achievement.achievement.findOne',
+  'api::achievement.achievement.credentials',
+
+  'api::credential.credential.find',
+  'api::credential.credential.findOne',
+  'api::credential.credential.verify',
+  'api::credential.credential.certificate',
+  'api::credential.credential.export',
+
+  'api::endorsement.endorsement.find',
+  'api::endorsement.endorsement.findOne',
+  'api::endorsement.endorsement.verify',
+
+  'api::evidence.evidence.find',
+  'api::evidence.evidence.findOne',
+
+  'plugin::users-permissions.user.me',
+  'plugin::users-permissions.auth.changePassword',
+];
+
+export type AuthenticatedRoleMode = 'issuer' | 'holder';
+
+export function authenticatedRoleMode(value: string | undefined): AuthenticatedRoleMode {
+  return value?.trim().toLowerCase() === 'holder' ? 'holder' : 'issuer';
+}
+
+export function authenticatedPermissions(mode: AuthenticatedRoleMode): string[] {
+  return mode === 'holder' ? HOLDER_PERMISSIONS : AUTHENTICATED_PERMISSIONS;
+}
+
+/** Actions linked to a role that are not in its allowed list. */
+export function permissionsToPrune(linked: string[], allowed: string[]): string[] {
+  const keep = new Set(allowed);
+  return linked.filter((action) => !keep.has(action));
+}
+
 // Permissions to enable for the issuer role
 const ISSUER_PERMISSIONS = [
   // Webhook subscription management
@@ -243,14 +293,46 @@ async function setupRolePermissions(strapi: any, roleType: string, permissions: 
 }
 
 /**
+ * Unlink from a role every permission outside its allowed list, so the role
+ * converges to that list on each start instead of only ever growing.
+ */
+async function pruneRolePermissions(strapi: any, roleType: string, allowed: string[]): Promise<void> {
+  const role = await strapi
+    .query('plugin::users-permissions.role')
+    .findOne({ where: { type: roleType } });
+  if (!role) return;
+
+  const knex = strapi.db.connection;
+  const linked: Array<{ id: number; action: string }> = await knex('up_permissions_role_lnk as l')
+    .join('up_permissions as p', 'p.id', 'l.permission_id')
+    .where('l.role_id', role.id)
+    .select('p.id as id', 'p.action as action');
+
+  const extra = new Set(permissionsToPrune(linked.map((row) => row.action), allowed));
+  if (extra.size === 0) return;
+
+  await knex('up_permissions_role_lnk')
+    .where('role_id', role.id)
+    .whereIn('permission_id', linked.filter((row) => extra.has(row.action)).map((row) => row.id))
+    .del();
+  strapi.log.info(`[Permissions] ${roleType}: unlinked ${extra.size} permissions outside its list: ${[...extra].join(', ')}`);
+}
+
+/**
  * Main permission setup function
  */
 export async function setupPermissions(strapi: any): Promise<void> {
   strapi.log.info('[Permissions] Starting permission setup...');
   
   try {
-    // Setup authenticated permissions
-    await setupRolePermissions(strapi, 'authenticated', AUTHENTICATED_PERMISSIONS);
+    // Setup authenticated permissions. In holder mode the role is also pruned
+    // to the holder list, so permissions removed by an operator stay removed.
+    const mode = authenticatedRoleMode(process.env.AUTHENTICATED_ROLE_MODE);
+    strapi.log.info(`[Permissions] Authenticated role mode: ${mode}`);
+    await setupRolePermissions(strapi, 'authenticated', authenticatedPermissions(mode));
+    if (mode === 'holder') {
+      await pruneRolePermissions(strapi, 'authenticated', HOLDER_PERMISSIONS);
+    }
 
     // Setup public permissions
     await setupRolePermissions(strapi, 'public', PUBLIC_PERMISSIONS);

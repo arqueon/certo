@@ -25,7 +25,7 @@ roles actually exist out of the box:
 | Role | Can | Exists by default? |
 |---|---|---|
 | `public` | Read achievements/profiles/credentials, verify/validate a credential | Yes |
-| `authenticated` | Full CRUD on credentials/achievements/profiles, custom endpoints (`me`, `myIssuedCredentials`, etc.) | Yes |
+| `authenticated` | Full CRUD on credentials/achievements/profiles, custom endpoints (`me`, `myIssuedCredentials`, etc.). With `AUTHENTICATED_ROLE_MODE=holder`: only read/export own credentials and verify, enforced on every start | Yes |
 | `issuer` | Issue/revoke/import/export credentials, manage achievements | No — an admin must create it in the admin panel |
 | `reviewer` | Read/verify everything, no create/update/delete | No — same as issuer |
 | `viewer` | Read-only (narrower than reviewer — no evidence) | No — same as issuer |
@@ -46,7 +46,7 @@ roles actually exist out of the box:
 | Role | Can | Exists by default? |
 |---|---|---|
 | `public` | Read achievements/profiles/credentials, verify/validate a credential | Yes |
-| `authenticated` | Full CRUD on credentials/achievements/profiles, custom endpoints (`me`, `myIssuedCredentials`, etc.) | Yes |
+| `authenticated` | Full CRUD on credentials/achievements/profiles, custom endpoints (`me`, `myIssuedCredentials`, etc.). With `AUTHENTICATED_ROLE_MODE=holder`: only read/export own credentials and verify, enforced on every start | Yes |
 | `issuer` | Issue/revoke/import/export credentials, manage achievements | No — an admin must create it in the admin panel |
 | `reviewer` | Read/verify everything, no create/update/delete | No — same as issuer |
 | `viewer` | Read-only (narrower than reviewer — no evidence) | No — same as issuer |
