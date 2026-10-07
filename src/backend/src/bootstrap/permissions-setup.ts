@@ -244,52 +244,27 @@ async function setupRolePermissions(strapi: any, roleType: string, permissions: 
   }
 
   let created = 0;
-  let linked = 0;
 
   for (const action of permissions) {
     try {
-      // Check if permission exists
-      let permission = await strapi
+      // Each role owns its own permission row (role is manyToOne). Looking
+      // the row up by action alone used to return another role's row and
+      // re-link it here, which took the permission away from that role.
+      const existing = await strapi
         .query('plugin::users-permissions.permission')
-        .findOne({ where: { action } });
+        .findOne({ where: { action, role: role.id } });
+      if (existing) continue;
 
-      // Create permission if it doesn't exist
-      if (!permission) {
-        permission = await strapi
-          .query('plugin::users-permissions.permission')
-          .create({ data: { action } });
-        created++;
-      }
-
-      // Check if permission is already linked to role
-      const existingLink = await strapi.db.query('plugin::users-permissions.permission').findOne({
-        where: { 
-          action,
-        },
-        populate: ['role'],
-      });
-
-      // Link permission to role if not already linked
-      const isLinked = existingLink?.role?.id === role.id;
-      
-      if (!isLinked) {
-        // Use raw query to create the link
-        await strapi.db.connection.raw(`
-          INSERT INTO up_permissions_role_lnk (permission_id, role_id, permission_ord)
-          VALUES (?, ?, 1)
-          ON CONFLICT DO NOTHING
-        `, [permission.id, role.id]);
-        linked++;
-      }
+      await strapi
+        .query('plugin::users-permissions.permission')
+        .create({ data: { action, role: role.id } });
+      created++;
     } catch (error) {
-      // Ignore duplicate key errors
-      if (!String(error).includes('duplicate key')) {
-        strapi.log.warn(`[Permissions] Could not set ${action}: ${error instanceof Error ? error.message : error}`);
-      }
+      strapi.log.warn(`[Permissions] Could not set ${action}: ${error instanceof Error ? error.message : error}`);
     }
   }
 
-  strapi.log.info(`[Permissions] ${roleType}: created ${created} permissions, linked ${linked} to role`);
+  strapi.log.info(`[Permissions] ${roleType}: created ${created} permissions`);
 }
 
 /**
@@ -332,6 +307,12 @@ export async function setupPermissions(strapi: any): Promise<void> {
     await setupRolePermissions(strapi, 'authenticated', authenticatedPermissions(mode));
     if (mode === 'holder') {
       await pruneRolePermissions(strapi, 'authenticated', HOLDER_PERMISSIONS);
+      // The issuing rights Authenticated no longer has go to the service role
+      // the backend integrations log in with, if one is configured.
+      const serviceRole = process.env.ISSUER_SERVICE_ROLE_TYPE?.trim();
+      if (serviceRole) {
+        await setupRolePermissions(strapi, serviceRole, AUTHENTICATED_PERMISSIONS);
+      }
     }
 
     // Setup public permissions

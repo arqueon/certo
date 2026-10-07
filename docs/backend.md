@@ -166,7 +166,13 @@ goes through a separate service role. In that mode `authenticated` only gets
 the holder list (read and export their own credentials, verify) and, on every
 start, any other permission linked to it is unlinked, so a restart no longer
 re-grants `issue`, `revoke` or `rotateSigningKey`. The default (`issuer`)
-keeps the upstream behavior.
+keeps the upstream behavior. With `ISSUER_SERVICE_ROLE_TYPE` set (for example
+`servicio_de_emision`), the full issuer list that `authenticated` no longer has
+is seeded on that role instead.
+
+Each role gets its own permission row. The bootstrap used to look a permission
+up by action only and link another role's row to the role being seeded, which
+took that permission away from the other role on every start.
 
 There used to be a second, unreferenced implementation of similar logic at
 `src/bootstrap.ts` (Strapi 5 only auto-loads `src/index.ts`, not a standalone
