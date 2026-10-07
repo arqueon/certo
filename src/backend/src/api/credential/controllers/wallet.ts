@@ -6,7 +6,8 @@ export default {
     ctx.set('Cache-Control', 'private, no-store')
     const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
     if (!isCredentialOwner(credential, ctx.state.user?.id)) return ctx.forbidden('Only the holder may access this credential')
-    try { return { data: await strapi.service('api::credential.wallet-offer').create(credential) } }
+    const addWallet = ctx.request.body?.addWallet === true
+    try { return { data: await strapi.service('api::credential.wallet-offer').create(credential, { addWallet }) } }
     catch (error) {
       if (error.status === 409) { ctx.status = 409; return { error: { status: 409, message: error.message } } }
       throw error
@@ -17,6 +18,18 @@ export default {
     const credential = await strapi.service('api::credential.holder-access').find(ctx.params.id)
     if (!isCredentialOwner(credential, ctx.state.user?.id)) return ctx.forbidden('Only the holder may access this credential')
     return { data: await strapi.service('api::credential.wallet-offer').summary(credential) }
+  },
+  async wallets(ctx) {
+    ctx.set('Cache-Control', 'private, no-store')
+    if (!ctx.state.user?.id) return ctx.unauthorized()
+    return { data: await strapi.service('api::credential.holder-wallets').list(ctx.state.user.id) }
+  },
+  async removeWallet(ctx) {
+    ctx.set('Cache-Control', 'private, no-store')
+    if (!ctx.state.user?.id) return ctx.unauthorized()
+    const id = Number(ctx.params.walletId)
+    if (!Number.isInteger(id) || !await strapi.service('api::credential.holder-wallets').remove(ctx.state.user.id, id)) return ctx.notFound()
+    ctx.status = 204
   },
   async exchange(ctx) {
     ctx.set('Cache-Control', 'no-store')

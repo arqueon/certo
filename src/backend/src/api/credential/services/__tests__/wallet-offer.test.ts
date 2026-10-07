@@ -55,9 +55,10 @@ describe('private wallet offers', () => {
   test('counts distinct wallets, with only owner-facing copy metadata', async () => {
     const rows = [{ holderDid: 'did:key:a', boundAt: '2026-10-04' }, { holderDid: 'did:key:a', boundAt: '2026-10-05' }]
     const findMany = jest.fn().mockResolvedValue(rows)
-    const service = walletOffer({ strapi: { db: { query: uid => { expect(uid).toBe(COPY_UID); return { findMany } } } } })
+    const count = jest.fn().mockResolvedValue(0)
+    const service = walletOffer({ strapi: { db: { query: uid => (uid === COPY_UID ? { findMany } : { count }) } } })
     service.eligible = async () => true
-    expect(await service.summary({ id: 1 })).toMatchObject({ walletCount: 1, copies: rows, revocation: 'shared' })
+    expect(await service.summary({ id: 1 })).toMatchObject({ walletCount: 1, copies: rows, revocation: 'shared', rejectedWallet: false })
     expect(findMany.mock.calls[0][0].select).not.toContain('signedCredential')
   })
   test('shares IP quota across exchange identifiers and does not trust forwarded headers', async () => {

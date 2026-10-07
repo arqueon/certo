@@ -1,0 +1,42 @@
+{
+  "kind": "collectionType",
+  "collectionName": "holder_wallets",
+  "info": {
+    "singularName": "holder-wallet",
+    "pluralName": "holder-wallets",
+    "displayName": "holder-wallet",
+    "description": "Wallets a holder added to receive copies of their credentials. Private, no CRUD routes."
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {
+    "content-manager": {
+      "visible": false
+    },
+    "content-type-builder": {
+      "visible": false
+    }
+  },
+  "attributes": {
+    "ownerId": {
+      "type": "integer",
+      "required": true,
+      "private": true
+    },
+    "holderDid": {
+      "type": "text",
+      "required": true,
+      "private": true
+    },
+    "addedAt": {
+      "type": "datetime",
+      "required": true,
+      "private": true
+    },
+    "removedAt": {
+      "type": "datetime",
+      "private": true
+    }
+  }
+}

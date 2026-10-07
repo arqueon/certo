@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import QRCode from 'qrcode'
 import { apiClient } from '~/api/api-client'
-import { walletCountdown, shortWalletDid } from '~/utils/wallet'
+import { walletCountdown } from '~/utils/wallet'
 
 const props = defineProps<{ credentialId: string }>()
 const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
 const appName = String(config.public.walletAppName || 'Cartera UDGPlus')
-interface Summary { eligible: boolean; legacy: boolean; revoked?: boolean; revocationReason?: string; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
+interface Summary { eligible: boolean; legacy: boolean; revoked?: boolean; revocationReason?: string; rejectedWallet?: boolean; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
 interface Offer { exchangeUrl: string; walletUrl: string; qrContent: string; interactionUrl?: string; deepLink?: string; expiresAt: string }
 const summary = ref<Summary | null>(null)
 const offer = ref<Offer | null>(null)
@@ -17,6 +17,7 @@ const qr = ref('')
 // a phone camera opens Certo's page with one button per wallet.
 const qrUrl = computed(() => offer.value ? (offer.value.interactionUrl || offer.value.qrContent) : '')
 const busy = ref(false)
+const addingWallet = ref(false)
 const failed = ref(false)
 const expanded = ref(false)
 const now = ref(Date.now())
@@ -42,14 +43,15 @@ async function refresh() {
   } finally { polling = false }
 }
 function stopPolling() { if (poll) clearInterval(poll); poll = undefined }
-async function createOffer() {
+async function createOffer(addWallet = false) {
+  addingWallet.value = addWallet
   busy.value = true; failed.value = false; expanded.value = true
   offer.value = null; qr.value = ''; stopPolling()
   const current = ++generation
   try {
     await refresh()
     if (!summary.value?.eligible) return
-    const response = await apiClient.post<{ data: Offer }>(`${base.value}/wallet-offer`, {})
+    const response = await apiClient.post<{ data: Offer }>(`${base.value}/wallet-offer`, addWallet ? { addWallet: true } : {})
     const image = await QRCode.toDataURL(response.data.interactionUrl || response.data.qrContent, { width: 320, margin: 4, errorCorrectionLevel: 'M' })
     if (disposed || current !== generation) return
     copyCount = summary.value.copies.length
@@ -67,7 +69,7 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
 
 <template>
   <section class="holder-wallet my-4 space-y-3" :aria-label="t('portal.wallet.save')" data-testid="holder-wallet">
-    <button class="brand-button" :disabled="busy || (!!summary && !summary.eligible)" :aria-expanded="expanded" @click="createOffer">
+    <button class="brand-button" :disabled="busy || (!!summary && !summary.eligible)" :aria-expanded="expanded" @click="createOffer()">
       {{ busy ? t('portal.wallet.creating') : t('portal.wallet.save') }}
     </button>
     <p v-if="summary?.legacy">{{ t('portal.wallet.legacy') }}</p>
@@ -82,18 +84,20 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
         <img :src="qr" :alt="t('portal.wallet.appQrAlt', { name: appName })" class="wallet-qr" width="320" height="320">
         <p role="timer" aria-live="off">{{ t('portal.wallet.expires', { time: countdown }) }}</p>
         <a :href="qrUrl" rel="noreferrer" class="brand-button wallet-open">{{ t('portal.wallet.openHere') }}</a>
+        <p v-if="addingWallet" class="text-sm font-semibold">{{ t('portal.wallet.addingHelp') }}</p>
         <p class="text-sm">{{ t('portal.wallet.once') }}</p>
       </div>
       <p v-if="expired" role="status">{{ t('portal.wallet.expired') }}</p>
-      <button v-if="offer" class="underline" :disabled="busy" @click="createOffer">{{ t('portal.wallet.new') }}</button>
+      <button v-if="offer" class="underline" :disabled="busy" @click="createOffer(addingWallet)">{{ t('portal.wallet.new') }}</button>
     </div>
+    <p v-if="summary?.rejectedWallet" role="alert" class="wallet-rejected">{{ t('portal.wallet.rejected') }}</p>
+    <button v-if="summary?.eligible && summary.copies.length" class="underline wallet-add" :disabled="busy" @click="createOffer(true)">{{ t('portal.wallet.addAnother') }}</button>
     <p v-if="failed" role="alert">{{ t('portal.wallet.error') }}</p>
     <div v-if="summary?.copies.length" class="space-y-2" aria-live="polite">
       <p class="font-semibold">{{ t(summary.walletCount === 1 ? 'portal.wallet.savedOne' : 'portal.wallet.saved', { count: summary.walletCount }) }}</p>
       <ul class="space-y-2">
         <li v-for="copy in summary.copies" :key="copy.credentialId">
-          <abbr :title="copy.holderDid">{{ shortWalletDid(copy.holderDid) }}</abbr>
-          · <time :datetime="copy.boundAt">{{ new Date(copy.boundAt).toLocaleString(locale) }}</time>
+          {{ t('portal.wallet.savedOn') }} <time :datetime="copy.boundAt">{{ new Date(copy.boundAt).toLocaleString(locale) }}</time>
         </li>
       </ul>
       <p>{{ t(appUrl ? 'portal.wallet.confirmSavedApp' : 'portal.wallet.confirmSaved') }}</p>

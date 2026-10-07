@@ -731,7 +731,22 @@
       "sharedRevocation": "These copies share revocation with the original credential. A single copy cannot be revoked separately: revoking the original revokes every copy.",
       "savedOne": "Saved to 1 wallet",
       "confirmSaved": "Check in LCW that you accepted and saved the copy.",
-      "openHere": "Open on this device"
+      "openHere": "Open on this device",
+      "addAnother": "Using another wallet? Add it",
+      "addingHelp": "This code adds a new wallet to your account. Only scan it with a wallet of yours.",
+      "rejected": "A wallet you have not added tried to save this credential and was refused. If it is yours, press “Using another wallet? Add it” and scan the code with it.",
+      "savedOn": "Saved on",
+      "walletsTitle": "My wallets",
+      "walletsHelp": "The wallets where you saved your credentials. Only you can add one, from this portal.",
+      "walletAccount": "Cartera UDGPlus (account)",
+      "walletDevice": "Wallet on a device",
+      "walletAdded": "Added on {date}",
+      "walletCredentials": "{count} credentials saved",
+      "walletCredentialsOne": "1 credential saved",
+      "walletRemove": "Remove",
+      "walletRemoveConfirm": "Remove this wallet? It will not receive new copies. The ones it holds stay valid.",
+      "walletsEmpty": "You have no wallets yet. Press “Save to my wallet” on a credential to add the first one.",
+      "walletsError": "Your wallets could not be loaded."
     }
   }
 }

@@ -731,7 +731,22 @@
       "sharedRevocation": "Estas copias comparten la revocación con la credencial original. No se puede revocar una sola copia: al revocar la original, todas quedan revocadas.",
       "savedOne": "Guardada en 1 cartera",
       "confirmSaved": "Comprueba en LCW que aceptaste y guardaste la copia.",
-      "openHere": "Abrir en este dispositivo"
+      "openHere": "Abrir en este dispositivo",
+      "addAnother": "¿Usas otra cartera? Agrégala",
+      "addingHelp": "Este código agrega una cartera nueva a tu cuenta. Escanéalo solo con una cartera tuya.",
+      "rejected": "Una cartera que no has agregado intentó guardar esta credencial y no se le entregó. Si es tuya, pulsa «¿Usas otra cartera? Agrégala» y escanea el código con ella.",
+      "savedOn": "Guardada el",
+      "walletsTitle": "Mis carteras",
+      "walletsHelp": "Las carteras donde guardaste tus credenciales. Solo tú puedes agregar una, desde este portal.",
+      "walletAccount": "Cartera UDGPlus (cuenta)",
+      "walletDevice": "Cartera en un dispositivo",
+      "walletAdded": "Agregada el {date}",
+      "walletCredentials": "{count} credenciales guardadas",
+      "walletCredentialsOne": "1 credencial guardada",
+      "walletRemove": "Quitar",
+      "walletRemoveConfirm": "¿Quitar esta cartera? Ya no podrá recibir copias nuevas. Las que ya tiene siguen siendo válidas.",
+      "walletsEmpty": "Aún no tienes carteras. Pulsa «Guardar en mi cartera» en una credencial para agregar la primera.",
+      "walletsError": "No se pudieron cargar tus carteras."
     }
   }
 }

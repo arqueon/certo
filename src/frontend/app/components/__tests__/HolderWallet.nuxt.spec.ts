@@ -64,14 +64,26 @@ describe('holder wallet', () => {
     expect(wrapper.text()).toContain('Generate a new one')
     wrapper.unmount()
   })
-  it('shows DID/date and joint revocation without a misleading revoke button', async () => {
+  it('shows saved date and joint revocation without exposing the DID', async () => {
     vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { ...summary, walletCount: 1, copies: [{ holderDid: 'did:key:' + 'x'.repeat(40), boundAt: '2026-10-04T12:00:00Z', credentialId: 'copy' }] } })
     const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
     await flushPromises()
     expect(wrapper.text()).toContain('Saved to 1 wallet')
-    expect(wrapper.find('abbr').attributes('title')).toContain('did:key:')
+    expect(wrapper.text()).not.toContain('did:key:')
     expect(wrapper.find('time').attributes('datetime')).toBe('2026-10-04T12:00:00Z')
     expect(wrapper.text()).toContain('cannot be revoked separately')
+    wrapper.unmount()
+  })
+  it('creates an add-wallet offer on purpose and explains a refused wallet', async () => {
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { ...summary, rejectedWallet: true, walletCount: 1, copies: [{ holderDid: 'did:key:a', boundAt: '2026-10-04T12:00:00Z', credentialId: 'copy' }] } })
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { interactionUrl: 'https://i.example/api/exchanges/x?iuv=1', qrContent: 'x', expiresAt: new Date(Date.now() + 600000).toISOString() } })
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises()
+    expect(wrapper.find('.wallet-rejected').exists()).toBe(true)
+    await wrapper.find('button.wallet-add').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('img').exists()).toBe(true))
+    expect(post).toHaveBeenCalledWith('/api/holder/credentials/fixture/wallet-offer', { addWallet: true })
+    expect(wrapper.text()).toContain('adds a new wallet')
     wrapper.unmount()
   })
   it('clamps countdown and abbreviates only long DIDs', () => {
