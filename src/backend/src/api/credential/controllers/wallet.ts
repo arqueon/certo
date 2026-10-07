@@ -1,4 +1,5 @@
 import { isCredentialOwner } from '../services/holder-access'
+import { walletLanding, wantsHtml } from '../services/wallet-landing'
 
 export default {
   async offer(ctx) {
@@ -20,6 +21,26 @@ export default {
   async exchange(ctx) {
     ctx.set('Cache-Control', 'no-store')
     ctx.set('Referrer-Policy', 'no-referrer')
+    ctx.vary('Accept')
+    // A browser opening the interaction URL (the portal's single QR, scanned
+    // with the camera) gets a page with one button per wallet; wallets ask
+    // for JSON and keep getting the protocols map.
+    if (ctx.method === 'GET' && ctx.query.iuv === '1' && wantsHtml((...types) => ctx.accepts(...types))) {
+      const base = new URL(process.env.PUBLIC_URL || strapi.config.get('server.url'))
+      let available = true
+      try { await strapi.service('api::credential.wallet-offer').pending(ctx.params.exchangeId) } catch { available = false }
+      const { html, csp } = walletLanding({
+        exchangeUrl: `${base.origin}/api/exchanges/${ctx.params.exchangeId}`,
+        available,
+        walletAppUrl: process.env.WALLET_APP_URL,
+        walletAppName: process.env.WALLET_APP_NAME,
+      })
+      ctx.set('Content-Security-Policy', csp)
+      ctx.status = available ? 200 : 404
+      ctx.type = 'text/html; charset=utf-8'
+      ctx.body = html
+      return
+    }
     try {
       const service = strapi.service('api::credential.wallet-offer')
       if (ctx.method === 'GET') {
