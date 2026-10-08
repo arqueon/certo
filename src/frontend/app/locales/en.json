@@ -703,7 +703,7 @@
     },
     "wallet": {
       "confirmSavedApp": "Check in your wallet that you accepted and saved the copy.",
-      "appHelp": "Save your credential in {name}. Open the web wallet here or scan the QR code with your phone.",
+      "appHelp": "Scan the code with your phone camera, or with the {name} scanner, and confirm in your wallet.",
       "appQrAlt": "QR code to save the credential in {name}",
       "openApp": "Open in {name}",
       "lcwAlternative": "Do you use Learner Credential Wallet?",
@@ -719,7 +719,7 @@
       "revoked": "Revoked: it can no longer be saved to a wallet.",
       "unavailable": "This credential cannot be saved to a wallet. Check its validity dates and status.",
       "help": "On your phone, use the free app",
-      "once": "This QR code and link can be used once and will expire. Accepting the offer gives you a copy bound to your wallet identity. Do not share this link or QR code.",
+      "once": "The code works once and expires in a few minutes. Do not share it.",
       "publicQr": "The public verification QR code only checks the credential; it cannot save it to your wallet.",
       "qrAlt": "Single-use QR code to save the credential to LCW",
       "expires": "Expires in {time}",
@@ -730,7 +730,8 @@
       "saved": "Saved to {count} wallets",
       "sharedRevocation": "These copies share revocation with the original credential. A single copy cannot be revoked separately: revoking the original revokes every copy.",
       "savedOne": "Saved to 1 wallet",
-      "confirmSaved": "Check in LCW that you accepted and saved the copy."
+      "confirmSaved": "Check in LCW that you accepted and saved the copy.",
+      "openHere": "Open on this device"
     }
   }
 }

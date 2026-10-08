@@ -4,6 +4,16 @@ La titular inicia sesión, abre su credencial y pulsa **Guardar en mi wallet**. 
 
 El enlace y el QR son una autorización temporal: quien los reciba puede reclamar esa copia. No deben compartirse. Caducan a los diez minutos y permiten **un solo canje exitoso**. El QR público de verificación sigue siendo independiente: no da acceso al intercambio.
 
+## Un solo QR (decisión del 7 de octubre de 2026)
+
+El portal muestra **un solo QR y un botón**, los dos con el enlace de interacción VCALM `…/api/exchanges/:id?iuv=1`. Sustituyen los tres QR anteriores (cartera web, LCW y «otras carteras»).
+
+- **Las carteras** lo piden con `Accept: application/json` y reciben `{protocols: {vcapi}}`, como antes. Lo leen el lector de la Cartera UDGPlus web (Freewallet) y la app Cartera UDGPlus (fork de LCW, que además registra el esquema `interaction:`).
+- **Un navegador** que lo abre (la cámara del celular, o el botón «Abrir en este dispositivo») recibe una página HTML con un botón por cartera: «Abrir en Cartera UDGPlus» (enlace de la cartera web, si `WALLET_APP_URL` está configurado), «Abrir en la app» (`interaction:` + el enlace) y «Copiar enlace». Si la oferta caducó o ya se usó, la página lo explica, con estado 404 y sin enlaces.
+- La página lleva `Content-Security-Policy` propia con nonce, `Cache-Control: no-store`, `Referrer-Policy: no-referrer` y `Vary: Accept`. El HTML solo se sirve si el cliente prefiere `text/html` sobre JSON; sin cabecera `Accept` se responde JSON.
+
+Variables del backend: `WALLET_APP_URL` (cartera web; sin valor se oculta su botón) y `WALLET_APP_NAME` (por defecto «Cartera UDGPlus»).
+
 ## Protocolo elegido y fuentes verificadas
 
 Se implementa **VC-API exchanges con una Verifiable Presentation Request (VPR) `DIDAuthentication`**, iniciado mediante la invitación JSON `protocols.vcapi` de LCW. No es OID4VCI. Las referencias se consultaron el **4 de octubre de 2026**; los enlaces al código fijan la revisión y no dependen de futuros cambios de `main`.
