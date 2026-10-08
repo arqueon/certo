@@ -17,6 +17,28 @@ export function walletKind(did: string): 'account' | 'device' {
   return /^did:(webvh|web):/.test(did) ? 'account' : 'device'
 }
 
+export interface WalletClient { client: 'web' | 'app'; clientOrigin: string | null }
+
+/**
+ * Which kind of wallet redeemed, from the request: a web wallet runs in a
+ * browser, which sends its Origin on a cross-site POST; a native app sends
+ * none. Lets "Mis carteras" say "web" or "app" instead of four identical rows.
+ */
+export function walletClient(origin?: string | null): WalletClient {
+  try {
+    const url = new URL(origin || '')
+    if (url.protocol === 'https:' || url.protocol === 'http:') return { client: 'web', clientOrigin: url.origin }
+  } catch {}
+  return { client: 'app', clientOrigin: null }
+}
+
+/** The name the portal shows: the configured web wallet's name, or its host. */
+export function walletName(client: string | null, clientOrigin: string | null, env = process.env): string | null {
+  if (client !== 'web' || !clientOrigin) return null
+  try { if (env.WALLET_APP_URL && new URL(env.WALLET_APP_URL).origin === clientOrigin && env.WALLET_APP_NAME) return env.WALLET_APP_NAME } catch {}
+  return new URL(clientOrigin).host
+}
+
 export default ({ strapi }) => ({
   /**
    * Copies issued before wallets were tracked count as added wallets, so
@@ -51,13 +73,19 @@ export default ({ strapi }) => ({
     return { allowed: false, isNew: false }
   },
 
-  async add(ownerId: number, holderDid: string) {
+  async add(ownerId: number, holderDid: string, client?: WalletClient) {
     const removed = await strapi.db.query(WALLET_UID).findOne({ where: { ownerId, holderDid } })
-    if (removed) return strapi.db.query(WALLET_UID).update({ where: { id: removed.id }, data: { removedAt: null, addedAt: new Date().toISOString() } })
-    return strapi.db.query(WALLET_UID).create({ data: { ownerId, holderDid, addedAt: new Date().toISOString() } })
+    if (removed) return strapi.db.query(WALLET_UID).update({ where: { id: removed.id }, data: { removedAt: null, addedAt: new Date().toISOString(), ...client } })
+    return strapi.db.query(WALLET_UID).create({ data: { ownerId, holderDid, addedAt: new Date().toISOString(), ...client } })
   },
 
-  /** The portal's list: kind, dates and how many credentials each holds. No DIDs. */
+  /** Wallets added before the kind was recorded learn it on their next save. */
+  async identify(ownerId: number, holderDid: string, client: WalletClient) {
+    const wallet = await strapi.db.query(WALLET_UID).findOne({ where: { ownerId, holderDid, removedAt: null } })
+    if (wallet && !wallet.client) await strapi.db.query(WALLET_UID).update({ where: { id: wallet.id }, data: client })
+  },
+
+  /** The portal's list: kind, web/app and name, dates and credential count. No DIDs. */
   async list(ownerId: number) {
     const wallets = await this.active(ownerId)
     const offers = await strapi.db.query(OFFER_UID).findMany({ where: { ownerId, status: 'used' }, select: ['id'] })
@@ -67,7 +95,8 @@ export default ({ strapi }) => ({
     return wallets.map((w) => {
       const own = copies.filter((c) => c.holderDid === w.holderDid)
       return {
-        id: w.id, kind: walletKind(w.holderDid), addedAt: w.addedAt,
+        id: w.id, kind: walletKind(w.holderDid), client: w.client || null,
+        name: walletName(w.client || null, w.clientOrigin || null), addedAt: w.addedAt,
         credentials: new Set(own.map((c) => c.credential?.id)).size,
         lastSavedAt: own.map((c) => c.boundAt).sort().pop() || null,
       }

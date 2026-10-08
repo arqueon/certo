@@ -6,16 +6,19 @@ import { apiClient } from '@/api/api-client'
 
 afterEach(() => vi.restoreAllMocks())
 const wallets = [
-  { id: 1, kind: 'account', addedAt: '2026-10-07T10:00:00Z', credentials: 3, lastSavedAt: '2026-10-07T10:00:00Z' },
-  { id: 2, kind: 'device', addedAt: '2026-10-05T10:00:00Z', credentials: 1, lastSavedAt: null },
+  { id: 1, kind: 'account', client: 'web', name: 'Cartera UDGPlus', addedAt: '2026-10-07T10:00:00Z', credentials: 3, lastSavedAt: '2026-10-07T10:00:00Z' },
+  { id: 2, kind: 'device', client: 'app', name: null, addedAt: '2026-10-05T10:00:00Z', credentials: 1, lastSavedAt: null },
+  { id: 3, kind: 'device', client: null, name: null, addedAt: '2026-10-04T10:00:00Z', credentials: 1, lastSavedAt: null },
 ]
 describe('holder wallets', () => {
   it('lists wallets by kind and counts, without DIDs', async () => {
     vi.spyOn(apiClient, 'get').mockResolvedValue({ data: wallets })
     const wrapper = await mountSuspended(HolderWallets)
     await flushPromises()
-    expect(wrapper.text()).toContain('Cartera UDGPlus (account)')
-    expect(wrapper.text()).toContain('Wallet on a device')
+    expect(wrapper.text()).toContain('Cartera UDGPlus (web)')
+    expect(wrapper.text()).toContain("in your account's name")
+    expect(wrapper.text()).toContain('Phone app')
+    expect(wrapper.text()).toContain('Unidentified wallet')
     expect(wrapper.text()).toContain('3 credentials saved')
     expect(wrapper.text()).toContain('1 credential saved')
     expect(wrapper.text()).not.toContain('did:')
@@ -33,7 +36,7 @@ describe('holder wallets', () => {
     await flushPromises()
     expect(del).toHaveBeenCalledWith('/api/holder/wallets/2')
     expect(get).toHaveBeenCalledTimes(2)
-    expect(wrapper.text()).not.toContain('Wallet on a device')
+    expect(wrapper.text()).not.toContain('Phone app')
     wrapper.unmount()
   })
   it('explains an empty list', async () => {

@@ -2,6 +2,7 @@ import { randomBytes, randomUUID, createHash } from 'node:crypto'
 import { signCredential, verifyCredentialStatus, verifyDataIntegrity, verificationLoader } from '../../../utils/data-integrity'
 import { issuerDid } from '../../../utils/issuer-did'
 import { verifyWalletPresentation } from '../../../utils/wallet-presentation'
+import type { WalletClient } from './holder-wallets'
 
 export const OFFER_UID = 'api::wallet-offer.wallet-offer'
 export const COPY_UID = 'api::wallet-copy.wallet-copy'
@@ -64,7 +65,7 @@ export default ({ strapi }) => ({
     return offer
   },
 
-  async exchange(token: string, body: any) {
+  async exchange(token: string, body: any, client: WalletClient = { client: 'app', clientOrigin: null }) {
     const offer = await this.pending(token)
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw unavailable()
     if (Object.keys(body).length === 0) return { verifiablePresentationRequest: {
@@ -100,7 +101,8 @@ export default ({ strapi }) => ({
         credential: credential.id, offer: offer.id, holderDid, credentialId: copy.id,
         signedCredential, boundAt: new Date().toISOString(),
       } })
-      if (admission.isNew) await wallets.add(offer.ownerId, holderDid)
+      if (admission.isNew) await wallets.add(offer.ownerId, holderDid, client)
+      else await wallets.identify(offer.ownerId, holderDid, client)
     })
     return { verifiablePresentation: {
       '@context': ['https://www.w3.org/ns/credentials/v2'], type: ['VerifiablePresentation'],

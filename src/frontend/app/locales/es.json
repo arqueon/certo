@@ -738,15 +738,18 @@
       "savedOn": "Guardada el",
       "walletsTitle": "Mis carteras",
       "walletsHelp": "Las carteras donde guardaste tus credenciales. Solo tú puedes agregar una, desde este portal.",
-      "walletAccount": "Cartera UDGPlus (cuenta)",
-      "walletDevice": "Cartera en un dispositivo",
       "walletAdded": "Agregada el {date}",
       "walletCredentials": "{count} credenciales guardadas",
       "walletCredentialsOne": "1 credencial guardada",
       "walletRemove": "Quitar",
       "walletRemoveConfirm": "¿Quitar esta cartera? Ya no podrá recibir copias nuevas. Las que ya tiene siguen siendo válidas.",
       "walletsEmpty": "Aún no tienes carteras. Pulsa «Guardar en mi cartera» en una credencial para agregar la primera.",
-      "walletsError": "No se pudieron cargar tus carteras."
+      "walletsError": "No se pudieron cargar tus carteras.",
+      "walletWebNamed": "{name} (web)",
+      "walletWeb": "Cartera web",
+      "walletApp": "App en el celular",
+      "walletUnknown": "Cartera sin identificar (se identificará la próxima vez que guardes en ella)",
+      "walletAccountSuffix": "· a nombre de tu cuenta"
     }
   }
 }

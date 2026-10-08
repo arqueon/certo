@@ -37,6 +37,14 @@
     "removedAt": {
       "type": "datetime",
       "private": true
+    },
+    "client": {
+      "type": "string",
+      "private": true
+    },
+    "clientOrigin": {
+      "type": "string",
+      "private": true
     }
   }
 }

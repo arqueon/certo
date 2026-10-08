@@ -1,5 +1,6 @@
 import { isCredentialOwner } from '../services/holder-access'
 import { walletLanding, wantsHtml } from '../services/wallet-landing'
+import { walletClient } from '../services/holder-wallets'
 
 export default {
   async offer(ctx) {
@@ -63,7 +64,7 @@ export default {
         return { protocols: { vcapi: `${base.origin}/api/exchanges/${ctx.params.exchangeId}` } }
       }
       if (Buffer.byteLength(JSON.stringify(ctx.request.body || {})) > 16384) throw new Error('Invalid presentation')
-      return await service.exchange(ctx.params.exchangeId, ctx.request.body || {})
+      return await service.exchange(ctx.params.exchangeId, ctx.request.body || {}, walletClient(ctx.get('origin')))
     } catch {
       // Same envelope for unknown, expired, consumed and invalid presentations.
       ctx.status = 404

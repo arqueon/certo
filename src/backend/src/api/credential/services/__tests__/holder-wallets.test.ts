@@ -1,4 +1,4 @@
-import holderWallets, { WALLET_UID, walletKind } from '../holder-wallets'
+import holderWallets, { WALLET_UID, walletKind, walletClient, walletName } from '../holder-wallets'
 import { COPY_UID, OFFER_UID } from '../wallet-offer'
 
 /** In-memory stand-in for strapi.db.query over the three tables involved. */
@@ -30,6 +30,20 @@ describe('walletKind', () => {
     expect(walletKind('did:webvh:Qm123:example.org')).toBe('account')
     expect(walletKind('did:web:example.org:u:1')).toBe('account')
     expect(walletKind('did:key:z6Mk')).toBe('device')
+  })
+})
+
+describe('walletClient and walletName', () => {
+  it('a browser Origin means a web wallet; no Origin means an app', () => {
+    expect(walletClient('https://cartera.example.org')).toEqual({ client: 'web', clientOrigin: 'https://cartera.example.org' })
+    expect(walletClient(undefined)).toEqual({ client: 'app', clientOrigin: null })
+    expect(walletClient('null')).toEqual({ client: 'app', clientOrigin: null })
+  })
+  it('names the configured web wallet, other web wallets by host, apps not at all', () => {
+    const env = { WALLET_APP_URL: 'https://cartera.example.org', WALLET_APP_NAME: 'Cartera UDGPlus' }
+    expect(walletName('web', 'https://cartera.example.org', env)).toBe('Cartera UDGPlus')
+    expect(walletName('web', 'https://otra.example.net', env)).toBe('otra.example.net')
+    expect(walletName('app', null, env)).toBeNull()
   })
 })
 
@@ -77,8 +91,16 @@ describe('holder wallets list and removal', () => {
       copies: [{ offer: 7, holderDid: 'did:webvh:Qm:x', boundAt: '2026-10-07T10:00:00Z', credential: { id: 3 } }],
     })
     const list = await holderWallets({ strapi }).list(1)
-    expect(list).toEqual([{ id: 1, kind: 'account', addedAt: '2026-10-07', credentials: 1, lastSavedAt: '2026-10-07T10:00:00Z' }])
+    expect(list).toEqual([{ id: 1, kind: 'account', client: null, name: null, addedAt: '2026-10-07', credentials: 1, lastSavedAt: '2026-10-07T10:00:00Z' }])
     expect(JSON.stringify(list)).not.toContain('did:')
+  })
+  it('records web or app when added, and identifies older wallets on their next save', async () => {
+    const strapi = fakeStrapi({ wallets: [{ id: 1, ownerId: 1, holderDid: 'did:key:old', addedAt: 'x', removedAt: null }] })
+    const service = holderWallets({ strapi })
+    await service.add(1, 'did:key:new', { client: 'app', clientOrigin: null })
+    await service.identify(1, 'did:key:old', { client: 'web', clientOrigin: 'https://cartera.example.org' })
+    await service.identify(1, 'did:key:new', { client: 'web', clientOrigin: 'https://x.example' })
+    expect(strapi.tables[WALLET_UID].map((w) => w.client)).toEqual(['web', 'app'])
   })
   it('removes only the holder’s own wallet', async () => {
     const strapi = fakeStrapi({ wallets: [{ id: 1, ownerId: 1, holderDid: 'did:key:a', addedAt: 'x', removedAt: null }] })

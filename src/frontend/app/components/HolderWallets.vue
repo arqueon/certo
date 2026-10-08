@@ -1,15 +1,22 @@
 <script setup lang="ts">
 import { apiClient } from '~/api/api-client'
 
-// "Mis carteras": the wallets this holder added. No DIDs: a kind, dates and
-// how many credentials each holds. Removing one stops new copies only.
-interface Wallet { id: number; kind: 'account' | 'device'; addedAt: string; credentials: number; lastSavedAt: string | null }
+// "Mis carteras": the wallets this holder added. No DIDs: web or app (and the
+// web wallet's name), dates and how many credentials each holds. Removing one
+// stops new copies only.
+interface Wallet { id: number; kind: 'account' | 'device'; client: 'web' | 'app' | null; name: string | null; addedAt: string; credentials: number; lastSavedAt: string | null }
 const { t, locale } = useI18n()
 const wallets = ref<Wallet[] | null>(null)
 const failed = ref(false)
 const confirming = ref<number | null>(null)
 const removing = ref(false)
-const date = (value: string) => new Date(value).toLocaleDateString(locale.value, { dateStyle: 'long' })
+// Date and time: two wallets added the same day must still look different.
+const date = (value: string) => new Date(value).toLocaleString(locale.value, { dateStyle: 'long', timeStyle: 'short' })
+function label(wallet: Wallet) {
+  if (wallet.client === 'web') return wallet.name ? t('portal.wallet.walletWebNamed', { name: wallet.name }) : t('portal.wallet.walletWeb')
+  if (wallet.client === 'app') return t('portal.wallet.walletApp')
+  return t('portal.wallet.walletUnknown')
+}
 async function load() {
   failed.value = false
   try { wallets.value = (await apiClient.get<{ data: Wallet[] }>('/api/holder/wallets')).data }
@@ -33,7 +40,8 @@ onMounted(load)
     <ul v-else-if="wallets" class="space-y-3">
       <li v-for="wallet in wallets" :key="wallet.id" class="flex flex-wrap items-center justify-between gap-2">
         <span>
-          <strong>{{ t(wallet.kind === 'account' ? 'portal.wallet.walletAccount' : 'portal.wallet.walletDevice') }}</strong>
+          <strong>{{ label(wallet) }}</strong>
+          <template v-if="wallet.kind === 'account'"> {{ t('portal.wallet.walletAccountSuffix') }}</template>
           · {{ t('portal.wallet.walletAdded', { date: date(wallet.addedAt) }) }}
           · {{ wallet.credentials === 1 ? t('portal.wallet.walletCredentialsOne') : t('portal.wallet.walletCredentials', { count: wallet.credentials }) }}
         </span>
