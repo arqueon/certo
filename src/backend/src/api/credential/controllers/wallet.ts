@@ -32,6 +32,15 @@ export default {
     if (!Number.isInteger(id) || !await strapi.service('api::credential.holder-wallets').remove(ctx.state.user.id, id)) return ctx.notFound()
     ctx.status = 204
   },
+  async decideWallet(ctx) {
+    ctx.set('Cache-Control', 'private, no-store')
+    if (!ctx.state.user?.id) return ctx.unauthorized()
+    const id = Number(ctx.params.offerId)
+    const approve = ctx.request.body?.approve
+    if (!Number.isInteger(id) || typeof approve !== 'boolean') return ctx.badRequest()
+    if (!await strapi.service('api::credential.wallet-offer').decide(ctx.state.user.id, id, approve)) return ctx.notFound()
+    ctx.status = 204
+  },
   async exchange(ctx) {
     ctx.set('Cache-Control', 'no-store')
     ctx.set('Referrer-Policy', 'no-referrer')
@@ -65,7 +74,11 @@ export default {
       }
       if (Buffer.byteLength(JSON.stringify(ctx.request.body || {})) > 16384) throw new Error('Invalid presentation')
       return await service.exchange(ctx.params.exchangeId, ctx.request.body || {}, walletClient(ctx.get('origin')))
-    } catch {
+    } catch (error) {
+      if (error?.status === 202) {
+        ctx.status = 202
+        return { status: 'pending-approval', message: 'Confirm this new wallet in the microcredentials portal, then try again.' }
+      }
       // Same envelope for unknown, expired, consumed and invalid presentations.
       ctx.status = 404
       return { error: { status: 404, message: 'Exchange unavailable' } }

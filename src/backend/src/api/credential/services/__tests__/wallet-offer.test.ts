@@ -56,9 +56,10 @@ describe('private wallet offers', () => {
     const rows = [{ holderDid: 'did:key:a', boundAt: '2026-10-04' }, { holderDid: 'did:key:a', boundAt: '2026-10-05' }]
     const findMany = jest.fn().mockResolvedValue(rows)
     const count = jest.fn().mockResolvedValue(0)
-    const service = walletOffer({ strapi: { db: { query: uid => (uid === COPY_UID ? { findMany } : { count }) } } })
+    const findOne = jest.fn().mockResolvedValue(null)
+    const service = walletOffer({ strapi: { db: { query: uid => (uid === COPY_UID ? { findMany } : { count, findOne }) } } })
     service.eligible = async () => true
-    expect(await service.summary({ id: 1 })).toMatchObject({ walletCount: 1, copies: rows, revocation: 'shared', rejectedWallet: false })
+    expect(await service.summary({ id: 1 })).toMatchObject({ walletCount: 1, copies: rows, revocation: 'shared', rejectedWallet: false, pendingWallet: null })
     expect(findMany.mock.calls[0][0].select).not.toContain('signedCredential')
   })
   test('shares IP quota across exchange identifiers and does not trust forwarded headers', async () => {
@@ -71,5 +72,29 @@ describe('private wallet offers', () => {
       const blocked = context('three'); await middleware(blocked, next)
       expect(next).toHaveBeenCalledTimes(2); expect(blocked.status).toBe(429)
     } finally { process.env = saved }
+  })
+  test('a waiting new wallet is shown to the holder by kind and name, never by DID', async () => {
+    const saved = { ...process.env }
+    Object.assign(process.env, { WALLET_APP_URL: 'https://cartera.example.org', WALLET_APP_NAME: 'Cartera UDGPlus' })
+    try {
+      const findOne = jest.fn().mockResolvedValue({ id: 9, pendingHolderDid: 'did:key:new', pendingClient: 'web', pendingOrigin: 'https://cartera.example.org', requestedAt: '2026-10-07T21:47:00Z' })
+      const service = walletOffer({ strapi: { db: { query: () => ({ findOne }) } } })
+      const pending = await service.awaiting(1)
+      expect(pending).toEqual({ offerId: 9, client: 'web', name: 'Cartera UDGPlus', requestedAt: '2026-10-07T21:47:00Z' })
+      expect(JSON.stringify(pending)).not.toContain('did:')
+    } finally { process.env = saved }
+  })
+  test('the holder approves or refuses only their own waiting, unexpired offer', async () => {
+    const offer = { id: 9, ownerId: 1, status: 'pending', pendingHolderDid: 'did:key:new', expiresAt: new Date(Date.now() + 60000).toISOString() }
+    const findOne = jest.fn(async ({ where }) => (where.ownerId === offer.ownerId && where.id === offer.id ? offer : null))
+    const updateMany = jest.fn().mockResolvedValue({ count: 1 })
+    const service = walletOffer({ strapi: { db: { query: () => ({ findOne, updateMany }) } } })
+    expect(await service.decide(2, 9, true)).toBe(false)
+    expect(await service.decide(1, 9, true)).toBe(true)
+    expect(updateMany.mock.calls[0][0].data).toEqual({ approvedHolderDid: 'did:key:new' })
+    expect(await service.decide(1, 9, false)).toBe(true)
+    expect(updateMany.mock.calls[1][0].data.status).toBe('rejected')
+    const empty = walletOffer({ strapi: { db: { query: () => ({ findOne: async () => ({ ...offer, pendingHolderDid: null }), updateMany }) } } })
+    expect(await empty.decide(1, 9, true)).toBe(false)
   })
 })

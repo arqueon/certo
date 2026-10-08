@@ -8,7 +8,8 @@ const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
 const appName = String(config.public.walletAppName || 'Cartera UDGPlus')
-interface Summary { eligible: boolean; legacy: boolean; revoked?: boolean; revocationReason?: string; rejectedWallet?: boolean; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
+interface PendingWallet { offerId: number; client: 'web' | 'app' | null; name: string | null; requestedAt: string }
+interface Summary { eligible: boolean; legacy: boolean; revoked?: boolean; revocationReason?: string; rejectedWallet?: boolean; pendingWallet?: PendingWallet | null; walletCount: number; copies: { holderDid: string; boundAt: string; credentialId: string }[] }
 interface Offer { exchangeUrl: string; walletUrl: string; qrContent: string; interactionUrl?: string; deepLink?: string; expiresAt: string }
 const summary = ref<Summary | null>(null)
 const offer = ref<Offer | null>(null)
@@ -17,6 +18,26 @@ const qr = ref('')
 // a phone camera opens Certo's page with one button per wallet.
 const qrUrl = computed(() => offer.value ? (offer.value.interactionUrl || offer.value.qrContent) : '')
 const busy = ref(false)
+// A new wallet scanned the code: the holder confirms it here (decision of 7-oct-2026).
+const deciding = ref(false)
+const decided = ref<'approved' | 'refused' | null>(null)
+const pendingLabel = computed(() => {
+  const wallet = summary.value?.pendingWallet
+  if (!wallet) return ''
+  if (wallet.client === 'web') return wallet.name ? t('portal.wallet.walletWebNamed', { name: wallet.name }) : t('portal.wallet.walletWeb')
+  return wallet.client === 'app' ? t('portal.wallet.walletApp') : t('portal.wallet.walletUnknownShort')
+})
+async function decide(approve: boolean) {
+  const wallet = summary.value?.pendingWallet
+  if (!wallet) return
+  deciding.value = true; failed.value = false
+  try {
+    await apiClient.post(`/api/holder/wallet-offers/${wallet.offerId}/decision`, { approve })
+    decided.value = approve ? 'approved' : 'refused'
+    await refresh()
+  } catch { failed.value = true }
+  finally { deciding.value = false }
+}
 const addingWallet = ref(false)
 const failed = ref(false)
 const expanded = ref(false)
@@ -37,6 +58,7 @@ async function refresh() {
     const response = await apiClient.get<{ data: Summary }>(`${base.value}/wallet-copies`)
     if (disposed) return
     summary.value = response.data
+    if (response.data.pendingWallet) decided.value = null
     if (offer.value && (!response.data.eligible || response.data.copies.length > copyCount)) {
       offer.value = null; qr.value = ''; stopPolling()
     }
@@ -54,17 +76,20 @@ async function createOffer(addWallet = false) {
     const response = await apiClient.post<{ data: Offer }>(`${base.value}/wallet-offer`, addWallet ? { addWallet: true } : {})
     const image = await QRCode.toDataURL(response.data.interactionUrl || response.data.qrContent, { width: 320, margin: 4, errorCorrectionLevel: 'M' })
     if (disposed || current !== generation) return
-    copyCount = summary.value.copies.length
+    copyCount = summary.value.copies.length; decided.value = null
     now.value = Date.now(); offer.value = response.data; qr.value = image
     poll = setInterval(() => { void refresh().catch(() => {}) }, 5000)
   } catch { if (!disposed && current === generation) failed.value = true }
   finally { if (!disposed && current === generation) busy.value = false }
 }
+// Back from the wallet on the same phone: look for a wallet waiting right away.
+function onVisible() { if (document.visibilityState === 'visible') void refresh().catch(() => {}) }
 onMounted(() => {
+  document.addEventListener('visibilitychange', onVisible)
   void refresh().catch(() => { failed.value = true })
   timer = setInterval(() => { now.value = Date.now(); if (expired.value) stopPolling() }, 1000)
 })
-onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(timer); stopPolling() })
+onBeforeUnmount(() => { document.removeEventListener('visibilitychange', onVisible); disposed = true; generation++; if (timer) clearInterval(timer); stopPolling() })
 </script>
 
 <template>
@@ -90,7 +115,16 @@ onBeforeUnmount(() => { disposed = true; generation++; if (timer) clearInterval(
       <p v-if="expired" role="status">{{ t('portal.wallet.expired') }}</p>
       <button v-if="offer" class="underline" :disabled="busy" @click="createOffer(addingWallet)">{{ t('portal.wallet.new') }}</button>
     </div>
-    <p v-if="summary?.rejectedWallet" role="alert" class="wallet-rejected">{{ t('portal.wallet.rejected') }}</p>
+    <div v-if="summary?.pendingWallet" role="alert" class="wallet-pending rounded-lg border-2 border-amber-500 p-4 space-y-3" data-testid="wallet-pending">
+      <p class="font-semibold">{{ t('portal.wallet.pendingTitle') }}</p>
+      <p>{{ t('portal.wallet.pendingWhich', { wallet: pendingLabel }) }}</p>
+      <div class="flex flex-wrap gap-3">
+        <button class="brand-button wallet-approve" :disabled="deciding" @click="decide(true)">{{ t('portal.wallet.pendingApprove') }}</button>
+        <button class="underline wallet-refuse" :disabled="deciding" @click="decide(false)">{{ t('portal.wallet.pendingRefuse') }}</button>
+      </div>
+    </div>
+    <p v-else-if="decided" role="status" class="wallet-decided">{{ t(decided === 'approved' ? 'portal.wallet.pendingApproved' : 'portal.wallet.pendingRefused') }}</p>
+    <p v-else-if="summary?.rejectedWallet" role="alert" class="wallet-rejected">{{ t('portal.wallet.rejected') }}</p>
     <button v-if="summary?.eligible && summary.copies.length" class="underline wallet-add" :disabled="busy" @click="createOffer(true)">{{ t('portal.wallet.addAnother') }}</button>
     <p v-if="failed" role="alert">{{ t('portal.wallet.error') }}</p>
     <div v-if="summary?.copies.length" class="space-y-2" aria-live="polite">

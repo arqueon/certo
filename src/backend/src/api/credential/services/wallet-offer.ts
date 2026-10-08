@@ -2,12 +2,14 @@ import { randomBytes, randomUUID, createHash } from 'node:crypto'
 import { signCredential, verifyCredentialStatus, verifyDataIntegrity, verificationLoader } from '../../../utils/data-integrity'
 import { issuerDid } from '../../../utils/issuer-did'
 import { verifyWalletPresentation } from '../../../utils/wallet-presentation'
-import type { WalletClient } from './holder-wallets'
+import { walletName, type WalletClient } from './holder-wallets'
 
 export const OFFER_UID = 'api::wallet-offer.wallet-offer'
 export const COPY_UID = 'api::wallet-copy.wallet-copy'
 export const exchangeHash = (token: string) => createHash('sha256').update(token).digest('hex')
 export const unavailable = () => Object.assign(new Error('Exchange unavailable'), { status: 404 })
+/** A wallet the holder has not added yet: it waits for them to confirm it in the portal. */
+export const awaitingApproval = () => Object.assign(new Error('Pending approval'), { status: 202 })
 
 export function walletFormat(credential: any): boolean {
   const vc = credential?.signedCredential
@@ -78,8 +80,16 @@ export default ({ strapi }) => ({
     const wallets = strapi.service('api::credential.holder-wallets')
     const admission = await wallets.admission(offer, holderDid)
     if (!admission.allowed) {
-      await strapi.db.query(OFFER_UID).updateMany({ where: { id: offer.id, status: 'pending' }, data: { status: 'rejected', usedAt: new Date().toISOString() } })
-      throw unavailable()
+      // A new wallet does not get the credential yet: the offer remembers it
+      // and the holder's portal asks «¿La agregas?» (decision of 7-oct-2026).
+      // Only one new wallet per offer; a second one is refused outright.
+      if (offer.pendingHolderDid && offer.pendingHolderDid !== holderDid) throw unavailable()
+      if (!offer.pendingHolderDid) {
+        await strapi.db.query(OFFER_UID).updateMany({ where: { id: offer.id, status: 'pending', pendingHolderDid: null }, data: {
+          pendingHolderDid: holderDid, pendingClient: client.client, pendingOrigin: client.clientOrigin, requestedAt: new Date().toISOString(),
+        } })
+      }
+      throw awaitingApproval()
     }
     const credential = await strapi.service('api::credential.holder-access').find(String(offer.credential.id))
     if (!credential || String(credential.recipient?.owner?.id) !== String(offer.ownerId) || !await this.eligible(credential)) throw unavailable()
@@ -121,6 +131,25 @@ export default ({ strapi }) => ({
       // A wallet the holder never added tried this credential's offer lately:
       // the portal explains how to add it instead of failing silently.
       rejectedWallet: await strapi.db.query(OFFER_UID).count({ where: { credential: credential.id, status: 'rejected',
-        usedAt: { $gt: new Date(Date.now() - 15 * 60 * 1000).toISOString() } } }) > 0 }
+        usedAt: { $gt: new Date(Date.now() - 15 * 60 * 1000).toISOString() } } }) > 0,
+      pendingWallet: await this.awaiting(credential.id) }
+  },
+
+  /** The new wallet waiting for the holder's confirmation on this credential, if any. No DID. */
+  async awaiting(credentialId: number) {
+    const offer = await strapi.db.query(OFFER_UID).findOne({ where: { credential: credentialId, status: 'pending',
+      pendingHolderDid: { $notNull: true }, approvedHolderDid: null, expiresAt: { $gt: new Date().toISOString() } }, orderBy: { requestedAt: 'desc' } })
+    if (!offer) return null
+    return { offerId: offer.id, client: offer.pendingClient || null, name: walletName(offer.pendingClient || null, offer.pendingOrigin || null), requestedAt: offer.requestedAt }
+  },
+
+  /** The holder answers «¿La agregas?»: yes lets the waiting wallet redeem; no closes the offer. */
+  async decide(ownerId: number, offerId: number, approve: boolean) {
+    const offer = await strapi.db.query(OFFER_UID).findOne({ where: { id: offerId, ownerId, status: 'pending', approvedHolderDid: null } })
+    if (!offer || !offer.pendingHolderDid || Date.parse(offer.expiresAt) <= Date.now()) return false
+    await strapi.db.query(OFFER_UID).updateMany({ where: { id: offer.id, status: 'pending' }, data: approve
+      ? { approvedHolderDid: offer.pendingHolderDid }
+      : { status: 'rejected', usedAt: new Date().toISOString() } })
+    return true
   },
 })

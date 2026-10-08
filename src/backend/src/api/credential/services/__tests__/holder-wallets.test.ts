@@ -60,6 +60,12 @@ describe('holder wallets admission', () => {
     const strapi = fakeStrapi({ wallets: [{ id: 1, ownerId: 1, holderDid: 'did:key:a', addedAt: 'x', removedAt: null }] })
     expect(await holderWallets({ strapi }).admission({ ownerId: 1, addWallet: true }, 'did:key:b')).toEqual({ allowed: true, isNew: true })
   })
+  it('admits a new wallet the holder approved for this offer', async () => {
+    const strapi = fakeStrapi({ wallets: [{ id: 1, ownerId: 1, holderDid: 'did:key:a', addedAt: 'x', removedAt: null }] })
+    const service = holderWallets({ strapi })
+    expect(await service.admission({ ownerId: 1, approvedHolderDid: 'did:key:b' }, 'did:key:b')).toEqual({ allowed: true, isNew: true })
+    expect((await service.admission({ ownerId: 1, approvedHolderDid: 'did:key:b' }, 'did:key:c')).allowed).toBe(false)
+  })
   it('admits an added wallet again without re-adding it', async () => {
     const strapi = fakeStrapi({ wallets: [{ id: 1, ownerId: 1, holderDid: 'did:key:a', addedAt: 'x', removedAt: null }] })
     expect(await holderWallets({ strapi }).admission({ ownerId: 1 }, 'did:key:a')).toEqual({ allowed: true, isNew: false })

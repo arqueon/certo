@@ -734,7 +734,7 @@
       "openHere": "Abrir en este dispositivo",
       "addAnother": "¿Usas otra cartera? Agrégala",
       "addingHelp": "Este código agrega una cartera nueva a tu cuenta. Escanéalo solo con una cartera tuya.",
-      "rejected": "Una cartera que no has agregado intentó guardar esta credencial y no se le entregó. Si es tuya, pulsa «¿Usas otra cartera? Agrégala» y escanea el código con ella.",
+      "rejected": "Rechazaste una cartera que intentó guardar esta credencial, o intentó guardarla una segunda cartera con el mismo código. Si la cartera es tuya, genera un código nuevo y escanéalo con ella.",
       "savedOn": "Guardada el",
       "walletsTitle": "Mis carteras",
       "walletsHelp": "Las carteras donde guardaste tus credenciales. Solo tú puedes agregar una, desde este portal.",
@@ -749,7 +749,14 @@
       "walletWeb": "Cartera web",
       "walletApp": "App en el celular",
       "walletUnknown": "Cartera sin identificar (se identificará la próxima vez que guardes en ella)",
-      "walletAccountSuffix": "· a nombre de tu cuenta"
+      "walletAccountSuffix": "· a nombre de tu cuenta",
+      "pendingTitle": "Una cartera nueva quiere guardar esta credencial",
+      "pendingWhich": "Cartera: {wallet}. Si acabas de escanear el código con ella, agrégala y la credencial llegará en unos segundos. Si no fuiste tú, recházala.",
+      "pendingApprove": "Sí, es mía: agregarla",
+      "pendingRefuse": "No es mía",
+      "pendingApproved": "Listo: la cartera quedó agregada y recibirá la credencial en unos segundos.",
+      "pendingRefused": "Rechazada: esa cartera no recibirá la credencial. Si fue un error, genera un código nuevo.",
+      "walletUnknownShort": "una cartera"
     }
   }
 }

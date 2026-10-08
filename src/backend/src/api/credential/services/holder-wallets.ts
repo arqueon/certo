@@ -66,10 +66,11 @@ export default ({ strapi }) => ({
   },
 
   /** Whether this wallet may redeem the offer, and whether it is new. */
-  async admission(offer: { ownerId: number; addWallet?: boolean }, holderDid: string) {
+  async admission(offer: { ownerId: number; addWallet?: boolean; approvedHolderDid?: string | null }, holderDid: string) {
     const wallets = await this.active(offer.ownerId)
     if (wallets.some((w) => w.holderDid === holderDid)) return { allowed: true, isNew: false }
-    if (offer.addWallet || wallets.length === 0) return { allowed: true, isNew: true }
+    // The holder confirmed this new wallet from their portal session.
+    if (offer.addWallet || wallets.length === 0 || offer.approvedHolderDid === holderDid) return { allowed: true, isNew: true }
     return { allowed: false, isNew: false }
   },
 

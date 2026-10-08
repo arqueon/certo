@@ -70,6 +70,26 @@
       "type": "boolean",
       "default": false,
       "private": true
+    },
+    "pendingHolderDid": {
+      "type": "text",
+      "private": true
+    },
+    "pendingClient": {
+      "type": "string",
+      "private": true
+    },
+    "pendingOrigin": {
+      "type": "string",
+      "private": true
+    },
+    "requestedAt": {
+      "type": "datetime",
+      "private": true
+    },
+    "approvedHolderDid": {
+      "type": "text",
+      "private": true
     }
   }
 }

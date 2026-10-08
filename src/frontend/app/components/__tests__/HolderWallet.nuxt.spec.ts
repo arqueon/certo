@@ -92,4 +92,20 @@ describe('holder wallet', () => {
     expect(walletCountdown('invalid', Date.now())).toBe('0:00')
     expect(shortWalletDid('did:web:example.org')).toBe('did:web:example.org')
   })
+  it('asks the holder to confirm a new wallet and sends the answer', async () => {
+    const pendingWallet = { offerId: 9, client: 'web', name: 'Cartera UDGPlus', requestedAt: '2026-10-07T21:47:00Z' }
+    vi.spyOn(apiClient, 'get').mockResolvedValueOnce({ data: { ...summary, pendingWallet } }).mockResolvedValue({ data: { ...summary, pendingWallet: null } })
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue(undefined as any)
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="wallet-pending"]').text()).toContain('Cartera UDGPlus (web)')
+    expect(wrapper.text()).not.toContain('did:')
+    await wrapper.find('button.wallet-approve').trigger('click')
+    await flushPromises()
+    expect(post).toHaveBeenCalledWith('/api/holder/wallet-offers/9/decision', { approve: true })
+    expect(wrapper.find('[data-testid="wallet-pending"]').exists()).toBe(false)
+    expect(wrapper.find('.wallet-decided').exists()).toBe(true)
+    wrapper.unmount()
+  })
 })
+

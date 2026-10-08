@@ -734,7 +734,7 @@
       "openHere": "Open on this device",
       "addAnother": "Using another wallet? Add it",
       "addingHelp": "This code adds a new wallet to your account. Only scan it with a wallet of yours.",
-      "rejected": "A wallet you have not added tried to save this credential and was refused. If it is yours, press “Using another wallet? Add it” and scan the code with it.",
+      "rejected": "You refused a wallet that tried to save this credential, or a second wallet tried the same code. If the wallet is yours, create a new code and scan it with that wallet.",
       "savedOn": "Saved on",
       "walletsTitle": "My wallets",
       "walletsHelp": "The wallets where you saved your credentials. Only you can add one, from this portal.",
@@ -749,7 +749,14 @@
       "walletWeb": "Web wallet",
       "walletApp": "Phone app",
       "walletUnknown": "Unidentified wallet (it will be identified the next time you save to it)",
-      "walletAccountSuffix": "· in your account's name"
+      "walletAccountSuffix": "· in your account's name",
+      "pendingTitle": "A new wallet wants to save this credential",
+      "pendingWhich": "Wallet: {wallet}. If you just scanned the code with it, add it and the credential will arrive in a few seconds. If it wasn't you, refuse it.",
+      "pendingApprove": "Yes, it's mine: add it",
+      "pendingRefuse": "It's not mine",
+      "pendingApproved": "Done: the wallet was added and will receive the credential in a few seconds.",
+      "pendingRefused": "Refused: that wallet will not receive the credential. If it was a mistake, create a new code.",
+      "walletUnknownShort": "a wallet"
     }
   }
 }
