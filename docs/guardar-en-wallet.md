@@ -14,6 +14,18 @@ El portal muestra **un solo QR y un botón**, los dos con el enlace de interacci
 
 Variables del backend: `WALLET_APP_URL` (cartera web; sin valor se oculta su botón) y `WALLET_APP_NAME` (por defecto «Cartera UDGPlus»).
 
+## Carteras de la persona (decisión del 7 de octubre de 2026)
+
+Una persona puede tener **varias carteras**, pero cada una la agrega ella desde su sesión del portal:
+
+- La **primera** cartera que canjea una oferta suya queda agregada.
+- Para agregar **otra**, la persona pulsa «¿Usas otra cartera? Agrégala»: la oferta se crea con `addWallet: true` y la cartera que la canjee queda agregada.
+- Una cartera **no agregada** que canjea una oferta normal se rechaza con el mismo 404 de siempre; la oferta queda `rejected` y el portal lo explica durante 15 minutos (`rejectedWallet` en `wallet-copies`).
+- Las copias emitidas antes de este cambio cuentan como carteras agregadas (se registran la primera vez que se consulta a la persona), para no bloquear a nadie.
+- **Mis carteras** (`GET /api/holder/wallets`, `DELETE /api/holder/wallets/:id`): tipo (cuenta o dispositivo), fecha y cuántas credenciales tiene; nunca el DID. Quitar una cartera impide copias nuevas; las que ya tiene siguen válidas, porque comparten la revocación con la original.
+
+Tabla privada `holder_wallets` (`ownerId`, `holderDid`, `addedAt`, `removedAt`), sin rutas CRUD.
+
 ## Protocolo elegido y fuentes verificadas
 
 Se implementa **VC-API exchanges con una Verifiable Presentation Request (VPR) `DIDAuthentication`**, iniciado mediante la invitación JSON `protocols.vcapi` de LCW. No es OID4VCI. Las referencias se consultaron el **4 de octubre de 2026**; los enlaces al código fijan la revisión y no dependen de futuros cambios de `main`.
