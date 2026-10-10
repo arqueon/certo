@@ -3,7 +3,7 @@ import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import HolderWallet from '@/components/HolderWallet.vue'
 import { apiClient } from '@/api/api-client'
-import { walletCountdown, shortWalletDid, walletAppLink } from '@/utils/wallet'
+import { walletCountdown, shortWalletDid } from '@/utils/wallet'
 
 import { useRuntimeConfig } from '#app'
 let runtime: ReturnType<typeof useRuntimeConfig>
@@ -26,24 +26,21 @@ describe('holder wallet', () => {
     expect(wrapper.find('[role="timer"]').text()).toContain('10:00')
     wrapper.unmount()
   })
-  it.each(['Cartera UDGPlus', 'Otra cartera'])('prioritizes the configured web wallet %s and preserves the LCW invitation', async name => {
-    runtime.public.walletAppUrl = 'https://cartera-microcredenciales.arqueonautis.org/'
+  it.each(['Cartera UDGPlus', 'Otra cartera'])('shows a single QR with the interaction URL for %s', async name => {
     runtime.public.walletAppName = name
-    const exchangeUrl = 'https://issuer.example/api/exchanges/capability'
+    const interactionUrl = 'https://issuer.example/api/exchanges/capability?iuv=1'
     const walletUrl = 'https://lcw.app/request.html?request=example'
     vi.spyOn(apiClient, 'get').mockResolvedValue({ data: summary })
-    vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { exchangeUrl, walletUrl, qrContent: walletUrl, expiresAt: new Date(Date.now() + 600000).toISOString() } })
+    vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { exchangeUrl: 'https://issuer.example/api/exchanges/capability', walletUrl, interactionUrl, qrContent: walletUrl, expiresAt: new Date(Date.now() + 600000).toISOString() } })
     const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
     await flushPromises(); await wrapper.find('button').trigger('click')
-    await vi.waitFor(() => expect(wrapper.find('a.wallet-web').exists()).toBe(true))
-    const expected = walletAppLink(runtime.public.walletAppUrl, exchangeUrl)
-    expect(wrapper.find('a.wallet-web').attributes('href')).toBe(expected)
-    expect(wrapper.find('a.wallet-web').text()).toBe(`Open in ${name}`)
-    expect(JSON.parse(decodeURIComponent(expected.split('request=')[1]!))).toEqual({ protocols: { vcapi: exchangeUrl } })
-    expect(wrapper.find('details a').attributes('href')).toBe(walletUrl)
+    await vi.waitFor(() => expect(wrapper.find('img').exists()).toBe(true))
+    expect(wrapper.findAll('img')).toHaveLength(1)
+    expect(wrapper.find('details').exists()).toBe(false)
+    expect(wrapper.find('a.wallet-open').attributes('href')).toBe(interactionUrl)
+    expect(wrapper.text()).toContain(name)
     const { default: QRCode } = await import('qrcode')
-    expect(wrapper.find('img').attributes('src')).toBe(await QRCode.toDataURL(expected, { width: 320, margin: 4, errorCorrectionLevel: 'M' }))
-    expect(wrapper.find('details img').attributes('src')).toBe(await QRCode.toDataURL(walletUrl, { width: 320, margin: 4, errorCorrectionLevel: 'M' }))
+    expect(wrapper.find('img').attributes('src')).toBe(await QRCode.toDataURL(interactionUrl, { width: 320, margin: 4, errorCorrectionLevel: 'M' }))
     wrapper.unmount()
   })
   it('explains legacy reissuance and prevents offer creation', async () => {
@@ -67,14 +64,26 @@ describe('holder wallet', () => {
     expect(wrapper.text()).toContain('Generate a new one')
     wrapper.unmount()
   })
-  it('shows DID/date and joint revocation without a misleading revoke button', async () => {
+  it('shows saved date and joint revocation without exposing the DID', async () => {
     vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { ...summary, walletCount: 1, copies: [{ holderDid: 'did:key:' + 'x'.repeat(40), boundAt: '2026-10-04T12:00:00Z', credentialId: 'copy' }] } })
     const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
     await flushPromises()
     expect(wrapper.text()).toContain('Saved to 1 wallet')
-    expect(wrapper.find('abbr').attributes('title')).toContain('did:key:')
+    expect(wrapper.text()).not.toContain('did:key:')
     expect(wrapper.find('time').attributes('datetime')).toBe('2026-10-04T12:00:00Z')
     expect(wrapper.text()).toContain('cannot be revoked separately')
+    wrapper.unmount()
+  })
+  it('creates an add-wallet offer on purpose and explains a refused wallet', async () => {
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ data: { ...summary, rejectedWallet: true, walletCount: 1, copies: [{ holderDid: 'did:key:a', boundAt: '2026-10-04T12:00:00Z', credentialId: 'copy' }] } })
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { interactionUrl: 'https://i.example/api/exchanges/x?iuv=1', qrContent: 'x', expiresAt: new Date(Date.now() + 600000).toISOString() } })
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises()
+    expect(wrapper.find('.wallet-rejected').exists()).toBe(true)
+    await wrapper.find('button.wallet-add').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('img').exists()).toBe(true))
+    expect(post).toHaveBeenCalledWith('/api/holder/credentials/fixture/wallet-offer', { addWallet: true })
+    expect(wrapper.text()).toContain('adds a new wallet')
     wrapper.unmount()
   })
   it('clamps countdown and abbreviates only long DIDs', () => {
@@ -83,4 +92,20 @@ describe('holder wallet', () => {
     expect(walletCountdown('invalid', Date.now())).toBe('0:00')
     expect(shortWalletDid('did:web:example.org')).toBe('did:web:example.org')
   })
+  it('asks the holder to confirm a new wallet and sends the answer', async () => {
+    const pendingWallet = { offerId: 9, client: 'web', name: 'Cartera UDGPlus', requestedAt: '2026-10-07T21:47:00Z' }
+    vi.spyOn(apiClient, 'get').mockResolvedValueOnce({ data: { ...summary, pendingWallet } }).mockResolvedValue({ data: { ...summary, pendingWallet: null } })
+    const post = vi.spyOn(apiClient, 'post').mockResolvedValue(undefined as any)
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises()
+    expect(wrapper.find('[data-testid="wallet-pending"]').text()).toContain('Cartera UDGPlus (web)')
+    expect(wrapper.text()).not.toContain('did:')
+    await wrapper.find('button.wallet-approve').trigger('click')
+    await flushPromises()
+    expect(post).toHaveBeenCalledWith('/api/holder/wallet-offers/9/decision', { approve: true })
+    expect(wrapper.find('[data-testid="wallet-pending"]').exists()).toBe(false)
+    expect(wrapper.find('.wallet-decided').exists()).toBe(true)
+    wrapper.unmount()
+  })
 })
+

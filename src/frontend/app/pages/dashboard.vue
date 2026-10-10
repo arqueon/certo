@@ -100,6 +100,7 @@ onMounted(async () => {
     </NuxtLink>
     <h1 v-if="branding.active" class="text-3xl font-bold mb-6">{{ t('nav.myCredentials') }}</h1>
     <HolderDownloads v-if="branding.active" />
+    <HolderWallets v-if="branding.active" />
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div class="w-8 h-8 border-4 border-[#00E5C5] border-t-transparent rounded-full animate-spin" />

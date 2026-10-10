@@ -2,11 +2,14 @@ import { randomBytes, randomUUID, createHash } from 'node:crypto'
 import { signCredential, verifyCredentialStatus, verifyDataIntegrity, verificationLoader } from '../../../utils/data-integrity'
 import { issuerDid } from '../../../utils/issuer-did'
 import { verifyWalletPresentation } from '../../../utils/wallet-presentation'
+import { walletName, type WalletClient } from './holder-wallets'
 
 export const OFFER_UID = 'api::wallet-offer.wallet-offer'
 export const COPY_UID = 'api::wallet-copy.wallet-copy'
 export const exchangeHash = (token: string) => createHash('sha256').update(token).digest('hex')
 export const unavailable = () => Object.assign(new Error('Exchange unavailable'), { status: 404 })
+/** A wallet the holder has not added yet: it waits for them to confirm it in the portal. */
+export const awaitingApproval = () => Object.assign(new Error('Pending approval'), { status: 202 })
 
 export function walletFormat(credential: any): boolean {
   const vc = credential?.signedCredential
@@ -33,7 +36,7 @@ export default ({ strapi }) => ({
       && (await verifyCredentialStatus(strapi, vc)).valid
   },
 
-  async create(credential: any) {
+  async create(credential: any, { addWallet = false }: { addWallet?: boolean } = {}) {
     if (!await this.eligible(credential)) throw Object.assign(new Error('Credential cannot be saved to a wallet'), { status: 409 })
     const base = new URL(process.env.PUBLIC_URL || strapi.config.get('server.url'))
     if (base.username || base.password || !['https:', 'http:'].includes(base.protocol)) throw new Error('Invalid public URL')
@@ -42,7 +45,7 @@ export default ({ strapi }) => ({
     await strapi.db.query(OFFER_UID).create({ data: {
       tokenHash: exchangeHash(token), challenge: randomBytes(32).toString('base64url'),
       domain: base.host, expiresAt, status: 'pending', credential: credential.id,
-      ownerId: credential.recipient.owner.id,
+      ownerId: credential.recipient.owner.id, addWallet: !!addWallet,
     } })
     const exchangeUrl = `${base.origin}/api/exchanges/${token}`
     const request = { protocols: { vcapi: exchangeUrl } }
@@ -64,7 +67,7 @@ export default ({ strapi }) => ({
     return offer
   },
 
-  async exchange(token: string, body: any) {
+  async exchange(token: string, body: any, client: WalletClient = { client: 'app', clientOrigin: null }) {
     const offer = await this.pending(token)
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw unavailable()
     if (Object.keys(body).length === 0) return { verifiablePresentationRequest: {
@@ -73,6 +76,21 @@ export default ({ strapi }) => ({
     } }
     if (Object.keys(body).length !== 1 || !body.verifiablePresentation) throw unavailable()
     const holderDid = await verifyWalletPresentation(body.verifiablePresentation, offer.challenge, offer.domain)
+    // Only the holder's own wallets: the first one, or one added on purpose.
+    const wallets = strapi.service('api::credential.holder-wallets')
+    const admission = await wallets.admission(offer, holderDid)
+    if (!admission.allowed) {
+      // A new wallet does not get the credential yet: the offer remembers it
+      // and the holder's portal asks «¿La agregas?» (decision of 7-oct-2026).
+      // Only one new wallet per offer; a second one is refused outright.
+      if (offer.pendingHolderDid && offer.pendingHolderDid !== holderDid) throw unavailable()
+      if (!offer.pendingHolderDid) {
+        await strapi.db.query(OFFER_UID).updateMany({ where: { id: offer.id, status: 'pending', pendingHolderDid: null }, data: {
+          pendingHolderDid: holderDid, pendingClient: client.client, pendingOrigin: client.clientOrigin, requestedAt: new Date().toISOString(),
+        } })
+      }
+      throw awaitingApproval()
+    }
     const credential = await strapi.service('api::credential.holder-access').find(String(offer.credential.id))
     if (!credential || String(credential.recipient?.owner?.id) !== String(offer.ownerId) || !await this.eligible(credential)) throw unavailable()
     const copy = structuredClone(credential.signedCredential)
@@ -93,6 +111,8 @@ export default ({ strapi }) => ({
         credential: credential.id, offer: offer.id, holderDid, credentialId: copy.id,
         signedCredential, boundAt: new Date().toISOString(),
       } })
+      if (admission.isNew) await wallets.add(offer.ownerId, holderDid, client)
+      else await wallets.identify(offer.ownerId, holderDid, client)
     })
     return { verifiablePresentation: {
       '@context': ['https://www.w3.org/ns/credentials/v2'], type: ['VerifiablePresentation'],
@@ -107,6 +127,29 @@ export default ({ strapi }) => ({
       // A revoked credential says so, with the issuer's reason, instead of the
       // generic "not available"; a corrected one names its replacement there.
       revoked: !!credential.revoked, revocationReason: credential.revoked ? credential.revocationReason || '' : '',
-      walletCount: new Set(rows.map(row => row.holderDid)).size, copies: rows, revocation: 'shared' }
+      walletCount: new Set(rows.map(row => row.holderDid)).size, copies: rows, revocation: 'shared',
+      // A wallet the holder never added tried this credential's offer lately:
+      // the portal explains how to add it instead of failing silently.
+      rejectedWallet: await strapi.db.query(OFFER_UID).count({ where: { credential: credential.id, status: 'rejected',
+        usedAt: { $gt: new Date(Date.now() - 15 * 60 * 1000).toISOString() } } }) > 0,
+      pendingWallet: await this.awaiting(credential.id) }
+  },
+
+  /** The new wallet waiting for the holder's confirmation on this credential, if any. No DID. */
+  async awaiting(credentialId: number) {
+    const offer = await strapi.db.query(OFFER_UID).findOne({ where: { credential: credentialId, status: 'pending',
+      pendingHolderDid: { $notNull: true }, approvedHolderDid: null, expiresAt: { $gt: new Date().toISOString() } }, orderBy: { requestedAt: 'desc' } })
+    if (!offer) return null
+    return { offerId: offer.id, client: offer.pendingClient || null, name: walletName(offer.pendingClient || null, offer.pendingOrigin || null), requestedAt: offer.requestedAt }
+  },
+
+  /** The holder answers «¿La agregas?»: yes lets the waiting wallet redeem; no closes the offer. */
+  async decide(ownerId: number, offerId: number, approve: boolean) {
+    const offer = await strapi.db.query(OFFER_UID).findOne({ where: { id: offerId, ownerId, status: 'pending', approvedHolderDid: null } })
+    if (!offer || !offer.pendingHolderDid || Date.parse(offer.expiresAt) <= Date.now()) return false
+    await strapi.db.query(OFFER_UID).updateMany({ where: { id: offer.id, status: 'pending' }, data: approve
+      ? { approvedHolderDid: offer.pendingHolderDid }
+      : { status: 'rejected', usedAt: new Date().toISOString() } })
+    return true
   },
 })
