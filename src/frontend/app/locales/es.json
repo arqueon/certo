@@ -822,6 +822,16 @@
         "how2": "Escanea el código con la cartera que quieras usar.",
         "how3": "Si es una cartera nueva, confírmala aquí con «Sí, es mía».",
         "goCredentials": "Ir a mis credenciales"
+      },
+      "landing": {
+        "eyebrow": "Universidad de Guadalajara · UDGPlus",
+        "signIn": "Entrar a mis credenciales",
+        "verify": "Verificar una credencial",
+        "figure": "Ilustración: insignia de UDGPlus y una credencial verificada",
+        "badge": "MICROCREDENCIAL",
+        "sampleName": "Diseño instruccional con IA",
+        "sampleStatus": "✓ Auténtica y vigente",
+        "sampleQr": "Verificable con QR"
       }
     }
   }

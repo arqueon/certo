@@ -822,6 +822,16 @@
         "how2": "Scan the code with the wallet you want to use.",
         "how3": "If it is a new wallet, confirm it here with “Yes, it is mine”.",
         "goCredentials": "Go to my credentials"
+      },
+      "landing": {
+        "eyebrow": "Universidad de Guadalajara · UDGPlus",
+        "signIn": "Go to my credentials",
+        "verify": "Verify a credential",
+        "figure": "Illustration: UDGPlus badge and a verified credential",
+        "badge": "MICROCREDENTIAL",
+        "sampleName": "Instructional design with AI",
+        "sampleStatus": "✓ Authentic and valid",
+        "sampleQr": "Verifiable by QR"
       }
     }
   }
