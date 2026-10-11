@@ -757,6 +757,72 @@
       "pendingApproved": "Listo: la cartera quedó agregada y recibirá la credencial en unos segundos.",
       "pendingRefused": "Rechazada: esa cartera no recibirá la credencial. Si fue un error, genera un código nuevo.",
       "walletUnknownShort": "una cartera"
+    },
+    "b": {
+      "nav": {
+        "credentials": "Credenciales",
+        "wallets": "Mis carteras",
+        "holder": "Navegación del titular",
+        "main": "Navegación principal",
+        "account": "Cuenta de {name}",
+        "logoutPartial": "Saliste del portal, pero no pudimos confirmar el cierre de la sesión de saberes previos."
+      },
+      "home": {
+        "hello": "Hola, {name}",
+        "helloAnon": "Tus microcredenciales",
+        "loading": "Cargando tus credenciales…",
+        "summary": "Tienes {count} credenciales vigentes.",
+        "summaryOne": "Tienes 1 credencial vigente.",
+        "summaryNone": "Aquí aparecerán las credenciales que obtengas.",
+        "new": "Nueva",
+        "issued": "Otorgada",
+        "issuer": "Emisor",
+        "details": "Ver detalle",
+        "all": "Todas tus credenciales",
+        "issuedOn": "otorgada el {date}",
+        "emptyTitle": "Aún no tienes credenciales",
+        "emptyText": "Cuando acredites una microcredencial, aparecerá aquí para que la guardes en tu cartera y la compartas.",
+        "emptyCatalog": "Ver qué puedes acreditar",
+        "shortcuts": "Accesos",
+        "walletsHint": "Dónde guardaste tus credenciales",
+        "priorHint": "Pide que se reconozca lo que ya sabes",
+        "history": "Descargar mi historial",
+        "historyHint": "Archivo firmado con todas tus credenciales (CLR)"
+      },
+      "status": {
+        "vigenteHasta": "Vigente hasta {date}",
+        "vigenteSiempre": "Vigente · sin vencimiento",
+        "vencida": "Vencida",
+        "revocada": "Revocada"
+      },
+      "kinds": {
+        "default": "Credencial",
+        "MicroCredential": "Microcredencial",
+        "Course": "Curso",
+        "Certificate": "Certificado",
+        "CertificateOfCompletion": "Constancia",
+        "Badge": "Insignia",
+        "Certification": "Certificación",
+        "Achievement": "Logro",
+        "Competency": "Competencia"
+      },
+      "wallet": {
+        "title": "Guardar en tu cartera",
+        "addTitle": "Agregar otra cartera",
+        "step1": "Abre {name} o la cámara de tu celular",
+        "step2": "Escanea este código",
+        "step3": "Acepta la credencial en tu cartera",
+        "savedTitle": "Listo: ya está en tu cartera",
+        "done": "Entendido",
+        "copies": "Copias guardadas y revocación"
+      },
+      "wallets": {
+        "howTitle": "Cómo agregar una cartera",
+        "how1": "Abre una de tus credenciales y pulsa «Guardar en mi cartera».",
+        "how2": "Escanea el código con la cartera que quieras usar.",
+        "how3": "Si es una cartera nueva, confírmala aquí con «Sí, es mía».",
+        "goCredentials": "Ir a mis credenciales"
+      }
     }
   }
 }

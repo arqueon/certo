@@ -2,6 +2,7 @@
 const { t, locale } = useI18n()
 const branding = useBranding()
 const websiteUrl = useWebsiteUrl()
+const route = useRoute()
 
 const pageDescription = computed(() => t('app.description'))
 const pageTitle = computed(() => `${branding.name} - ${t('app.title')}`)
@@ -12,9 +13,11 @@ useHead({
   title: () => t('app.title'),
   titleTemplate: `%s | ${branding.name}`,
   htmlAttrs: {
-    lang: computed(() => locale.value),
+    'lang': computed(() => locale.value),
     'data-branded': branding.active ? 'true' : undefined,
-    style: `--brand-primary: ${branding.primaryColor}; --brand-primary-text: ${branding.primaryText}`,
+    // Pantallas ya rediseñadas en la dirección B: admiten el modo oscuro.
+    'data-tema': computed(() => branding.active && route.meta.temaB ? 'b' : undefined),
+    'style': `--brand-primary: ${branding.primaryColor}; --brand-primary-text: ${branding.primaryText}`,
   },
 })
 

@@ -32,7 +32,7 @@ describe('holder wallets', () => {
     await wrapper.findAll('button.wallet-remove')[1]!.trigger('click')
     expect(del).not.toHaveBeenCalled()
     expect(wrapper.text()).toContain('will not receive new copies')
-    await wrapper.find('button.brand-button').trigger('click')
+    await wrapper.find('button.wallet-remove-confirm').trigger('click')
     await flushPromises()
     expect(del).toHaveBeenCalledWith('/api/holder/wallets/2')
     expect(get).toHaveBeenCalledTimes(2)

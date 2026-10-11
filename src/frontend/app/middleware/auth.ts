@@ -24,7 +24,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   // Protected routes that require authentication
-  const protectedRoutes = ['/dashboard', '/profile']
+  const protectedRoutes = ['/dashboard', '/profile', '/carteras']
   const isProtectedRoute = /^\/credentials\/[^/]+\/imprimir\/?$/.test(to.path) || protectedRoutes.some(route =>
     to.path === route || to.path.startsWith(`${route}/`)
   )

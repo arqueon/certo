@@ -757,6 +757,72 @@
       "pendingApproved": "Done: the wallet was added and will receive the credential in a few seconds.",
       "pendingRefused": "Refused: that wallet will not receive the credential. If it was a mistake, create a new code.",
       "walletUnknownShort": "a wallet"
+    },
+    "b": {
+      "nav": {
+        "credentials": "Credentials",
+        "wallets": "My wallets",
+        "holder": "Holder navigation",
+        "main": "Main navigation",
+        "account": "{name}'s account",
+        "logoutPartial": "You signed out of the portal, but we could not confirm the prior learning session was closed."
+      },
+      "home": {
+        "hello": "Hi, {name}",
+        "helloAnon": "Your microcredentials",
+        "loading": "Loading your credentials…",
+        "summary": "You have {count} valid credentials.",
+        "summaryOne": "You have 1 valid credential.",
+        "summaryNone": "The credentials you earn will appear here.",
+        "new": "New",
+        "issued": "Awarded",
+        "issuer": "Issuer",
+        "details": "View details",
+        "all": "All your credentials",
+        "issuedOn": "awarded {date}",
+        "emptyTitle": "You have no credentials yet",
+        "emptyText": "When you earn a microcredential, it will appear here so you can save it to your wallet and share it.",
+        "emptyCatalog": "See what you can earn",
+        "shortcuts": "Shortcuts",
+        "walletsHint": "Where you saved your credentials",
+        "priorHint": "Ask to have what you already know recognized",
+        "history": "Download my record",
+        "historyHint": "Signed file with all your credentials (CLR)"
+      },
+      "status": {
+        "vigenteHasta": "Valid until {date}",
+        "vigenteSiempre": "Valid · no expiry",
+        "vencida": "Expired",
+        "revocada": "Revoked"
+      },
+      "kinds": {
+        "default": "Credential",
+        "MicroCredential": "Microcredential",
+        "Course": "Course",
+        "Certificate": "Certificate",
+        "CertificateOfCompletion": "Certificate of completion",
+        "Badge": "Badge",
+        "Certification": "Certification",
+        "Achievement": "Achievement",
+        "Competency": "Competency"
+      },
+      "wallet": {
+        "title": "Save to your wallet",
+        "addTitle": "Add another wallet",
+        "step1": "Open {name} or your phone camera",
+        "step2": "Scan this code",
+        "step3": "Accept the credential in your wallet",
+        "savedTitle": "Done: it is in your wallet",
+        "done": "Got it",
+        "copies": "Saved copies and revocation"
+      },
+      "wallets": {
+        "howTitle": "How to add a wallet",
+        "how1": "Open one of your credentials and tap “Save to my wallet”.",
+        "how2": "Scan the code with the wallet you want to use.",
+        "how3": "If it is a new wallet, confirm it here with “Yes, it is mine”.",
+        "goCredentials": "Go to my credentials"
+      }
     }
   }
 }
