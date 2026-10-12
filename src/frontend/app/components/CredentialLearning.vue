@@ -17,7 +17,7 @@ const info = computed(() => credentialMetadata(props.credential, props.raw))
         <dt>{{ level.targetFramework }}</dt><dd>{{ qualificationLabel(level) }}</dd>
       </template>
       <template v-if="info.credits !== undefined"><dt>Créditos</dt><dd>{{ info.credits }}</dd></template>
-      <template v-if="info.achievement.fieldOfStudy"><dt>Campo de formación</dt><dd>{{ info.achievement.fieldOfStudy }}</dd></template>
+      <template v-if="info.fieldOfStudy"><dt>Campo de formación</dt><dd>{{ info.fieldOfStudy }}</dd></template>
       <template v-if="info.language"><dt>Idioma</dt><dd>{{ info.language }}</dd></template>
       <template v-if="info.achievement.humanCode"><dt>Clave y versión</dt><dd>{{ info.achievement.humanCode }}<span v-if="info.achievement.version"> · versión {{ info.achievement.version }}</span></dd></template>
     </dl>

@@ -180,15 +180,15 @@ async function copy() {
               </li>
             </ul>
           </template>
-          <dl v-if="info.levels.length || info.credits !== undefined || info.achievement.fieldOfStudy || info.language || info.achievement.humanCode" class="mc-detalle__datos">
+          <dl v-if="info.levels.length || info.credits !== undefined || info.fieldOfStudy || info.language || info.achievement.humanCode" class="mc-detalle__datos">
             <div v-for="(level, i) in info.levels" :key="`l${i}`">
               <dt>{{ level.targetFramework }}</dt><dd>{{ qualificationLabel(level) }}</dd>
             </div>
             <div v-if="info.credits !== undefined">
               <dt>{{ t('portal.b.detail.credits') }}</dt><dd>{{ info.credits }}</dd>
             </div>
-            <div v-if="info.achievement.fieldOfStudy">
-              <dt>{{ t('portal.b.detail.field') }}</dt><dd>{{ info.achievement.fieldOfStudy }}</dd>
+            <div v-if="info.fieldOfStudy">
+              <dt>{{ t('portal.b.detail.field') }}</dt><dd>{{ info.fieldOfStudy }}</dd>
             </div>
             <div v-if="info.language">
               <dt>{{ t('portal.b.detail.language') }}</dt><dd>{{ info.language }}</dd>

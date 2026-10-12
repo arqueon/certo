@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { credentialMetadata, qualificationLabel, resolvedResults } from '../../utils/credential-metadata'
+import { credentialMetadata, criteriaText, fieldOfStudyLabel, qualificationLabel, resolvedResults } from '../../utils/credential-metadata'
 describe('presentación 0023', () => {
   it('muestra nombre firmado, tipo español y nivel declarado', () => {
     const info = credentialMetadata({ credentialSubject: { name: 'Titular firmada', term: '2026-B', creditsEarned: 0, achievement: { achievementType: 'MicroCredential', inLanguage: 'es', creditsAvailable: 2, alignment: [{ targetName: 'nivel_6', targetFramework: 'Marco Nacional de Cualificaciones (SEP)' }] } } }, { recipient: { name: 'Perfil modificado' } })
@@ -15,5 +15,14 @@ describe('presentación 0023', () => {
     const info = credentialMetadata({}, { recipient: { name: 'Titular' }, achievement: { criteria: { url: 'javascript:x', narrative: 'Criteria not specified' } } })
     expect(info.holder).toBe('Titular'); expect(info.levels).toEqual([])
     expect(info.catalog).toBe(''); expect(info.criteria).toBe('')
+  })
+  it('limpia en pantalla la clave CINE-F y la puntuación de credenciales ya emitidas', () => {
+    expect(fieldOfStudyLabel('cinef_01 · Educación')).toBe('Educación')
+    expect(fieldOfStudyLabel('Educación')).toBe('Educación')
+    expect(criteriaText('Evaluación previa; Rúbrica versión 1 Ficha activada por demo.metadatos; instancia que decide: DGUV.'))
+      .toBe('Evaluación previa; Rúbrica versión 1. Ficha activada por demo.metadatos. Instancia que decide: DGUV.')
+    const nuevo = 'Rúbrica versión 1. Ficha activada por Gestora. Instancia que decide: UDG+.'
+    expect(criteriaText(nuevo)).toBe(nuevo)
+    expect(credentialMetadata({ credentialSubject: { achievement: { fieldOfStudy: 'cinef_06 · TIC' } } }).fieldOfStudy).toBe('TIC')
   })
 })
