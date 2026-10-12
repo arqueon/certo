@@ -98,6 +98,9 @@ export async function syncKeycloakGrantConfig(strapi: any) {
     authorize_url: `${sinBarra(PUBLIC_URL)}/protocol/openid-connect/auth`,
     access_url: `${sinBarra(INTERNAL_URL as string)}/protocol/openid-connect/token`,
     redirectUri: `${sinBarra(strapi.config.server.url)}/api/connect/keycloak/callback`,
+    // Keycloak puede exigir PKCE al cliente (la VM lo exige con S256); grant
+    // genera el verificador y lo guarda en la sesión.
+    pkce: true,
     ...(frontend ? { callback: `${frontend}/auth/callback` } : {}),
   };
 
