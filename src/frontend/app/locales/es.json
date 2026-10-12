@@ -793,7 +793,8 @@
         "vigenteHasta": "Vigente hasta {date}",
         "vigenteSiempre": "Vigente · sin vencimiento",
         "vencida": "Vencida",
-        "revocada": "Revocada"
+        "revocada": "Revocada",
+        "invalida": "No verificada"
       },
       "kinds": {
         "default": "Credencial",
@@ -804,7 +805,8 @@
         "Badge": "Insignia",
         "Certification": "Certificación",
         "Achievement": "Logro",
-        "Competency": "Competencia"
+        "Competency": "Competencia",
+        "Diploma": "Diploma"
       },
       "wallet": {
         "title": "Guardar en tu cartera",
@@ -832,6 +834,71 @@
         "sampleName": "Diseño instruccional con IA",
         "sampleStatus": "✓ Auténtica y vigente",
         "sampleQr": "Verificable con QR"
+      },
+      "detail": {
+        "back": "Mis credenciales",
+        "badgeAlt": "Insignia de {name}",
+        "awardedTo": "Otorgada a",
+        "issuedBy": "Emitida por",
+        "authentic": "Firma auténtica",
+        "unverified": "No verificada",
+        "revokedTitle": "Esta credencial fue revocada",
+        "revokedText": "El emisor la retiró y ya no acredita el logro.",
+        "revokedReason": "Motivo: {reason}",
+        "expiredTitle": "Esta credencial venció",
+        "expiredText": "Fue válida hasta el {date}. El logro se obtuvo, pero la credencial ya no está vigente.",
+        "unverifiedTitle": "No pudimos comprobar esta credencial",
+        "unverifiedText": "Su firma o su formato no superaron la verificación. Consulta al emisor antes de darla por buena.",
+        "what": "Qué acredita",
+        "outcomes": "Resultados de aprendizaje",
+        "how": "Cómo se evaluó",
+        "evidence": "Evidencia",
+        "evidenceOpen": "Abrir evidencia",
+        "evidenceItem": "Evidencia {n}",
+        "data": "Datos de la credencial",
+        "issued": "Fecha de emisión",
+        "awarded": "Fecha del logro",
+        "expires": "Vencimiento",
+        "noExpiry": "Sin vencimiento",
+        "activityStart": "Inicio de la actividad",
+        "activityEnd": "Fin de la actividad",
+        "term": "Periodo",
+        "partner": "Institución aliada",
+        "credits": "Créditos",
+        "field": "Campo de formación",
+        "language": "Idioma",
+        "code": "Clave",
+        "version": "versión {version}",
+        "framework": "Marco de referencia",
+        "catalog": "Consultar la ficha del logro",
+        "verifyTitle": "Verificar",
+        "verifyText": "Quien escanee el código o abra el enlace verá el estado actual de la credencial.",
+        "copy": "Copiar enlace",
+        "copied": "Enlace copiado",
+        "share": "Compartir",
+        "checks": "Comprobaciones",
+        "checksText": "Revisan la firma del emisor, la vigencia y el estado de la credencial.",
+        "check": {
+          "proof": "Firma del emisor",
+          "not_revoked": "No revocada",
+          "not_expired": "Vigencia",
+          "valid_from": "Inicio de vigencia",
+          "format": "Formato",
+          "issuer": "Emisor",
+          "expiration": "Vencimiento",
+          "default": "Comprobación"
+        },
+        "result": {
+          "success": "Correcta",
+          "warning": "Requiere revisión",
+          "error": "No superada"
+        },
+        "recheck": "Volver a comprobar",
+        "walletTitle": "Tu cartera digital",
+        "keepTitle": "Descargar y compartir",
+        "linkedin": "Añadir a LinkedIn",
+        "privacyTitle": "Qué compartes públicamente",
+        "loading": "Cargando la credencial…"
       }
     }
   }

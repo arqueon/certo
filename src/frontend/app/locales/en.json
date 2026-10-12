@@ -793,7 +793,8 @@
         "vigenteHasta": "Valid until {date}",
         "vigenteSiempre": "Valid · no expiry",
         "vencida": "Expired",
-        "revocada": "Revoked"
+        "revocada": "Revoked",
+        "invalida": "Not verified"
       },
       "kinds": {
         "default": "Credential",
@@ -804,7 +805,8 @@
         "Badge": "Badge",
         "Certification": "Certification",
         "Achievement": "Achievement",
-        "Competency": "Competency"
+        "Competency": "Competency",
+        "Diploma": "Diploma"
       },
       "wallet": {
         "title": "Save to your wallet",
@@ -832,6 +834,71 @@
         "sampleName": "Instructional design with AI",
         "sampleStatus": "✓ Authentic and valid",
         "sampleQr": "Verifiable by QR"
+      },
+      "detail": {
+        "back": "My credentials",
+        "badgeAlt": "Badge for {name}",
+        "awardedTo": "Awarded to",
+        "issuedBy": "Issued by",
+        "authentic": "Authentic signature",
+        "unverified": "Not verified",
+        "revokedTitle": "This credential was revoked",
+        "revokedText": "The issuer withdrew it and it no longer certifies the achievement.",
+        "revokedReason": "Reason: {reason}",
+        "expiredTitle": "This credential has expired",
+        "expiredText": "It was valid until {date}. The achievement was earned, but the credential is no longer current.",
+        "unverifiedTitle": "We could not verify this credential",
+        "unverifiedText": "Its signature or format did not pass verification. Check with the issuer before relying on it.",
+        "what": "What it certifies",
+        "outcomes": "Learning outcomes",
+        "how": "How it was assessed",
+        "evidence": "Evidence",
+        "evidenceOpen": "Open evidence",
+        "evidenceItem": "Evidence {n}",
+        "data": "Credential details",
+        "issued": "Issued on",
+        "awarded": "Achieved on",
+        "expires": "Expires",
+        "noExpiry": "No expiry",
+        "activityStart": "Activity start",
+        "activityEnd": "Activity end",
+        "term": "Term",
+        "partner": "Partner institution",
+        "credits": "Credits",
+        "field": "Field of study",
+        "language": "Language",
+        "code": "Code",
+        "version": "version {version}",
+        "framework": "Framework",
+        "catalog": "See the achievement page",
+        "verifyTitle": "Verify",
+        "verifyText": "Anyone who scans the code or opens the link sees the credential's current status.",
+        "copy": "Copy link",
+        "copied": "Link copied",
+        "share": "Share",
+        "checks": "Checks",
+        "checksText": "They review the issuer's signature, validity period and status.",
+        "check": {
+          "proof": "Issuer signature",
+          "not_revoked": "Not revoked",
+          "not_expired": "Validity",
+          "valid_from": "Valid from",
+          "format": "Format",
+          "issuer": "Issuer",
+          "expiration": "Expiration",
+          "default": "Check"
+        },
+        "result": {
+          "success": "Passed",
+          "warning": "Needs review",
+          "error": "Failed"
+        },
+        "recheck": "Check again",
+        "walletTitle": "Your digital wallet",
+        "keepTitle": "Download and share",
+        "linkedin": "Add to LinkedIn",
+        "privacyTitle": "What you share publicly",
+        "loading": "Loading the credential…"
       }
     }
   }
