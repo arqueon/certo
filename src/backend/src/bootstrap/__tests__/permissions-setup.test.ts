@@ -2,6 +2,7 @@ import {
   authenticatedPermissions,
   authenticatedRoleMode,
   permissionsToPrune,
+  serviceRolePermissions,
 } from '../permissions-setup'
 
 const ISSUER_SIDE = [
@@ -53,5 +54,20 @@ describe('permissionsToPrune', () => {
   it('returns nothing when the role already matches', () => {
     const holder = authenticatedPermissions('holder')
     expect(permissionsToPrune(holder, holder)).toEqual([])
+  })
+})
+
+describe('serviceRolePermissions', () => {
+  it('adds only the upload action to the issuer-side list', () => {
+    const list = serviceRolePermissions()
+    expect(list).toContain('plugin::upload.content-api.upload')
+    for (const action of ISSUER_SIDE) expect(list).toContain(action)
+    const uploads = list.filter((action) => action.startsWith('plugin::upload.'))
+    expect(uploads).toEqual(['plugin::upload.content-api.upload'])
+  })
+
+  it('never gives upload to Authenticated', () => {
+    expect(authenticatedPermissions('issuer')).not.toContain('plugin::upload.content-api.upload')
+    expect(authenticatedPermissions('holder')).not.toContain('plugin::upload.content-api.upload')
   })
 })

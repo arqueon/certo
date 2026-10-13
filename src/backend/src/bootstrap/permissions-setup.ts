@@ -121,6 +121,16 @@ export function authenticatedPermissions(mode: AuthenticatedRoleMode): string[] 
   return mode === 'holder' ? HOLDER_PERMISSIONS : AUTHENTICATED_PERMISSIONS;
 }
 
+/**
+ * Permissions for the issuer service role (holder mode): the issuer-side list
+ * plus uploading files, so an integration can send a badge image and then
+ * reference it when creating an achievement. Only `upload`: the role cannot
+ * list, read the metadata of, or delete files in the media library.
+ */
+export function serviceRolePermissions(): string[] {
+  return [...AUTHENTICATED_PERMISSIONS, 'plugin::upload.content-api.upload'];
+}
+
 /** Actions linked to a role that are not in its allowed list. */
 export function permissionsToPrune(linked: string[], allowed: string[]): string[] {
   const keep = new Set(allowed);
@@ -311,7 +321,7 @@ export async function setupPermissions(strapi: any): Promise<void> {
       // the backend integrations log in with, if one is configured.
       const serviceRole = process.env.ISSUER_SERVICE_ROLE_TYPE?.trim();
       if (serviceRole) {
-        await setupRolePermissions(strapi, serviceRole, AUTHENTICATED_PERMISSIONS);
+        await setupRolePermissions(strapi, serviceRole, serviceRolePermissions());
       }
     }
 
