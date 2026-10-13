@@ -40,29 +40,76 @@ function savePrivacy() {
 </script>
 
 <template>
-  <section class="portal-card my-6 space-y-5">
-    <h2>Compartir y guardar</h2>
-    <slot />
-    <div v-if="credentialId">
-      <NuxtLink :to="`/credentials/${encodeURIComponent(credentialId)}/imprimir`" class="brand-button">{{ t('portal.holder.pdf') }}</NuxtLink>
-      <p>{{ t('portal.holder.pdfHelp') }}</p>
-      <button class="brand-button" :disabled="busy" @click="exportFile">{{ t('portal.holder.file') }}</button>
-      <p>{{ t('portal.holder.fileHelp') }}</p>
+  <!-- Solo con marca: holderData existe únicamente para el titular en el portal con marca. -->
+  <section class="mc-tarjeta mc-descargas">
+    <h2 class="mc-titulo">
+      {{ t('portal.b.detail.keepTitle') }}
+    </h2>
+    <div v-if="credentialId" class="mc-descargas__opcion">
+      <NuxtLink :to="`/credentials/${encodeURIComponent(credentialId)}/imprimir`" class="mc-boton">
+        <span class="i-heroicons-document-arrow-down" aria-hidden="true" /> {{ t('portal.holder.pdf') }}
+      </NuxtLink>
+      <p class="mc-suave">
+        {{ t('portal.holder.pdfHelp') }}
+      </p>
     </div>
-    <div>
-      <button class="brand-button" :disabled="busy" @click="exportHistory">{{ t('portal.holder.clr') }}</button>
-      <p>{{ t('portal.holder.clrHelp') }}</p>
+    <div v-if="credentialId" class="mc-descargas__opcion">
+      <button class="mc-boton mc-boton--secundario" :disabled="busy" @click="exportFile">
+        <span class="i-heroicons-code-bracket" aria-hidden="true" /> {{ t('portal.holder.file') }}
+      </button>
+      <p class="mc-suave">
+        {{ t('portal.holder.fileHelp') }}
+      </p>
     </div>
-    <HolderWallet v-if="credentialId" :credential-id="credentialId" />
-    <form v-if="credentialId && privacy" class="space-y-4" @submit.prevent="savePrivacy">
-      <fieldset :disabled="busy" class="space-y-4">
-        <legend class="text-xl font-semibold">Privacidad</legend>
-        <p>{{ t('portal.holder.privacyHelp') }}</p>
-        <label class="block"><input v-model="showName" type="checkbox"> {{ t('portal.holder.showName') }}</label>
-        <label class="block"><input v-model="publicLink" type="checkbox"> {{ t('portal.holder.publicLink') }}</label>
-        <button type="submit" class="brand-button">{{ t('portal.holder.save') }}</button>
+    <div class="mc-descargas__opcion">
+      <slot />
+    </div>
+    <details class="mc-descargas__mas">
+      <summary>{{ t('portal.holder.clr') }}</summary>
+      <p class="mc-suave">
+        {{ t('portal.holder.clrHelp') }}
+      </p>
+      <button class="mc-boton mc-boton--secundario" :disabled="busy" @click="exportHistory">
+        {{ t('portal.holder.clr') }}
+      </button>
+    </details>
+    <form v-if="credentialId && privacy" class="mc-descargas__privacidad" @submit.prevent="savePrivacy">
+      <fieldset :disabled="busy">
+        <legend class="mc-titulo">
+          {{ t('portal.b.detail.privacyTitle') }}
+        </legend>
+        <p class="mc-suave">
+          {{ t('portal.holder.privacyHelp') }}
+        </p>
+        <label><input v-model="showName" type="checkbox"> {{ t('portal.holder.showName') }}</label>
+        <label><input v-model="publicLink" type="checkbox"> {{ t('portal.holder.publicLink') }}</label>
+        <button type="submit" class="mc-boton mc-boton--secundario">
+          {{ t('portal.holder.save') }}
+        </button>
       </fieldset>
     </form>
-    <p v-if="message" :role="failed ? 'alert' : 'status'">{{ message }}</p>
+    <p v-if="message" :role="failed ? 'alert' : 'status'" class="mc-descargas__mensaje" :class="{ 'mc-descargas__mensaje--no': failed }">
+      {{ message }}
+    </p>
   </section>
 </template>
+
+<style scoped>
+.mc-descargas { padding: 1.25rem; display: grid; gap: 1rem; align-content: start; }
+.mc-descargas h2 { font-size: var(--mc-t-l); }
+.mc-descargas__opcion { display: grid; gap: .4rem; }
+.mc-descargas__opcion .mc-boton { justify-self: stretch; }
+.mc-descargas__opcion p { font-size: var(--mc-t-s); line-height: 1.45; }
+.mc-descargas__mas, .mc-descargas__privacidad { border-top: 1px solid var(--mc-linea); padding-top: .9rem; }
+.mc-descargas__mas summary { cursor: pointer; font-weight: 700; }
+.mc-descargas__mas p { font-size: var(--mc-t-s); margin: .5rem 0; }
+.mc-descargas__privacidad fieldset { display: grid; gap: .6rem; }
+.mc-descargas__privacidad legend { font-size: var(--mc-t-base); margin-bottom: .4rem; }
+.mc-descargas__privacidad p { font-size: var(--mc-t-s); line-height: 1.45; }
+.mc-descargas__privacidad label { display: flex; gap: .55rem; align-items: flex-start; }
+.mc-descargas__privacidad input { width: 1.1rem; height: 1.1rem; margin-top: .15rem; accent-color: var(--mc-oceano); flex: none; }
+.mc-descargas__privacidad .mc-boton { justify-self: start; }
+.mc-descargas__mensaje { font-size: var(--mc-t-s); font-weight: 600; color: var(--mc-ok); }
+.mc-descargas__mensaje--no { color: var(--mc-no); }
+@media (min-width: 1024px) { .mc-descargas { padding: 1.5rem; } }
+</style>

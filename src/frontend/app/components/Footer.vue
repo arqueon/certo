@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import { useMounted } from '@vueuse/core'
+
 const branding = useBranding()
+// La sesión solo existe en el cliente: leerla al montar evita el desajuste de hidratación.
+const mounted = useMounted()
 const { t } = useI18n()
 const authStore = useAuthStore()
 </script>
 
 <template>
-  <footer class="w-full bg-gradient-to-b from-white to-[#FFE5AE]/20 pt-16 pb-8">
+  <footer class="w-full pt-16 pb-8" :class="branding.active ? 'mc-pie' : 'bg-gradient-to-b from-white to-[#FFE5AE]/20'">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         <!-- Logo Column -->
@@ -33,7 +37,7 @@ const authStore = useAuthStore()
                 {{ t('footer.links.home') }}
               </NuxtLink>
             </li>
-            <li v-if="!branding.active || authStore.isAuthenticated">
+            <li v-if="!branding.active || (mounted && authStore.isAuthenticated)">
               <NuxtLink
                 to="/dashboard"
                 class="text-text-secondary hover:text-text-primary transition-colors"
@@ -109,3 +113,11 @@ const authStore = useAuthStore()
     </div>
   </footer>
 </template>
+
+<style scoped>
+.mc-pie { background: var(--mc-superficie); border-top: 1px solid var(--mc-linea); }
+.mc-pie :is(p, a, li) { color: var(--mc-suave); }
+.mc-pie h3 { font-family: var(--mc-fuente-titulos); color: var(--mc-texto); }
+.mc-pie a:hover { color: var(--mc-texto); }
+.mc-pie .border-t { border-color: var(--mc-linea); }
+</style>

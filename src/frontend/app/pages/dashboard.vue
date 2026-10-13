@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { apiClient } from '~/api/api-client'
+
 const branding = useBranding()
 const websiteUrl = useWebsiteUrl()
 const { enabled: portalTitularEnabled } = useSaberesPrevios()
-import { apiClient } from '~/api/api-client'
 const { t, locale } = useI18n()
 definePageMeta({
-  middleware: ['auth']
+  middleware: ['auth'],
+  temaB: true,
 })
 
 interface Certificate {
@@ -94,13 +96,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="container mx-auto px-4 py-8">
-    <NuxtLink v-if="portalTitularEnabled || branding.active" to="/saberes-previos" class="block mb-6 rounded-lg border border-gray-300 bg-white p-4 text-text-primary underline">
-      {{ branding.active ? t('nav.priorLearning') : 'Reconocimiento de saberes previos: presentar y consultar mis solicitudes' }}
+  <div v-if="branding.active">
+    <PortalInicio :credentials="receivedCertificates" :loading="loading" :error="error" />
+  </div>
+  <div v-else class="container mx-auto px-4 py-8">
+    <NuxtLink v-if="portalTitularEnabled" to="/saberes-previos" class="block mb-6 rounded-lg border border-gray-300 bg-white p-4 text-text-primary underline">
+      Reconocimiento de saberes previos: presentar y consultar mis solicitudes
     </NuxtLink>
-    <h1 v-if="branding.active" class="text-3xl font-bold mb-6">{{ t('nav.myCredentials') }}</h1>
-    <HolderDownloads v-if="branding.active" />
-    <HolderWallets v-if="branding.active" />
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center items-center py-12">
       <div class="w-8 h-8 border-4 border-[#00E5C5] border-t-transparent rounded-full animate-spin" />
@@ -144,8 +146,6 @@ onMounted(async () => {
             :show-recipient="false"
           >
             <template #actions>
-              <HolderWallet v-if="branding.active" :credential-id="cert.credentialId || cert.id" />
-              <NuxtLink v-if="branding.active" :to="`/credentials/${encodeURIComponent(cert.credentialId || cert.id)}`" class="brand-button mt-3">{{ t('portal.holder.manage') }}</NuxtLink>
               <a
                 :href="getLinkedInAddToProfileUrl(cert)"
                 target="_blank"
@@ -199,7 +199,6 @@ onMounted(async () => {
             :certificate="cert"
           >
             <template #actions>
-              <NuxtLink v-if="branding.active" :to="`/credentials/${encodeURIComponent(cert.credentialId || cert.id)}`" class="brand-button mt-3">{{ t('portal.holder.manage') }}</NuxtLink>
               <a
                 :href="getLinkedInAddToProfileUrl(cert)"
                 target="_blank"

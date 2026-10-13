@@ -3,11 +3,13 @@ import type {
   AchievementCredential,
   VerificationResult
 } from '~/types/openbadges'
+import { useMounted } from '@vueuse/core'
 import QRCode from 'qrcode'
 import { credentialMetadata, resolvedResults } from '~/utils/credential-metadata'
 import { safeHttpUrl } from '~/utils/portal'
 import { apiClient } from '~/api/api-client'
 
+definePageMeta({ temaB: true })
 const { t, formatDate: formatLocaleDate } = useI18n()
 const route = useRoute()
 const config = useRuntimeConfig()
@@ -22,6 +24,8 @@ const credentialId = rawId
   : ''
 
 const authStore = useAuthStore()
+const mounted = useMounted()
+const signedIn = computed(() => mounted.value && authStore.isAuthenticated)
 const { holderData, holderLoading, loadHolder } = useHolderCredential(credentialId)
 async function privacySaved() { await loadHolder(); await refresh() }
 const websiteUrl = config.public.websiteUrl || WEBSITE_URL
@@ -403,7 +407,36 @@ function getLinkedInAddToProfileUrl() {
 </script>
 
 <template>
-  <main class="credential-page">
+  <!-- Con marca: dirección B «Insignia viva» -->
+  <div v-if="branding.active">
+    <div v-if="loading || (holderLoading && !credential)" class="mc-contenedor mc-credencial-estado" role="status">
+      <p class="mc-suave">{{ t('portal.b.detail.loading') }}</p>
+    </div>
+    <div v-else-if="!credential" class="mc-contenedor mc-credencial-estado">
+      <section class="mc-tarjeta mc-credencial-estado__tarjeta">
+        <span class="mc-mosaico" aria-hidden="true"><span class="i-heroicons-eye-slash" /></span>
+        <h1 class="mc-titulo">{{ t('portal.holder.unavailable') }}</h1>
+        <NuxtLink v-if="!signedIn" to="/login" class="mc-boton">{{ t('portal.holder.ownerLogin') }}</NuxtLink>
+      </section>
+    </div>
+    <PortalCredencial
+      v-else
+      :credential-id="credentialId"
+      :credential="credential"
+      :result="verificationResult"
+      :holder="holderData"
+      :image-url="!imageLoadError ? displayImageUrl : null"
+      :qr="qrCodeDataUrl"
+      :shareable-url="shareableUrl"
+      :linkedin-url="getLinkedInAddToProfileUrl()"
+      :dates="{ issued: formattedIssuanceDate, awarded: formattedAwardedDate, expires: formattedExpirationDate }"
+      @image-error="handleImageError"
+      @share="shareCredential"
+      @recheck="refreshCredentialDetails"
+      @privacy-saved="privacySaved"
+    />
+  </div>
+  <main v-else class="credential-page">
     <p v-if="loading || (holderLoading && !credential)" role="status">{{ t('credential.loadingVerification') }}</p>
     <section v-else-if="!credential" class="portal-card">
       <h1>{{ t('portal.holder.unavailable') }}</h1>
@@ -463,6 +496,9 @@ function getLinkedInAddToProfileUrl() {
 </template>
 
 <style scoped>
+.mc-credencial-estado { padding-block: 3rem; display: grid; place-items: center; }
+.mc-credencial-estado__tarjeta { padding: 2rem 1.5rem; display: grid; gap: 1rem; justify-items: center; text-align: center; max-width: 30rem; }
+.mc-credencial-estado__tarjeta h1 { font-size: var(--mc-t-xl); }
 .credential-page { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; overflow-wrap: anywhere; }
 .portal-card { margin-bottom: 1.5rem; }
 .credential-header { display: flex; align-items: flex-start; gap: 2rem; }

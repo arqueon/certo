@@ -180,6 +180,8 @@ export default defineNuxtConfig({
   },
   css: [
     '~/assets/css/main.css',
+    '~/assets/css/udgplus-tokens.css',
+    '~/assets/css/udgplus-componentes.css',
   ],
   plugins: [
     '~/plugins/api.ts',

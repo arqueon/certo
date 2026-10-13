@@ -1,0 +1,86 @@
+/*
+ * Piezas comunes de la dirección B sobre los tokens de udgplus-tokens.css.
+ * Prefijo mc- para no chocar con UnoCSS ni con el diseño original de Certo.
+ */
+html[data-branded] body {
+  font-family: var(--mc-fuente-texto);
+  background: var(--mc-fondo);
+  color: var(--mc-texto);
+}
+html[data-branded] :focus-visible { outline: 3px solid var(--mc-foco); outline-offset: 3px; }
+
+/* Texto */
+.mc-titulo { font-family: var(--mc-fuente-titulos); font-weight: 800; letter-spacing: -.01em; line-height: 1.1; }
+.mc-etiqueta { font-size: var(--mc-t-xs); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.mc-suave { color: var(--mc-suave); }
+.mc-enlace { color: var(--mc-enlace); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Botones: principal, secundario y de texto; -claro para fondos con degradado */
+.mc-boton {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  min-height: 44px; padding: .65rem 1.1rem; border-radius: 12px; border: 1px solid transparent;
+  font: 700 var(--mc-t-s)/1.2 var(--mc-fuente-texto); text-align: center; text-decoration: none; cursor: pointer;
+  background: var(--mc-primario); color: var(--mc-primario-texto);
+  transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.mc-boton:hover:not(:disabled) { background: var(--mc-primario-hover); }
+.mc-boton:active:not(:disabled) { transform: translateY(1px); }
+.mc-boton:disabled { opacity: .5; cursor: not-allowed; }
+.mc-boton--secundario { background: var(--mc-superficie); color: var(--mc-texto); border-color: var(--mc-linea); }
+.mc-boton--secundario:hover:not(:disabled) { background: var(--mc-hielo); }
+.mc-boton--texto { background: transparent; color: var(--mc-enlace); padding-inline: .25rem; min-height: 0; text-decoration: underline; text-underline-offset: 3px; }
+.mc-boton--texto:hover:not(:disabled) { background: transparent; color: var(--mc-texto); }
+.mc-boton--claro { background: #fff; color: #1a203b; }
+.mc-boton--claro:hover:not(:disabled) { background: #e8f3f9; }
+.mc-boton--vidrio { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .4); }
+.mc-boton--vidrio:hover:not(:disabled) { background: rgba(255, 255, 255, .24); }
+.mc-boton--peligro { background: var(--mc-no); color: #fff; }
+.mc-boton--peligro:hover:not(:disabled) { background: var(--mc-no); filter: brightness(1.1); }
+
+/* Chips de estado */
+.mc-chip {
+  display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .65rem; border-radius: 999px;
+  font-size: var(--mc-t-xs); font-weight: 700; line-height: 1.4; white-space: nowrap;
+}
+.mc-chip::before { content: ''; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
+.mc-chip--ok { background: var(--mc-ok-fondo); color: var(--mc-ok); }
+.mc-chip--esp { background: var(--mc-esp-fondo); color: var(--mc-esp); }
+.mc-chip--no { background: var(--mc-no-fondo); color: var(--mc-no); }
+.mc-chip--vidrio { background: rgba(255, 255, 255, .16); color: #fff; }
+
+/* Superficies */
+.mc-tarjeta { background: var(--mc-superficie); border: 1px solid var(--mc-linea); border-radius: var(--mc-r); box-shadow: var(--mc-sombra); }
+.mc-degradado { background: var(--mc-grad); color: #fff; }
+.mc-puntos { background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .14) 1.4px, transparent 0); background-size: 22px 22px; }
+.mc-degradado.mc-puntos { background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, .14) 1.4px, transparent 0), var(--mc-grad); background-size: 22px 22px, auto; }
+/* Mosaico con ícono: el ícono va dentro (los íconos de UnoCSS se pintan con background-color) */
+.mc-mosaico { flex: none; display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 12px; background: var(--mc-hielo); color: var(--mc-enlace); font-size: 1.35rem; }
+.mc-contenedor { width: 100%; max-width: var(--mc-ancho); margin-inline: auto; padding-inline: 1rem; }
+@media (min-width: 768px) { .mc-contenedor { padding-inline: 1.5rem; } }
+
+/* Avisos */
+.mc-aviso { display: flex; gap: .85rem; align-items: flex-start; padding: 1rem; border-radius: var(--mc-r); border: 1px solid var(--mc-linea); background: var(--mc-superficie); }
+.mc-aviso__icono { flex: none; display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 12px; font-size: 1.25rem; background: var(--mc-superficie); }
+.mc-aviso--esp { border-color: color-mix(in srgb, var(--mc-esp) 45%, transparent); background: var(--mc-esp-fondo); }
+.mc-aviso--esp .mc-aviso__icono { color: var(--mc-esp); }
+.mc-aviso--ok { border-color: color-mix(in srgb, var(--mc-ok) 40%, transparent); background: var(--mc-ok-fondo); }
+.mc-aviso--ok .mc-aviso__icono { color: var(--mc-ok); }
+.mc-aviso--no { border-color: color-mix(in srgb, var(--mc-no) 40%, transparent); background: var(--mc-no-fondo); }
+.mc-aviso--no .mc-aviso__icono { color: var(--mc-no); }
+
+/* Pantallas aún sin rediseñar: que sus botones y tarjetas ya hablen el mismo idioma */
+html[data-branded] .brand-button {
+  background: var(--mc-primario) !important; color: var(--mc-primario-texto) !important;
+  border-radius: 12px; font-family: var(--mc-fuente-texto); font-weight: 700;
+}
+html[data-branded] .portal-card { border-color: var(--mc-linea); border-radius: var(--mc-r); color: var(--mc-texto); background: var(--mc-superficie); }
+html[data-branded] .portal-card h2 { font-family: var(--mc-fuente-titulos); }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-branded] *, html[data-branded] *::before, html[data-branded] *::after { transition: none !important; animation: none !important; }
+}
+
+/* El logotipo del pie es azul marino: en oscuro, en blanco */
+@media (prefers-color-scheme: dark) {
+  html[data-branded][data-tema='b'] footer img { filter: brightness(0) invert(1); }
+}
