@@ -806,7 +806,14 @@
         "Certification": "Certificación",
         "Achievement": "Logro",
         "Competency": "Competencia",
-        "Diploma": "Diploma"
+        "Diploma": "Diploma",
+        "Award": "Reconocimiento",
+        "CoCurricular": "Participación",
+        "LearningProgram": "Ruta de aprendizaje",
+        "CommunityService": "Servicio a la comunidad",
+        "Internship": "Prácticas o estancia",
+        "Membership": "Membresía",
+        "License": "Habilitación"
       },
       "wallet": {
         "title": "Guardar en tu cartera",
