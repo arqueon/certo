@@ -174,6 +174,9 @@ export default defineNuxtConfig({
       // Interface locale when the visitor has not chosen one (certo_locale
       // cookie). Defaults to English, as upstream.
       catalogUrl: process.env.NUXT_PUBLIC_CATALOG_URL || '',
+      // Configuración de la cuenta institucional (p. ej. la consola de cuenta de
+      // Keycloak): el perfil enlaza ahí para corregir nombre o correo.
+      accountUrl: process.env.NUXT_PUBLIC_ACCOUNT_URL || '',
       defaultLocale: process.env.NUXT_PUBLIC_DEFAULT_LOCALE || '',
       // 'false' to skip browser-language detection on first visit.
       detectBrowserLocale: process.env.NUXT_PUBLIC_DETECT_BROWSER_LOCALE || '',
