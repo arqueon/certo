@@ -61,7 +61,7 @@ function savePrivacy() {
         {{ t('portal.holder.fileHelp') }}
       </p>
     </div>
-    <div class="mc-descargas__opcion">
+    <div v-if="$slots.default" class="mc-descargas__opcion">
       <slot />
     </div>
     <details class="mc-descargas__mas">

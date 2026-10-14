@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useMounted } from '@vueuse/core'
 import { apiClient } from '~/api/api-client'
+import { skillsOf } from '~/utils/credential-metadata'
 import { downloadJson } from '~/utils/download'
 
 // Portada del titular en la dirección B «Insignia viva»: saludo, la credencial
@@ -48,6 +49,20 @@ const ordered = computed(() => [...props.credentials].sort((a, b) => (Date.parse
 // Destacada: la más reciente que siga vigente; si ninguna lo está, la más reciente.
 const featured = computed(() => ordered.value.find(c => estado(c) === 'vigente') || ordered.value[0] || null)
 const rest = computed(() => ordered.value.filter(c => c !== featured.value))
+// Para LinkedIn y «Para seguir aprendiendo»: la clave de la ficha (humanCode) y
+// las habilidades viajan en los metadatos 0023 del logro de la credencial.
+const websiteUrl = useRuntimeConfig().public.websiteUrl || WEBSITE_URL
+const metadata = (c: any) => c?.achievementMetadata0023 || c?.achievement?.metadata0023 || {}
+const fichaClave = (c: any) => metadata(c).humanCode || ''
+const skillNames = (c: any) => skillsOf(metadata(c).alignment || []).map(s => s.name)
+const linkedinOf = (c: any) => ({
+  name: c.name || c.achievement?.name || '',
+  organization: c.issuer?.name || branding.name,
+  issued: issued(c),
+  expires: expiry(c),
+  certId: idOf(c),
+  url: `${websiteUrl}/credentials/${encodeURIComponent(idOf(c))}`,
+})
 const vigentes = computed(() => props.credentials.filter(c => estado(c) === 'vigente').length)
 const isNew = (c: any) => Date.now() - (Date.parse(issued(c)) || 0) < 30 * DAY
 
@@ -120,6 +135,7 @@ async function exportHistory() {
                   {{ t('portal.b.home.details') }}
                 </NuxtLink>
               </HolderWallet>
+              <PortalLinkedin v-if="estado(featured) === 'vigente'" :credential="linkedinOf(featured)" :skills="skillNames(featured)" claro class="mc-pase__linkedin" />
             </article>
 
             <section v-else class="mc-vacio mc-tarjeta" data-testid="sin-credenciales">
@@ -149,6 +165,7 @@ async function exportHistory() {
                 </li>
               </ul>
             </section>
+            <PortalSiguientes v-if="featured" :clave="fichaClave(featured)" :nombre="featured.name || featured.achievement?.name" />
           </div>
 
           <aside class="mc-accesos" :aria-label="t('portal.b.home.shortcuts')">
@@ -197,6 +214,7 @@ async function exportHistory() {
 .mc-pase__etiqueta { opacity: .85; padding-right: 4.5rem; }
 .mc-pase__nombre { font-size: var(--mc-t-xl); font-weight: 700; line-height: 1.15; padding-right: 4.5rem; }
 .mc-pase .mc-chip { justify-self: start; }
+.mc-pase__linkedin { border-top: 1px solid rgba(255, 255, 255, .25); padding-top: .85rem; margin-top: .15rem; }
 .mc-pase__datos { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-size: var(--mc-t-s); margin: .25rem 0 .5rem; }
 .mc-pase__datos dt { opacity: .8; }
 .mc-pase__datos dd { font-weight: 700; font-size: var(--mc-t-base); }

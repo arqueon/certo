@@ -898,7 +898,49 @@
         "keepTitle": "Descargar y compartir",
         "linkedin": "Añadir a LinkedIn",
         "privacyTitle": "Qué compartes públicamente",
-        "loading": "Cargando la credencial…"
+        "loading": "Cargando la credencial…",
+        "skills": "Habilidades que acredita",
+        "skillsNote": "Cada habilidad está respaldada por un resultado de aprendizaje evaluado: tócala para verlo.",
+        "skillSupport": "(ver el resultado {code} que la respalda)",
+        "holderActionsTitle": "Guárdala y compártela"
+      },
+      "issuer": {
+        "verified": "Emisor verificado",
+        "declared": "Emisor",
+        "domainBefore": "La credencial está firmada con la identidad digital del dominio",
+        "domainAfter": ", que administra el emisor. Así cualquiera puede comprobar quién la emitió y que nadie la cambió, sin pedírselo a nadie.",
+        "noDomain": "La credencial está firmada digitalmente por su emisor.",
+        "signature": "Firma:",
+        "signature_ok": "auténtica; nadie la ha modificado.",
+        "signature_no": "no coincide; esta credencial pudo alterarse.",
+        "signature_sin": "no se volvió a comprobar, porque la credencial ya no está vigente.",
+        "validity": "Vigencia:",
+        "didLink": "Ver la identidad digital del emisor"
+      },
+      "linkedin": {
+        "add": "Agregar a LinkedIn",
+        "newTab": "(se abre en otra pestaña)",
+        "postTitle": "Texto sugerido para publicarla",
+        "postHelp": "LinkedIn abre su formulario con los datos ya llenos. Si además quieres contarlo en una publicación, copia este borrador y ajústalo a tu gusto.",
+        "copy": "Copiar el texto",
+        "copied": "Texto copiado",
+        "copyFailed": "No se pudo copiar: selecciona el texto y cópialo a mano.",
+        "post": {
+          "intro": "Obtuve la credencial «{name}», emitida por {organization}.",
+          "skills": "Acredita estas habilidades: {skills}.",
+          "verify": "Cualquiera puede verificarla aquí: {url}"
+        }
+      },
+      "next": {
+        "title": "Para seguir aprendiendo",
+        "intro": "Oferta de UDGPlus relacionada con lo que ya acreditaste.",
+        "go": "Ver e inscribirme",
+        "hours": "{hours} h",
+        "because": {
+          "habilidad": "También trabaja «{value}»",
+          "area": "Del área de {value}",
+          "nombre": "Relacionado con «{value}»"
+        }
       }
     }
   }

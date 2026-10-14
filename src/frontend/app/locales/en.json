@@ -898,7 +898,49 @@
         "keepTitle": "Download and share",
         "linkedin": "Add to LinkedIn",
         "privacyTitle": "What you share publicly",
-        "loading": "Loading the credential…"
+        "loading": "Loading the credential…",
+        "skills": "Skills it certifies",
+        "skillsNote": "Each skill is backed by an assessed learning outcome: tap it to see which.",
+        "skillSupport": "(see the outcome {code} that backs it)",
+        "holderActionsTitle": "Save and share it"
+      },
+      "issuer": {
+        "verified": "Verified issuer",
+        "declared": "Issuer",
+        "domainBefore": "This credential is signed with the digital identity of the domain",
+        "domainAfter": ", which the issuer runs. So anyone can check who issued it and that nobody changed it, without asking anyone.",
+        "noDomain": "This credential is digitally signed by its issuer.",
+        "signature": "Signature:",
+        "signature_ok": "authentic; nobody has changed it.",
+        "signature_no": "does not match; this credential may have been altered.",
+        "signature_sin": "not checked again, because the credential is no longer current.",
+        "validity": "Validity:",
+        "didLink": "View the issuer’s digital identity"
+      },
+      "linkedin": {
+        "add": "Add to LinkedIn",
+        "newTab": "(opens in a new tab)",
+        "postTitle": "Suggested post text",
+        "postHelp": "LinkedIn opens its form already filled in. If you also want to post about it, copy this draft and adjust it.",
+        "copy": "Copy the text",
+        "copied": "Text copied",
+        "copyFailed": "Could not copy: select the text and copy it by hand.",
+        "post": {
+          "intro": "I earned the credential “{name}”, issued by {organization}.",
+          "skills": "It certifies these skills: {skills}.",
+          "verify": "Anyone can verify it here: {url}"
+        }
+      },
+      "next": {
+        "title": "Keep learning",
+        "intro": "UDGPlus courses related to what you have already earned.",
+        "go": "View and enrol",
+        "hours": "{hours} h",
+        "because": {
+          "habilidad": "Also works on “{value}”",
+          "area": "In the area of {value}",
+          "nombre": "Related to “{value}”"
+        }
       }
     }
   }

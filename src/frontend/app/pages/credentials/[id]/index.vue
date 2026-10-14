@@ -7,6 +7,7 @@ import { useMounted } from '@vueuse/core'
 import QRCode from 'qrcode'
 import { credentialMetadata, resolvedResults } from '~/utils/credential-metadata'
 import { safeHttpUrl } from '~/utils/portal'
+import { linkedinAddUrl } from '~/utils/linkedin'
 import { apiClient } from '~/api/api-client'
 
 definePageMeta({ temaB: true })
@@ -390,18 +391,15 @@ async function shareCredential() {
 
 function getLinkedInAddToProfileUrl() {
   if (!credential.value) return '#'
-
   const cert = credential.value
-  const params = new URLSearchParams({
-    startTask: 'CERTIFICATION_NAME',
+  return linkedinAddUrl({
     name: cert.name || cert.title || '',
-    ...(branding.active ? { organizationName: cert.issuer?.name || branding.name } : { organizationId: '53115782' }),
-    issueYear: (cert.validFrom || cert.issuanceDate) ? new Date((cert.validFrom || cert.issuanceDate)!).getFullYear().toString() : '',
-    issueMonth: (cert.validFrom || cert.issuanceDate) ? (new Date((cert.validFrom || cert.issuanceDate)!).getMonth() + 1).toString() : '',
-    certId: cert.id,
-    certUrl: shareableUrl
-  })
-  return `https://www.linkedin.com/profile/add?${params.toString()}`
+    organization: cert.issuer?.name || branding.name,
+    issued: cert.validFrom || cert.issuanceDate,
+    expires: cert.validUntil || cert.expirationDate,
+    certId: String(cert.id),
+    url: shareableUrl,
+  }, branding.active ? {} : { organizationId: '53115782' })
 }
 
 </script>
@@ -428,7 +426,6 @@ function getLinkedInAddToProfileUrl() {
       :image-url="!imageLoadError ? displayImageUrl : null"
       :qr="qrCodeDataUrl"
       :shareable-url="shareableUrl"
-      :linkedin-url="getLinkedInAddToProfileUrl()"
       :dates="{ issued: formattedIssuanceDate, awarded: formattedAwardedDate, expires: formattedExpirationDate }"
       @image-error="handleImageError"
       @share="shareCredential"

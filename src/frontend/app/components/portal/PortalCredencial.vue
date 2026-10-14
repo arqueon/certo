@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useMounted } from '@vueuse/core'
-import { credentialMetadata, qualificationLabel, resolvedResults } from '~/utils/credential-metadata'
+import { credentialMetadata, didWebDomain, qualificationLabel, resolvedResults, resultAnchor } from '~/utils/credential-metadata'
 import { safeHttpUrl } from '~/utils/portal'
 
 // Detalle de una credencial en la dirección B «Insignia viva»: la insignia y su
@@ -15,7 +15,6 @@ const props = defineProps<{
   imageUrl: string | null
   qr: string
   shareableUrl: string
-  linkedinUrl: string
   dates: { issued: string, awarded: string | null, expires: string }
 }>()
 const emit = defineEmits<{ imageError: [], share: [], recheck: [], privacySaved: [] }>()
@@ -80,6 +79,34 @@ const evidence = computed(() => {
     url: safeHttpUrl(e.id || e.url),
   }))
 })
+
+// Habilidades: cada etiqueta lleva al resultado que la respalda, si está en la credencial.
+const outcomeCodes = computed(() => new Set(info.value.outcomes.map((o: any) => o.targetCode).filter(Boolean)))
+const skills = computed(() => info.value.skills.map((s: any) => ({ ...s, anchor: s.result && outcomeCodes.value.has(s.result) ? resultAnchor(s.result) : '' })))
+
+// «Emisor verificado» en lenguaje claro: la firma y la vigencia por separado.
+// El servidor no vuelve a revisar la firma de una credencial vencida o revocada.
+const issuerName = computed(() => props.credential?.issuer?.name || branding.name)
+const domain = computed(() => didWebDomain(props.credential?.issuer))
+const didUrl = computed(() => (domain.value && !domain.value.includes('/') ? `https://${domain.value}/.well-known/did.json` : ''))
+const firma = computed<'ok' | 'no' | 'sin'>(() => {
+  const proof = checks.value.find(c => c.check === 'proof')
+  if (proof) {
+    return proof.result === 'success' ? 'ok' : proof.result === 'error' ? 'no' : 'sin'
+  }
+  return props.result?.verified ? 'ok' : 'sin'
+})
+
+// Datos para LinkedIn (solo el titular los usa).
+const linkedin = computed(() => ({
+  name: props.credential?.name || '',
+  organization: issuerName.value,
+  issued: issued.value,
+  expires: expiry.value,
+  certId: String(props.credential?.id || props.credentialId),
+  url: props.shareableUrl,
+}))
+const skillNames = computed(() => skills.value.map((s: any) => s.name))
 
 function checkLabel(name: string) {
   const label = t(`portal.b.detail.check.${name}`)
@@ -172,11 +199,25 @@ async function copy() {
           <p v-if="info.event" class="mc-detalle__texto mc-suave">
             {{ info.event }}
           </p>
+          <div v-if="skills.length" class="mc-detalle__habilidades" data-testid="habilidades">
+            <h3>{{ t('portal.b.detail.skills') }}</h3>
+            <ul>
+              <li v-for="skill in skills" :key="skill.name">
+                <a v-if="skill.anchor" :href="`#${skill.anchor}`" class="mc-detalle__habilidad" :title="skill.support">
+                  {{ skill.name }}<span class="i-heroicons-arrow-down-right" aria-hidden="true" /><span class="sr-only">{{ t('portal.b.detail.skillSupport', { code: skill.result }) }}</span>
+                </a>
+                <span v-else class="mc-detalle__habilidad" :title="skill.support || undefined">{{ skill.name }}</span>
+              </li>
+            </ul>
+            <p class="mc-suave mc-detalle__habilidades-nota">
+              {{ t('portal.b.detail.skillsNote') }}
+            </p>
+          </div>
           <template v-if="info.outcomes.length">
             <h3>{{ t('portal.b.detail.outcomes') }}</h3>
             <ul class="mc-detalle__logros">
-              <li v-for="(outcome, i) in info.outcomes" :key="i">
-                <span class="i-heroicons-check-circle" aria-hidden="true" />{{ outcome.targetName }}
+              <li v-for="(outcome, i) in info.outcomes" :id="outcome.targetCode ? resultAnchor(outcome.targetCode) : undefined" :key="i">
+                <span class="i-heroicons-check-circle" aria-hidden="true" /><span><small v-if="outcome.targetCode" class="mc-detalle__codigo">{{ outcome.targetCode }}</small>{{ outcome.targetName }}</span>
               </li>
             </ul>
           </template>
@@ -267,6 +308,8 @@ async function copy() {
             </div>
           </dl>
         </section>
+
+        <PortalSiguientes v-if="holder" :clave="info.achievement.humanCode" :nombre="credential.name" class="mc-detalle__siguientes" />
       </div>
 
       <aside class="mc-detalle__lateral" :class="{ 'mc-detalle__lateral--titular': holder }">
@@ -274,6 +317,34 @@ async function copy() {
           <h2 class="mc-titulo">
             {{ t('portal.b.detail.verifyTitle') }}
           </h2>
+          <div class="mc-emisor" data-testid="emisor-verificado">
+            <p class="mc-emisor__titulo">
+              <span class="mc-emisor__sello" :class="`mc-emisor__sello--${firma}`" aria-hidden="true"><span :class="firma === 'no' ? 'i-heroicons-shield-exclamation' : 'i-heroicons-check-badge'" /></span>
+              <span>
+                <small>{{ firma === 'ok' ? t('portal.b.issuer.verified') : t('portal.b.issuer.declared') }}</small>
+                <b>{{ issuerName }}</b>
+              </span>
+            </p>
+            <p class="mc-emisor__texto">
+              <template v-if="domain">
+                {{ t('portal.b.issuer.domainBefore') }} <b>{{ domain }}</b>{{ t('portal.b.issuer.domainAfter') }}
+              </template>
+              <template v-else>
+                {{ t('portal.b.issuer.noDomain') }}
+              </template>
+            </p>
+            <ul class="mc-emisor__estados">
+              <li :class="`mc-emisor__estado--${firma}`">
+                <span :class="firma === 'ok' ? 'i-heroicons-check-circle' : firma === 'no' ? 'i-heroicons-x-circle' : 'i-heroicons-minus-circle'" aria-hidden="true" />
+                <span><b>{{ t('portal.b.issuer.signature') }}</b> {{ t(`portal.b.issuer.signature_${firma}`) }}</span>
+              </li>
+              <li :class="`mc-emisor__estado--${estado === 'vigente' ? 'ok' : estado === 'vencida' ? 'esp' : 'no'}`">
+                <span :class="estado === 'vigente' ? 'i-heroicons-check-circle' : estado === 'vencida' ? 'i-heroicons-clock' : 'i-heroicons-x-circle'" aria-hidden="true" />
+                <span><b>{{ t('portal.b.issuer.validity') }}</b> {{ estadoTexto }}</span>
+              </li>
+            </ul>
+            <a v-if="didUrl" :href="didUrl" target="_blank" rel="noopener noreferrer" class="mc-enlace mc-emisor__did">{{ t('portal.b.issuer.didLink') }}</a>
+          </div>
           <p class="mc-suave">
             {{ t('portal.b.detail.verifyText') }}
           </p>
@@ -309,18 +380,15 @@ async function copy() {
           <RecipientCheck v-if="!holder" :credential-id="credentialId" class="mc-detalle__destinatario" />
         </section>
 
-        <section v-if="holder" class="mc-tarjeta mc-detalle__bloque">
+        <section v-if="holder" class="mc-tarjeta mc-detalle__bloque mc-detalle__acciones-titular" data-testid="acciones-titular">
           <h2 class="mc-titulo">
-            {{ t('portal.b.detail.walletTitle') }}
+            {{ t('portal.b.detail.holderActionsTitle') }}
           </h2>
+          <PortalLinkedin v-if="estado === 'vigente'" :credential="linkedin" :skills="skillNames" />
           <HolderWallet :credential-id="credentialId" />
         </section>
 
-        <HolderDownloads v-if="holder" :credential-id="credentialId" :privacy="holder.rawCredential" @saved="emit('privacySaved')">
-          <a :href="linkedinUrl" target="_blank" rel="noopener noreferrer" class="mc-boton mc-boton--secundario">
-            <span class="i-heroicons-briefcase" aria-hidden="true" /> {{ t('portal.b.detail.linkedin') }}
-          </a>
-        </HolderDownloads>
+        <HolderDownloads v-if="holder" :credential-id="credentialId" :privacy="holder.rawCredential" @saved="emit('privacySaved')" />
       </aside>
     </div>
   </div>
@@ -357,10 +425,43 @@ async function copy() {
 .mc-detalle__texto { white-space: pre-line; line-height: 1.6; }
 .mc-detalle__logros { display: grid; gap: .5rem; }
 .mc-detalle__logros li { display: flex; gap: .55rem; align-items: flex-start; line-height: 1.45; }
-.mc-detalle__logros span { flex: none; color: var(--mc-ok); font-size: 1.2rem; margin-top: .05rem; }
+.mc-detalle__logros li > span[aria-hidden] { flex: none; color: var(--mc-ok); font-size: 1.2rem; margin-top: .05rem; }
 .mc-detalle__datos { display: grid; gap: .75rem; }
 .mc-detalle__datos dt { font-size: var(--mc-t-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mc-suave); }
 .mc-detalle__datos dd { font-weight: 600; }
+.mc-detalle__habilidades { display: grid; gap: .55rem; padding: .9rem; border-radius: var(--mc-r); background: var(--mc-hielo); }
+.mc-detalle__habilidades h3 { margin-top: 0; }
+.mc-detalle__habilidades ul { display: flex; flex-wrap: wrap; gap: .45rem; }
+.mc-detalle__habilidad {
+  display: inline-flex; align-items: center; gap: .3rem; padding: .35rem .8rem; border-radius: 999px;
+  background: var(--mc-superficie); color: var(--mc-enlace); border: 1px solid var(--mc-linea); font-weight: 700; font-size: var(--mc-t-s); text-decoration: none;
+}
+a.mc-detalle__habilidad:hover { border-color: var(--mc-claro); text-decoration: underline; }
+.mc-detalle__habilidad span[aria-hidden] { font-size: .95em; opacity: .75; }
+.mc-detalle__habilidades-nota { font-size: var(--mc-t-xs); line-height: 1.45; }
+.mc-detalle__codigo { display: inline-block; margin-right: .4rem; font: 700 var(--mc-t-xs) var(--mc-fuente-texto); color: var(--mc-suave); letter-spacing: .04em; }
+.mc-detalle__logros li:target { outline: 2px solid var(--mc-claro); outline-offset: 4px; border-radius: 6px; }
+.mc-detalle__logros li { scroll-margin-top: 6rem; }
+.mc-detalle__siguientes { margin-top: .5rem; }
+.mc-detalle__acciones-titular { gap: 1rem; }
+.mc-detalle__acciones-titular :deep(.wallet-save) { width: 100%; justify-content: center; }
+
+.mc-emisor { display: grid; gap: .65rem; padding: .9rem; border-radius: var(--mc-r); background: var(--mc-fondo); border: 1px solid var(--mc-linea); }
+.mc-emisor__titulo { display: flex; gap: .7rem; align-items: center; }
+.mc-emisor__titulo small { display: block; font-size: var(--mc-t-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mc-suave); }
+.mc-emisor__titulo b { display: block; line-height: 1.25; }
+.mc-emisor__sello { flex: none; width: 2.5rem; height: 2.5rem; border-radius: 12px; display: grid; place-items: center; font-size: 1.45rem; background: var(--mc-hielo); color: var(--mc-enlace); }
+.mc-emisor__sello--ok { background: var(--mc-ok-fondo); color: var(--mc-ok); }
+.mc-emisor__sello--no { background: var(--mc-no-fondo); color: var(--mc-no); }
+.mc-emisor__texto { font-size: var(--mc-t-s); line-height: 1.5; }
+.mc-emisor__estados { display: grid; gap: .4rem; font-size: var(--mc-t-s); }
+.mc-emisor__estados li { display: flex; gap: .45rem; align-items: flex-start; line-height: 1.4; }
+.mc-emisor__estados li > span:first-child { flex: none; font-size: 1.15rem; margin-top: .05rem; }
+.mc-emisor__estado--ok > span:first-child { color: var(--mc-ok); }
+.mc-emisor__estado--esp > span:first-child { color: var(--mc-esp); }
+.mc-emisor__estado--no > span:first-child { color: var(--mc-no); }
+.mc-emisor__estado--sin > span:first-child { color: var(--mc-suave); }
+.mc-emisor__did { font-size: var(--mc-t-s); }
 .mc-detalle__etiquetas { display: flex; flex-wrap: wrap; gap: .4rem; }
 .mc-detalle__etiquetas li { padding: .2rem .65rem; border-radius: 999px; background: var(--mc-hielo); color: var(--mc-enlace); font-size: var(--mc-t-s); font-weight: 600; }
 .mc-detalle__criterios { display: grid; gap: .6rem; }
