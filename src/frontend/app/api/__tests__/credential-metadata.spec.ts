@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { credentialMetadata, criteriaText, fieldOfStudyLabel, qualificationLabel, resolvedResults } from '../../utils/credential-metadata'
+import { credentialMetadata, criteriaText, didWebDomain, fieldOfStudyLabel, qualificationLabel, resolvedResults, resultAnchor } from '../../utils/credential-metadata'
 describe('presentación 0023', () => {
   it('muestra nombre firmado, tipo español y nivel declarado', () => {
     const info = credentialMetadata({ credentialSubject: { name: 'Titular firmada', term: '2026-B', creditsEarned: 0, achievement: { achievementType: 'MicroCredential', inLanguage: 'es', creditsAvailable: 2, alignment: [{ targetName: 'nivel_6', targetFramework: 'Marco Nacional de Cualificaciones (SEP)' }] } } }, { recipient: { name: 'Perfil modificado' } })
@@ -24,5 +24,25 @@ describe('presentación 0023', () => {
     const nuevo = 'Rúbrica versión 1. Ficha activada por Gestora. Instancia que decide: UDG+.'
     expect(criteriaText(nuevo)).toBe(nuevo)
     expect(credentialMetadata({ credentialSubject: { achievement: { fieldOfStudy: 'cinef_06 · TIC' } } }).fieldOfStudy).toBe('TIC')
+  })
+  it('separa las habilidades (marco Habilidades UDGPlus) de los resultados y lee el resultado que las respalda', () => {
+    const info = credentialMetadata({ credentialSubject: { achievement: { alignment: [
+      { targetName: 'Diseña rúbricas', targetCode: 'RA1', targetFramework: 'Resultados de aprendizaje', targetType: 'ceasn:Competency' },
+      { targetName: 'Diseño de rúbricas', targetType: 'ceasn:Competency', targetFramework: 'Habilidades UDGPlus', targetDescription: 'Respaldada por RA1: Diseña rúbricas.', targetUrl: 'https://catalogo.test/x' },
+      { targetName: 'Trabajo en equipo', targetType: 'ceasn:Competency', targetFramework: 'Habilidades UDGPlus' },
+    ] } } })
+    expect(info.outcomes.map((o: any) => o.targetName)).toEqual(['Diseña rúbricas'])
+    expect(info.skills).toEqual([
+      { name: 'Diseño de rúbricas', result: 'RA1', support: 'Respaldada por RA1: Diseña rúbricas.', url: 'https://catalogo.test/x' },
+      { name: 'Trabajo en equipo', result: '', support: '', url: '' },
+    ])
+    expect(info.otherAlignments).toEqual([])
+    expect(resultAnchor('RA 1"><x')).toBe('ra-RA1x')
+  })
+  it('obtiene el dominio de un emisor did:web y nada de otros métodos', () => {
+    expect(didWebDomain({ id: 'did:web:microcredenciales.udgplus.udg.mx' })).toBe('microcredenciales.udgplus.udg.mx')
+    expect(didWebDomain('did:web:localhost%3A8443:emisor')).toBe('localhost:8443')
+    expect(didWebDomain({ id: 'did:key:z6Mk' })).toBe('')
+    expect(didWebDomain(undefined)).toBe('')
   })
 })

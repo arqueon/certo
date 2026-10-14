@@ -153,6 +153,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     issuerDidBackendUrl: '',
+    // Base del catálogo de la consola para «Para seguir aprendiendo», leída
+    // desde el servidor (NUXT_CATALOG_API_URL; en la VM, la red interna). Sin
+    // ella se usa el origen de NUXT_PUBLIC_CATALOG_URL.
+    catalogApiUrl: '',
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL,
       walletAppUrl: process.env.NUXT_PUBLIC_WALLET_APP_URL || '',
