@@ -14,7 +14,7 @@ async function cargar() {
     return
   }
   try {
-    const r = await $fetch<{ data: any[] }>('/api/oferta-relacionada', { query: { ...(props.clave ? { clave: props.clave } : {}), ...(props.nombre ? { nombre: props.nombre } : {}) } })
+    const r = await $fetch<{ data: any[] }>('/portal/oferta-relacionada', { query: { ...(props.clave ? { clave: props.clave } : {}), ...(props.nombre ? { nombre: props.nombre } : {}) } })
     ofertas.value = Array.isArray(r?.data) ? r.data : []
   }
   catch {

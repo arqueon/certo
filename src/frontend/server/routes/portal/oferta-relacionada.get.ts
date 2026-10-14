@@ -5,6 +5,7 @@ import { defineEventHandler, getQuery, setHeader } from 'h3'
 // relacionadas con la ficha de una credencial. Del lado del servidor no hace
 // falta CORS y la VM puede usar la red interna (NUXT_CATALOG_API_URL). Ante
 // cualquier falla responde una lista vacía: el bloque simplemente no aparece.
+// Va en /portal y no en /api: en el borde, /api/* es del backend de Certo.
 interface Oferta { clave: string | null, nombre: string | null, tipo: string | null, horas: number | null, modalidad: string | null, inscripcion: string, imagen?: string, motivo: { tipo: string, valor: string } }
 const cache = new Map<string, { hasta: number, data: Oferta[] }>()
 const VIGENCIA = 10 * 60 * 1000

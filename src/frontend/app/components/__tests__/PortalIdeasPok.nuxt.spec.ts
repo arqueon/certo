@@ -17,13 +17,13 @@ describe('ideas de POK en el portal', () => {
     expect(wrapper.get('pre').text()).toContain('Diseño de rúbricas')
   })
   it('para seguir aprendiendo: no aparece sin ofertas relacionadas', async () => {
-    registerEndpoint('/api/oferta-relacionada', () => ({ data: [] }))
+    registerEndpoint('/portal/oferta-relacionada', () => ({ data: [] }))
     const wrapper = await mountSuspended(PortalSiguientes, { props: { clave: 'SIN-RELACION' } })
     await flushPromises()
     expect(wrapper.find('[data-testid="seguir-aprendiendo"]').exists()).toBe(false)
   })
   it('para seguir aprendiendo: muestra la oferta, su motivo y el enlace de inscripción', async () => {
-    registerEndpoint('/api/oferta-relacionada', () => ({ data: [{ clave: 'UDG-DRU-1', nombre: 'Excel básico', tipo: 'Curso', horas: 40, modalidad: null, inscripcion: 'https://udgplus.udg.mx/excel-basico', motivo: { tipo: 'area', valor: 'Educación' } }] }))
+    registerEndpoint('/portal/oferta-relacionada', () => ({ data: [{ clave: 'UDG-DRU-1', nombre: 'Excel básico', tipo: 'Curso', horas: 40, modalidad: null, inscripcion: 'https://udgplus.udg.mx/excel-basico', motivo: { tipo: 'area', valor: 'Educación' } }] }))
     const wrapper = await mountSuspended(PortalSiguientes, { props: { clave: 'DEMO' } })
     await flushPromises()
     const tarjeta = wrapper.get('[data-testid="seguir-aprendiendo"] a')
