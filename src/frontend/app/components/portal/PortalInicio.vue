@@ -165,6 +165,7 @@ async function exportHistory() {
                 </li>
               </ul>
             </section>
+            <PortalRutaAvance :credentials="credentials" />
             <PortalSiguientes v-if="featured" :clave="fichaClave(featured)" :nombre="featured.name || featured.achievement?.name" />
           </div>
 

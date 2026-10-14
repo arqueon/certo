@@ -309,6 +309,7 @@ async function copy() {
           </dl>
         </section>
 
+        <PortalRutaAvance v-if="holder && info.achievement.humanCode" :foco="info.achievement.humanCode" class="mc-detalle__siguientes" />
         <PortalSiguientes v-if="holder" :clave="info.achievement.humanCode" :nombre="credential.name" class="mc-detalle__siguientes" />
       </div>
 
