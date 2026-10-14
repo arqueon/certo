@@ -1148,6 +1148,17 @@
         "whichNoName": "{wallet} quiere guardar una de tus credenciales. Si fuiste tú, agrégala y la credencial llegará en segundos.",
         "refuse": "No soy yo",
         "badge": "Hay una cartera nueva por confirmar"
+      },
+      "route": {
+        "title": "Tus rutas",
+        "titleOne": "Esta credencial es parte de una ruta",
+        "progress": "{done} de {total}",
+        "done": "Ruta completada",
+        "ready": "Ya tienes todos los pasos: la credencial de la ruta se emite sola en breve.",
+        "stepDone": "(acreditado)",
+        "stepMissing": "(te falta)",
+        "howTo": "Ver cómo cursarlo",
+        "see": "Ver la ruta"
       }
     }
   }

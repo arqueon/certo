@@ -554,7 +554,9 @@ export default ({ strapi }) => ({
       if (credential.evidence && credential.evidence.length > 0) {
         const evidenceTarget = fresh ? obCredential : obCredential.credentialSubject.achievement
         evidenceTarget.evidence = credential.evidence.map(ev => ({
-          id: `${baseUrl}/api/evidences/${ev.id}`,
+          // OB 3.0: el id de la evidencia es la URL donde se consulta (p. ej. la
+          // credencial de un paso de ruta); sin ella, el registro de evidencia.
+          id: ev.url || `${baseUrl}/api/evidences/${ev.id}`,
           type: ['Evidence'],
           name: ev.name,
           description: ev.description,

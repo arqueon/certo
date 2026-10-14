@@ -1148,6 +1148,17 @@
         "whichNoName": "{wallet} wants to save one of your credentials. If it was you, add it and the credential will arrive in seconds.",
         "refuse": "Not me",
         "badge": "A new wallet is waiting for confirmation"
+      },
+      "route": {
+        "title": "Your pathways",
+        "titleOne": "This credential is part of a pathway",
+        "progress": "{done} of {total}",
+        "done": "Pathway completed",
+        "ready": "You have every step: the pathway credential will be issued automatically shortly.",
+        "stepDone": "(earned)",
+        "stepMissing": "(missing)",
+        "howTo": "See how to take it",
+        "see": "See the pathway"
       }
     }
   }

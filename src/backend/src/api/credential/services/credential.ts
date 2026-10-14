@@ -132,6 +132,11 @@ export default ({ strapi }) => ({
               data: {
                 name: item.name || 'Evidencia',
                 description: item.description || '',
+                // Una ruta apilable cita como evidencia la credencial de cada paso:
+                // su URL de verificación, su narrativa y el género «Credencial».
+                ...(typeof item.url === 'string' && /^https:\/\//.test(item.url) ? { url: item.url } : {}),
+                ...(typeof item.narrative === 'string' ? { narrative: item.narrative } : {}),
+                ...(typeof item.genre === 'string' ? { genre: item.genre } : {}),
                 credential: credential.id,
                 publishedAt: new Date(),
               }
