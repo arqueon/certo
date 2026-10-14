@@ -7,6 +7,8 @@ const authStore = useAuthStore()
 // Con marca y sesión, el titular navega en celular con la barra inferior.
 const mounted = useMounted()
 const bottomNav = computed(() => mounted.value && branding.active && authStore.isAuthenticated)
+// Una cartera nueva que espera confirmación se avisa en todas las páginas.
+useVigilanciaCarteras(bottomNav)
 </script>
 
 <template>
@@ -24,6 +26,7 @@ const bottomNav = computed(() => mounted.value && branding.active && authStore.i
 
     <!-- Main Content -->
     <main id="main-content" class="pt-16 flex-grow flex flex-col" :class="branding.active ? 'mc-principal' : 'mb-32'" tabindex="-1">
+      <PortalAvisoCartera v-if="bottomNav" />
       <slot />
     </main>
 

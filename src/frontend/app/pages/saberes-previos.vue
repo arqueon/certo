@@ -135,16 +135,19 @@ onMounted(async () => {
     </section>
 
     <div class="mc-contenedor mc-saberes__cuerpo">
-      <section class="mc-tarjeta mc-saberes__como" aria-labelledby="saberes-como">
-        <h2 id="saberes-como" class="mc-titulo">
-          {{ t('portal.b.saberes.howTitle') }}
-        </h2>
+      <!-- Abierto para quien llega por primera vez; plegado cuando ya tiene solicitudes (VoBo 14-oct-2026). -->
+      <details class="mc-tarjeta mc-saberes__como" :open="!solicitudes.length" data-testid="saberes-como">
+        <summary>
+          <h2 id="saberes-como" class="mc-titulo">
+            {{ t('portal.b.saberes.howTitle') }}
+          </h2>
+        </summary>
         <ol>
           <li v-for="n in 4" :key="n">
             <span aria-hidden="true">{{ n }}</span>{{ t(`portal.b.saberes.step${n}`) }}
           </li>
         </ol>
-      </section>
+      </details>
 
       <div v-if="cargando" class="mc-saberes__esqueleto mc-tarjeta" role="status" :aria-label="t('portal.b.saberes.loading')" />
 
@@ -499,7 +502,11 @@ onMounted(async () => {
 .mc-saberes__intro { opacity: .92; max-width: 42rem; font-size: var(--mc-t-l); line-height: 1.5; }
 .mc-saberes__cuerpo { margin-top: -3.25rem; display: grid; gap: 1.25rem; min-width: 0; }
 .mc-saberes__como { padding: 1.25rem; display: grid; gap: .8rem; }
-.mc-saberes__como h2 { font-size: var(--mc-t-l); }
+.mc-saberes__como h2 { font-size: var(--mc-t-l); display: inline; }
+.mc-saberes__como summary { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: .5rem; list-style: none; }
+.mc-saberes__como summary::-webkit-details-marker { display: none; }
+.mc-saberes__como summary::after { content: '▾'; color: var(--mc-suave); transition: transform .2s; }
+.mc-saberes__como:not([open]) summary::after { transform: rotate(-90deg); }
 .mc-saberes__como ol { display: grid; gap: .65rem; }
 .mc-saberes__como li { display: flex; gap: .65rem; align-items: flex-start; line-height: 1.45; }
 .mc-saberes__como li > span, .mc-saberes__parte h3 > span {

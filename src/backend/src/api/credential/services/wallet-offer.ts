@@ -3,6 +3,7 @@ import { signCredential, verifyCredentialStatus, verifyDataIntegrity, verificati
 import { issuerDid } from '../../../utils/issuer-did'
 import { verifyWalletPresentation } from '../../../utils/wallet-presentation'
 import { walletName, type WalletClient } from './holder-wallets'
+import { webWalletLink } from './wallet-landing'
 
 export const OFFER_UID = 'api::wallet-offer.wallet-offer'
 export const COPY_UID = 'api::wallet-copy.wallet-copy'
@@ -51,8 +52,12 @@ export default ({ strapi }) => ({
     const request = { protocols: { vcapi: exchangeUrl } }
     const encoded = encodeURIComponent(JSON.stringify(request))
     const walletUrl = `https://lcw.app/request.html?request=${encoded}`
+    // The web wallet opens straight on its request page: the portal offers it
+    // as «Abrir en la Cartera UDGPlus» on a computer, no QR to decipher.
+    let webWalletUrl: string | undefined
+    try { if (process.env.WALLET_APP_URL) webWalletUrl = webWalletLink(process.env.WALLET_APP_URL, exchangeUrl) } catch { webWalletUrl = undefined }
     return { exchangeUrl, walletUrl, deepLink: `dccrequest://request?request=${encoded}`,
-      interactionUrl: `${exchangeUrl}?iuv=1`, qrContent: walletUrl, expiresAt }
+      interactionUrl: `${exchangeUrl}?iuv=1`, qrContent: walletUrl, webWalletUrl, expiresAt }
   },
 
   async pending(token: string) {
@@ -141,6 +146,20 @@ export default ({ strapi }) => ({
       pendingHolderDid: { $notNull: true }, approvedHolderDid: null, expiresAt: { $gt: new Date().toISOString() } }, orderBy: { requestedAt: 'desc' } })
     if (!offer) return null
     return { offerId: offer.id, client: offer.pendingClient || null, name: walletName(offer.pendingClient || null, offer.pendingOrigin || null), requestedAt: offer.requestedAt }
+  },
+
+  /**
+   * Every new wallet waiting for this holder's confirmation, across all their
+   * credentials: the portal shows it on any page, not only where the offer was
+   * opened. No DIDs; the credential is named so the holder recognises it.
+   */
+  async awaitingForOwner(ownerId: number) {
+    const offers = await strapi.db.query(OFFER_UID).findMany({ where: { ownerId, status: 'pending',
+      pendingHolderDid: { $notNull: true }, approvedHolderDid: null, expiresAt: { $gt: new Date().toISOString() } },
+    orderBy: { requestedAt: 'desc' }, limit: 5, populate: { credential: { select: ['credentialId', 'name'] } } })
+    return offers.map(offer => ({ offerId: offer.id, credentialId: offer.credential?.credentialId || null,
+      credentialName: offer.credential?.name || null, client: offer.pendingClient || null,
+      name: walletName(offer.pendingClient || null, offer.pendingOrigin || null), requestedAt: offer.requestedAt, expiresAt: offer.expiresAt }))
   },
 
   /** The holder answers «¿La agregas?»: yes lets the waiting wallet redeem; no closes the offer. */

@@ -4,14 +4,47 @@ import { apiClient } from '~/api/api-client'
 import { walletCountdown } from '~/utils/wallet'
 
 // compacto: dentro de la tarjeta destacada de la portada (fondo con degradado).
-const props = defineProps<{ credentialId: string, compacto?: boolean }>()
+// agregar: solo el botón «Agregar una cartera» (página Mis carteras).
+const props = defineProps<{ credentialId: string, compacto?: boolean, agregar?: boolean }>()
 const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
 const appName = String(config.public.walletAppName || 'Cartera UDGPlus')
 interface PendingWallet { offerId: number, client: 'web' | 'app' | null, name: string | null, requestedAt: string }
 interface Summary { eligible: boolean, legacy: boolean, revoked?: boolean, revocationReason?: string, rejectedWallet?: boolean, pendingWallet?: PendingWallet | null, walletCount: number, copies: { holderDid: string, boundAt: string, credentialId: string }[] }
-interface Offer { exchangeUrl: string, walletUrl: string, qrContent: string, interactionUrl?: string, deepLink?: string, expiresAt: string }
+interface Offer { exchangeUrl: string, walletUrl: string, qrContent: string, interactionUrl?: string, deepLink?: string, webWalletUrl?: string, expiresAt: string }
+const branding = useBranding()
+const carteras = useCarteraPendiente()
+// Dónde guarda la persona su cartera (14-oct-2026): cada caso con su camino.
+// La última elección se recuerda en este equipo.
+type Modo = 'app' | 'web' | 'otro'
+const CLAVE_MODO = 'mc-cartera-modo'
+const modo = ref<Modo>('app')
+function elegir(valor: Modo) {
+  modo.value = valor
+  try { localStorage.setItem(CLAVE_MODO, valor) }
+  catch { /* sin almacenamiento: solo dura esta visita */ }
+}
+// La Cartera UDGPlus web abre la oferta en su página de solicitud (ruta con #).
+const webWalletUrl = computed(() => {
+  if (!offer.value) { return '' }
+  if (offer.value.webWalletUrl) { return offer.value.webWalletUrl }
+  if (!appUrl) { return '' }
+  try {
+    const url = new URL(appUrl)
+    url.search = ''
+    url.hash = `/request?request=${encodeURIComponent(JSON.stringify({ protocols: { vcapi: offer.value.exchangeUrl } }))}`
+    return url.href
+  }
+  catch { return '' }
+})
+const enlace = computed(() => offer.value ? (offer.value.interactionUrl || offer.value.exchangeUrl) : '')
+const copiado = ref(false)
+async function copiar() {
+  copiado.value = false
+  try { await navigator.clipboard.writeText(enlace.value); copiado.value = true; setTimeout(() => { copiado.value = false }, 4000) }
+  catch { copiado.value = false }
+}
 const summary = ref<Summary | null>(null)
 const offer = ref<Offer | null>(null)
 const qr = ref('')
@@ -33,13 +66,18 @@ async function decide(approve: boolean) {
   if (!wallet) { return }
   deciding.value = true; failed.value = false
   try {
-    await apiClient.post(`/api/holder/wallet-offers/${wallet.offerId}/decision`, { approve })
+    if (!await carteras.decidir(wallet.offerId, approve)) { failed.value = true; return }
     decided.value = approve ? 'approved' : 'refused'
     await refresh()
   }
-  catch { failed.value = true }
   finally { deciding.value = false }
 }
+// La persona contestó desde el aviso global: este diálogo se pone al día.
+watch(() => carteras.version.value, () => {
+  const respuesta = carteras.resultado.value
+  if (respuesta) { decided.value = respuesta }
+  void refresh().catch(() => {})
+})
 const addingWallet = ref(false)
 // El QR, los pasos y el resultado viven en un diálogo modal.
 const dialog = ref<HTMLDialogElement | null>(null)
@@ -109,6 +147,7 @@ async function createOffer(addWallet = false) {
     if (disposed || current !== generation) { return }
     copyCount = summary.value.copies.length; decided.value = null
     now.value = Date.now(); offer.value = response.data; qr.value = image
+    carteras.vigilarHasta(response.data.expiresAt)
     poll = setInterval(() => { void refresh().catch(() => {}) }, 5000)
   }
   catch {
@@ -123,6 +162,11 @@ function onVisible() {
   if (document.visibilityState === 'visible') { void refresh().catch(() => {}) }
 }
 onMounted(() => {
+  let guardado: string | null = null
+  try { guardado = localStorage.getItem(CLAVE_MODO) }
+  catch { guardado = null }
+  if (guardado === 'app' || guardado === 'web' || guardado === 'otro') { modo.value = guardado }
+  else { modo.value = window.matchMedia('(pointer: coarse)').matches ? 'app' : (appUrl ? 'web' : 'otro') }
   document.addEventListener('visibilitychange', onVisible)
   void refresh().catch(() => { failed.value = true })
   timer = setInterval(() => {
@@ -137,69 +181,76 @@ onBeforeUnmount(() => {
 <template>
   <section class="holder-wallet" :class="{ 'hw--compacto': compacto }" :aria-label="t('portal.wallet.save')" data-testid="holder-wallet">
     <div class="hw-acciones">
-      <button class="mc-boton wallet-save" :class="{ 'mc-boton--claro': compacto }" :disabled="busy || (!!summary && !summary.eligible)" :aria-expanded="expanded" aria-haspopup="dialog" @click="createOffer()">
+      <button v-if="agregar" class="mc-boton wallet-add-page" :disabled="busy || (!!summary && !summary.eligible)" aria-haspopup="dialog" @click="createOffer(true)">
+        <span class="i-heroicons-plus" aria-hidden="true" />
+        {{ t('portal.b.wallets.add') }}
+      </button>
+      <button v-else class="mc-boton wallet-save" :class="{ 'mc-boton--claro': compacto }" :disabled="busy || (!!summary && !summary.eligible)" :aria-expanded="expanded" aria-haspopup="dialog" @click="createOffer()">
         <span class="i-heroicons-wallet" aria-hidden="true" />
         {{ busy ? t('portal.wallet.creating') : t('portal.wallet.save') }}
       </button>
       <slot />
     </div>
 
-    <p v-if="summary?.legacy" class="hw-nota">
-      {{ t('portal.wallet.legacy') }}
-    </p>
-    <p v-else-if="summary?.revoked" class="hw-nota wallet-revoked">
-      <strong>{{ t('portal.wallet.revoked') }}</strong>
-      <span v-if="summary.revocationReason"> · {{ summary.revocationReason }}</span>
-    </p>
-    <p v-else-if="summary && !summary.eligible" class="hw-nota">
-      {{ t('portal.wallet.unavailable') }}
-    </p>
+    <template v-if="!agregar">
+      <p v-if="summary?.legacy" class="hw-nota">
+        {{ t('portal.wallet.legacy') }}
+      </p>
+      <p v-else-if="summary?.revoked" class="hw-nota wallet-revoked">
+        <strong>{{ t('portal.wallet.revoked') }}</strong>
+        <span v-if="summary.revocationReason"> · {{ summary.revocationReason }}</span>
+      </p>
+      <p v-else-if="summary && !summary.eligible" class="hw-nota">
+        {{ t('portal.wallet.unavailable') }}
+      </p>
 
-    <p v-if="summary?.copies.length" class="hw-nota hw-guardada" aria-live="polite">
-      <span class="i-heroicons-check-circle" aria-hidden="true" />
-      <span>{{ t(summary.walletCount === 1 ? 'portal.wallet.savedOne' : 'portal.wallet.saved', { count: summary.walletCount }) }}</span>
-      <button v-if="summary.eligible" class="mc-boton mc-boton--texto wallet-add" :disabled="busy" @click="createOffer(true)">
-        {{ t('portal.wallet.addAnother') }}
-      </button>
-    </p>
+      <p v-if="summary?.copies.length" class="hw-nota hw-guardada" aria-live="polite">
+        <span class="i-heroicons-check-circle" aria-hidden="true" />
+        <span>{{ t(summary.walletCount === 1 ? 'portal.wallet.savedOne' : 'portal.wallet.saved', { count: summary.walletCount }) }}</span>
+        <button v-if="summary.eligible" class="mc-boton mc-boton--texto wallet-add" :disabled="busy" @click="createOffer(true)">
+          {{ t('portal.wallet.addAnother') }}
+        </button>
+      </p>
 
-    <div v-if="summary?.pendingWallet && !dialogOpen" role="alert" class="mc-aviso mc-aviso--esp wallet-pending" data-testid="wallet-pending">
-      <span class="mc-aviso__icono" aria-hidden="true"><span class="i-heroicons-device-phone-mobile" /></span>
-      <div class="hw-pendiente">
-        <p class="hw-pendiente__titulo">
-          {{ t('portal.wallet.pendingTitle') }}
-        </p>
-        <p>{{ t('portal.wallet.pendingWhich', { wallet: pendingLabel }) }}</p>
-        <div class="hw-pendiente__botones">
-          <button class="mc-boton wallet-approve" :disabled="deciding" @click="decide(true)">
-            {{ t('portal.wallet.pendingApprove') }}
-          </button>
-          <button class="mc-boton mc-boton--secundario wallet-refuse" :disabled="deciding" @click="decide(false)">
-            {{ t('portal.wallet.pendingRefuse') }}
-          </button>
+      <div v-if="summary?.pendingWallet && !dialogOpen && !branding.active" role="alert" class="mc-aviso mc-aviso--esp wallet-pending" data-testid="wallet-pending">
+        <span class="mc-aviso__icono" aria-hidden="true"><span class="i-heroicons-device-phone-mobile" /></span>
+        <div class="hw-pendiente">
+          <p class="hw-pendiente__titulo">
+            {{ t('portal.wallet.pendingTitle') }}
+          </p>
+          <p>{{ t('portal.wallet.pendingWhich', { wallet: pendingLabel }) }}</p>
+          <div class="hw-pendiente__botones">
+            <button class="mc-boton wallet-approve" :disabled="deciding" @click="decide(true)">
+              {{ t('portal.wallet.pendingApprove') }}
+            </button>
+            <button class="mc-boton mc-boton--secundario wallet-refuse" :disabled="deciding" @click="decide(false)">
+              {{ t('portal.wallet.pendingRefuse') }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-    <p v-else-if="decided && !dialogOpen" role="status" class="hw-nota wallet-decided">
-      {{ t(decided === 'approved' ? 'portal.wallet.pendingApproved' : 'portal.wallet.pendingRefused') }}
-    </p>
-    <p v-else-if="summary?.rejectedWallet && !dialogOpen" role="alert" class="mc-aviso mc-aviso--no hw-nota wallet-rejected">
-      {{ t('portal.wallet.rejected') }}
-    </p>
-    <p v-if="failed && !dialogOpen" role="alert" class="hw-nota hw-error">
-      {{ t('portal.wallet.error') }}
-    </p>
+      <p v-else-if="decided && !dialogOpen" role="status" class="hw-nota wallet-decided">
+        {{ t(decided === 'approved' ? 'portal.wallet.pendingApproved' : 'portal.wallet.pendingRefused') }}
+      </p>
+      <p v-else-if="summary?.rejectedWallet && !dialogOpen" role="alert" class="mc-aviso mc-aviso--no hw-nota wallet-rejected">
+        {{ t('portal.wallet.rejected') }}
+      </p>
+      <p v-if="failed && !dialogOpen" role="alert" class="hw-nota hw-error">
+        {{ t('portal.wallet.error') }}
+      </p>
 
-    <details v-if="!compacto && summary?.copies.length" class="hw-copias">
-      <summary>{{ t('portal.b.wallet.copies') }}</summary>
-      <ul>
-        <li v-for="copy in summary.copies" :key="copy.credentialId">
-          {{ t('portal.wallet.savedOn') }} <time :datetime="copy.boundAt">{{ new Date(copy.boundAt).toLocaleString(locale) }}</time>
-        </li>
-      </ul>
-      <p>{{ t(appUrl ? 'portal.wallet.confirmSavedApp' : 'portal.wallet.confirmSaved') }}</p>
-      <p>{{ t('portal.wallet.sharedRevocation') }}</p>
-    </details>
+      <details v-if="!compacto && summary?.copies.length" class="hw-copias">
+        <summary>{{ t('portal.b.wallet.copies') }}</summary>
+        <ul>
+          <li v-for="copy in summary.copies" :key="copy.credentialId">
+            {{ t('portal.wallet.savedOn') }} <time :datetime="copy.boundAt">{{ new Date(copy.boundAt).toLocaleString(locale) }}</time>
+          </li>
+        </ul>
+        <p>{{ t(appUrl ? 'portal.wallet.confirmSavedApp' : 'portal.wallet.confirmSaved') }}</p>
+        <p>{{ t('portal.wallet.sharedRevocation') }}</p>
+      </details>
+
+    </template>
 
     <dialog ref="dialog" class="hw-dialogo mc-tarjeta" :aria-labelledby="`hw-titulo-${credentialId}`" @close="dialogOpen = false" @cancel="dialogOpen = false">
       <header class="hw-dialogo__cabeza">
@@ -252,21 +303,68 @@ onBeforeUnmount(() => {
           <span class="hw-giro" aria-hidden="true" />{{ t('portal.wallet.creating') }}
         </div>
         <div v-if="offer && !expired" class="hw-oferta">
-          <ol class="hw-pasos">
-            <li><span>1</span>{{ t('portal.b.wallet.step1', { name: appName }) }}</li>
-            <li><span>2</span>{{ t('portal.b.wallet.step2') }}</li>
-            <li><span>3</span>{{ t('portal.b.wallet.step3') }}</li>
-          </ol>
-          <p class="hw-ayuda">
-            {{ t('portal.wallet.appHelp', { name: appName }) }}
-          </p>
-          <div class="hw-qr">
-            <img :src="qr" :alt="t('portal.wallet.appQrAlt', { name: appName })" class="wallet-qr" width="320" height="320">
-            <p role="timer" aria-live="off" class="mc-chip mc-chip--esp hw-reloj">
-              {{ t('portal.wallet.expires', { time: countdown }) }}
+          <fieldset class="hw-modos">
+            <legend>{{ t('portal.b.wallet.where') }}</legend>
+            <div class="hw-modos__opciones" role="radiogroup">
+              <button
+                v-for="opcion in (['app', 'web', 'otro'] as const)" :key="opcion" type="button" role="radio"
+                class="hw-modo" :class="`hw-modo--${opcion}`" :aria-checked="modo === opcion" @click="elegir(opcion)"
+              >
+                <span :class="{ app: 'i-heroicons-device-phone-mobile', web: 'i-heroicons-computer-desktop', otro: 'i-heroicons-arrows-right-left' }[opcion]" aria-hidden="true" />
+                {{ t(`portal.b.wallet.mode.${opcion}`, { name: appName }) }}
+              </button>
+            </div>
+          </fieldset>
+
+          <template v-if="modo === 'app'">
+            <ol class="hw-pasos">
+              <li><span>1</span>{{ t('portal.b.wallet.step1', { name: appName }) }}</li>
+              <li><span>2</span>{{ t('portal.b.wallet.step2') }}</li>
+              <li><span>3</span>{{ t('portal.b.wallet.step3') }}</li>
+            </ol>
+            <div class="hw-qr hw-qr--app">
+              <img :src="qr" :alt="t('portal.wallet.appQrAlt', { name: appName })" class="wallet-qr" width="320" height="320">
+            </div>
+            <a :href="qrUrl" rel="noreferrer" class="mc-boton wallet-open">{{ t('portal.b.wallet.openApp', { name: appName }) }}</a>
+          </template>
+
+          <template v-else-if="modo === 'web'">
+            <ol class="hw-pasos">
+              <li><span>1</span>{{ t('portal.b.wallet.web1', { name: appName }) }}</li>
+              <li><span>2</span>{{ t('portal.b.wallet.web2') }}</li>
+              <li><span>3</span>{{ t('portal.b.wallet.web3') }}</li>
+            </ol>
+            <a v-if="webWalletUrl" :href="webWalletUrl" target="_blank" rel="noopener" class="mc-boton wallet-open-web">
+              <span class="i-heroicons-arrow-top-right-on-square" aria-hidden="true" />{{ t('portal.b.wallet.openWeb', { name: appName }) }}
+            </a>
+            <div class="hw-copiar">
+              <p class="hw-ayuda">
+                {{ t('portal.b.wallet.pasteHelp', { name: appName }) }}
+              </p>
+              <button type="button" class="mc-boton mc-boton--secundario wallet-copy" @click="copiar">
+                <span :class="copiado ? 'i-heroicons-check' : 'i-heroicons-clipboard-document'" aria-hidden="true" />{{ copiado ? t('portal.b.wallet.copied') : t('portal.b.wallet.copy') }}
+              </button>
+            </div>
+          </template>
+
+          <template v-else>
+            <p class="hw-ayuda">
+              {{ t('portal.b.wallet.otherHelp', { name: appName }) }}
             </p>
-          </div>
-          <a :href="qrUrl" rel="noreferrer" class="mc-boton wallet-open">{{ t('portal.wallet.openHere') }}</a>
+            <div class="hw-qr hw-qr--otro">
+              <img :src="qr" :alt="t('portal.wallet.appQrAlt', { name: appName })" class="wallet-qr" width="320" height="320">
+            </div>
+            <button type="button" class="mc-boton mc-boton--secundario wallet-copy" @click="copiar">
+              <span :class="copiado ? 'i-heroicons-check' : 'i-heroicons-clipboard-document'" aria-hidden="true" />{{ copiado ? t('portal.b.wallet.copied') : t('portal.b.wallet.copy') }}
+            </button>
+          </template>
+
+          <p role="timer" aria-live="off" class="mc-chip mc-chip--esp hw-reloj">
+            {{ t('portal.wallet.expires', { time: countdown }) }}
+          </p>
+          <p class="hw-espera" role="status">
+            <span class="hw-giro hw-giro--chico" aria-hidden="true" />{{ t('portal.b.wallet.waiting') }}
+          </p>
           <p v-if="addingWallet" class="mc-aviso mc-aviso--esp hw-nota">
             {{ t('portal.wallet.addingHelp') }}
           </p>
@@ -324,6 +422,18 @@ onBeforeUnmount(() => {
 .wallet-qr { display: block; width: 240px; max-width: 100%; height: auto; background: white; border-radius: 14px; border: 1px solid var(--mc-linea); }
 .hw-reloj { font-variant-numeric: tabular-nums; }
 .wallet-open { display: none; }
+.hw-modos { border: 0; padding: 0; margin: 0; display: grid; gap: .5rem; }
+.hw-modos legend { font-weight: 700; font-size: var(--mc-t-s); color: var(--mc-suave); margin-bottom: .4rem; }
+.hw-modos__opciones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; }
+.hw-modo { display: grid; justify-items: center; gap: .3rem; padding: .65rem .4rem; border-radius: var(--mc-r-s); border: 1.5px solid var(--mc-linea); background: var(--mc-superficie); color: var(--mc-texto); font-size: var(--mc-t-xs); font-weight: 700; line-height: 1.25; text-align: center; }
+.hw-modo span { font-size: 1.35rem; color: var(--mc-enlace); }
+.hw-modo[aria-checked='true'] { border-color: var(--mc-enlace); background: var(--mc-hielo); box-shadow: inset 0 0 0 1px var(--mc-enlace); }
+.wallet-open-web { justify-self: stretch; justify-content: center; gap: .5rem; }
+.hw-copiar { display: grid; gap: .5rem; padding: .85rem; border-radius: var(--mc-r-s); background: var(--mc-hielo); }
+.hw-copiar .wallet-copy, .hw-oferta > .wallet-copy { justify-self: start; gap: .45rem; }
+.hw-reloj { justify-self: center; }
+.hw-espera { display: flex; align-items: center; justify-content: center; gap: .5rem; font-size: var(--mc-t-s); color: var(--mc-suave); }
+.hw-giro--chico { width: 1rem; height: 1rem; border-width: 2px; }
 .hw-cargando { display: flex; align-items: center; gap: .75rem; padding: 2rem 0; justify-content: center; color: var(--mc-suave); }
 .hw-giro { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 3px solid var(--mc-linea); border-top-color: var(--mc-enlace); animation: hw-giro .8s linear infinite; }
 @keyframes hw-giro { to { transform: rotate(360deg); } }
@@ -333,8 +443,8 @@ onBeforeUnmount(() => {
 .hw-exito__icono { font-size: 3.5rem; color: var(--mc-ok); }
 .hw-exito__titulo { font-size: var(--mc-t-xl); }
 @media (max-width: 767px), (pointer: coarse) {
-  .wallet-open { display: inline-flex; }
-  .hw-qr, .hw-pasos, .hw-ayuda { display: none; }
+  .wallet-open { display: inline-flex; justify-content: center; }
+  .hw-qr--app { display: none; }
   .hw-dialogo { margin: auto auto 0; width: 100vw; max-width: 100vw; border-radius: 22px 22px 0 0; }
 }
 </style>
