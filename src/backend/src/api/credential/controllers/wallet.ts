@@ -25,6 +25,11 @@ export default {
     if (!ctx.state.user?.id) return ctx.unauthorized()
     return { data: await strapi.service('api::credential.holder-wallets').list(ctx.state.user.id) }
   },
+  async pendingWallets(ctx) {
+    ctx.set('Cache-Control', 'private, no-store')
+    if (!ctx.state.user?.id) return ctx.unauthorized()
+    return { data: await strapi.service('api::credential.wallet-offer').awaitingForOwner(ctx.state.user.id) }
+  },
   async removeWallet(ctx) {
     ctx.set('Cache-Control', 'private, no-store')
     if (!ctx.state.user?.id) return ctx.unauthorized()

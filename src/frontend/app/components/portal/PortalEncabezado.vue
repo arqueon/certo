@@ -31,6 +31,8 @@ const links = computed(() => {
   if (branding.catalogUrl) { list.push({ href: branding.catalogUrl, label: t('nav.catalog'), external: true }) }
   return list
 })
+const { pendientes } = useCarteraPendiente()
+const conAviso = (href: string) => href === '/carteras' && pendientes.value.length > 0
 const active = (href: string) => route.path === href || (href !== '/' && route.path.startsWith(`${href}/`))
 
 const menuOpen = ref(false)
@@ -71,7 +73,7 @@ async function logout() {
         <template v-for="link in links" :key="link.href">
           <a v-if="link.external" :href="link.href">{{ link.label }}</a>
           <NuxtLink v-else :to="link.href" :aria-current="active(link.href) ? 'page' : undefined">
-            {{ link.label }}
+            {{ link.label }}<span v-if="conAviso(link.href)" class="mc-encabezado__insignia" data-testid="insignia-carteras-escritorio"><span class="sr-only">{{ t('portal.b.walletNotice.badge') }}</span></span>
           </NuxtLink>
         </template>
       </nav>
@@ -109,7 +111,7 @@ async function logout() {
       <template v-for="link in links" :key="link.href">
         <a v-if="link.external" :href="link.href">{{ link.label }}</a>
         <NuxtLink v-else :to="link.href" :aria-current="active(link.href) ? 'page' : undefined">
-          {{ link.label }}
+          {{ link.label }}<span v-if="conAviso(link.href)" class="mc-encabezado__insignia"><span class="sr-only">{{ t('portal.b.walletNotice.badge') }}</span></span>
         </NuxtLink>
       </template>
       <button v-if="isAuthenticated" @click="logout">
@@ -128,6 +130,7 @@ async function logout() {
 .mc-encabezado__nav a { color: rgba(255, 255, 255, .82); font-weight: 600; font-size: var(--mc-t-s); padding: .5rem .75rem; border-radius: 10px; text-decoration: none; }
 .mc-encabezado__nav a:hover { color: #fff; background: rgba(255, 255, 255, .1); }
 .mc-encabezado__nav a[aria-current='page'] { color: #fff; background: rgba(255, 255, 255, .16); }
+.mc-encabezado__insignia { display: inline-block; width: 9px; height: 9px; margin-inline-start: .35rem; vertical-align: super; border-radius: 50%; background: #f2bb63; }
 .mc-encabezado__acciones { display: flex; align-items: center; gap: .5rem; margin-inline-start: auto; }
 .mc-encabezado__idioma :deep(button) { color: rgba(255, 255, 255, .85); }
 .mc-encabezado__idioma :deep(button:hover) { background: rgba(255, 255, 255, .1); }

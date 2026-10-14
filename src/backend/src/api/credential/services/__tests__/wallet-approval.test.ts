@@ -15,7 +15,8 @@ function world() {
     [OFFER_UID]: [offer], [COPY_UID]: [],
     [WALLET_UID]: [{ id: 1, ownerId: 1, holderDid: 'did:key:old', addedAt: 'x', removedAt: null }],
   }
-  const match = (row, where = {}) => Object.entries(where).every(([k, v]: any) => v === null ? row[k] == null : (typeof v === 'object' ? true : row[k] === v))
+  const operator = (value, condition) => ('$notNull' in condition ? value != null : '$gt' in condition ? value > condition.$gt : true)
+  const match = (row, where = {}) => Object.entries(where).every(([k, v]: any) => v === null ? row[k] == null : (typeof v === 'object' ? operator(row[k], v) : row[k] === v))
   const services: Record<string, any> = {}
   const strapi: any = {
     db: {
@@ -61,4 +62,17 @@ test('a second unknown wallet on the same offer is refused, and a refused offer 
   expect(await service.decide(1, 9, false)).toBe(true)
   expect(offer.status).toBe('rejected')
   await expect(service.exchange(token, vp('did:key:new'), { client: 'app', clientOrigin: null })).rejects.toMatchObject({ status: 404 })
+})
+
+test('the holder sees every wallet awaiting confirmation, on any page, until they answer', async () => {
+  const { token, service } = world()
+  expect(await service.awaitingForOwner(1)).toEqual([])
+  await expect(service.exchange(token, vp('did:key:new'), { client: 'web', clientOrigin: 'https://w.example' })).rejects.toMatchObject({ status: 202 })
+  const pending = await service.awaitingForOwner(1)
+  expect(pending).toHaveLength(1)
+  expect(pending[0]).toMatchObject({ offerId: 9, client: 'web' })
+  expect(JSON.stringify(pending)).not.toContain('did:key')
+  expect(await service.awaitingForOwner(2)).toEqual([])
+  expect(await service.decide(1, 9, true)).toBe(true)
+  expect(await service.awaitingForOwner(1)).toEqual([])
 })
