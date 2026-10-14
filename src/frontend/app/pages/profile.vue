@@ -5,6 +5,10 @@ import { apiClient } from '~/api/api-client'
 import { useAuthStore } from '~/stores/auth'
 
 const { t, intlLocale } = useI18n()
+// Con marca, el perfil del titular en la dirección B (PortalPerfil); sin marca,
+// la página original.
+definePageMeta({ middleware: ['auth'], temaB: true })
+const branding = useBranding()
 interface UserProfile {
   id: string
   name: string
@@ -85,6 +89,9 @@ const exportError = ref<string | null>(null)
 
 // Fetch real stats from the backend
 onMounted(async () => {
+  if (branding.active) {
+    return
+  }
   statsLoading.value = true
   try {
     const result = await apiClient.getDashboardStats()
@@ -226,7 +233,8 @@ useHead({
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-white to-[#FFE5AE]/20 py-8">
+  <PortalPerfil v-if="branding.active" />
+  <div v-else class="min-h-screen bg-gradient-to-b from-white to-[#FFE5AE]/20 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="mb-8">

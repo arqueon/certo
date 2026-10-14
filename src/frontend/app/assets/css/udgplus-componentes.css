@@ -68,6 +68,18 @@ html[data-branded] :focus-visible { outline: 3px solid var(--mc-foco); outline-o
 .mc-aviso--no { border-color: color-mix(in srgb, var(--mc-no) 40%, transparent); background: var(--mc-no-fondo); }
 .mc-aviso--no .mc-aviso__icono { color: var(--mc-no); }
 
+/* Campos de formulario: etiqueta arriba, ayuda debajo, control a todo el ancho */
+.mc-campo { display: grid; gap: .35rem; }
+.mc-campo > span:first-child { font-weight: 700; font-size: var(--mc-t-s); }
+.mc-campo small { color: var(--mc-suave); font-size: var(--mc-t-xs); line-height: 1.45; }
+.mc-campo input, .mc-campo select, .mc-campo textarea {
+  width: 100%; min-height: 44px; padding: .6rem .75rem; border-radius: var(--mc-r-s);
+  border: 1px solid color-mix(in srgb, var(--mc-suave) 80%, var(--mc-superficie));
+  background: var(--mc-superficie); color: var(--mc-texto); font: 400 var(--mc-t-base)/1.45 var(--mc-fuente-texto);
+}
+.mc-campo textarea { resize: vertical; }
+.mc-campo input:focus-visible, .mc-campo select:focus-visible, .mc-campo textarea:focus-visible { outline: 3px solid var(--mc-foco); outline-offset: 1px; }
+
 /* Pantallas aún sin rediseñar: que sus botones y tarjetas ya hablen el mismo idioma */
 html[data-branded] .brand-button {
   background: var(--mc-primario) !important; color: var(--mc-primario-texto) !important;

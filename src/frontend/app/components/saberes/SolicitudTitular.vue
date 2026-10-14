@@ -3,46 +3,10 @@ import type { SolicitudSaberes } from '~/composables/useSaberesPrevios'
 import { estadosSaberes, fechaSaberes } from '~/composables/useSaberesPrevios'
 const props = defineProps<{ solicitud: SolicitudSaberes; correoVerificado: boolean }>()
 const emit = defineEmits<{ actualizar: [solicitud: SolicitudSaberes]; nueva: [solicitud: SolicitudSaberes] }>()
-const { request } = useSaberesPrevios()
-const accion = ref('')
-const descripcion = ref('')
-const evidencias = ref('')
-const motivo = ref('')
-const enviando = ref(false)
-const error = ref('')
-const mensaje = ref('')
+const { accion, descripcion, evidencias, motivo, enviando, error, mensaje, abrir, enviar, consultar }
+  = useSolicitudTitular(() => props.solicitud, s => emit('actualizar', s))
 const emisiones: Record<string, string> = { decidido_apto: 'Pendiente de emisión', emitida: 'Emitida',
   revocada: 'Revocada', corregida: 'Corregida', pendiente_decision: 'Pendiente de decisión', decidido_no_apto: 'No autorizada para emisión' }
-function abrir(tipo: string) {
-  accion.value = tipo; error.value = ''; mensaje.value = ''
-  descripcion.value = props.solicitud.descripcionSaberes
-  evidencias.value = props.solicitud.evidencias || ''; motivo.value = ''
-}
-async function releer() {
-  const r = await request<{ data: SolicitudSaberes }>(`solicitudes-saberes/${encodeURIComponent(props.solicitud.referencia)}`)
-  emit('actualizar', r.data)
-}
-async function enviar(tipo: string) {
-  if (enviando.value) return
-  enviando.value = true; error.value = ''; mensaje.value = ''
-  try {
-    const data = tipo === 'subsanar' ? { descripcionSaberes: descripcion.value, evidencias: evidencias.value }
-      : tipo === 'reapertura' ? { motivo: motivo.value } : {}
-    const result = await request<{ data: SolicitudSaberes }>(`solicitudes-saberes/${encodeURIComponent(props.solicitud.referencia)}/${tipo}`, data)
-    emit('actualizar', result.data); accion.value = ''; mensaje.value = 'Tu envío quedó registrado.'
-  } catch (e: any) {
-    const status = e.statusCode || e.status
-    error.value = status === 401 ? 'Tu sesión terminó. Conserva lo escrito y vuelve a entrar con tu cuenta.'
-      : status === 409 ? 'La solicitud cambió. Revisa el estado actualizado antes de continuar; conservamos lo escrito.'
-        : e.data?.error?.message || 'No pudimos confirmar el envío. Conservamos lo escrito; consulta el estado antes de repetirlo.'
-    if (status === 409 || !status || status >= 500) {
-      try { await releer() } catch { error.value += ' No se pudo actualizar el estado. Inténtalo con «Consultar estado».' }
-    }
-  } finally { enviando.value = false }
-}
-async function consultar() {
-  try { await releer(); mensaje.value = 'Estado actualizado.' } catch { error.value = 'No se pudo consultar el estado. Vuelve a intentarlo.' }
-}
 </script>
 
 <template>
