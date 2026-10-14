@@ -816,14 +816,31 @@
         "step3": "Acepta la credencial en tu cartera",
         "savedTitle": "Listo: ya está en tu cartera",
         "done": "Entendido",
-        "copies": "Copias guardadas y revocación"
+        "copies": "Copias guardadas y revocación",
+        "where": "¿Dónde guardas tu cartera?",
+        "mode": {
+          "app": "App en este celular",
+          "web": "{name} en el navegador",
+          "otro": "En otro equipo"
+        },
+        "openApp": "Abrir en la app de {name}",
+        "web1": "Pulsa «Abrir en {name}»: tu cartera se abre en otra pestaña del navegador con la credencial lista.",
+        "web2": "Desbloquéala (o créala) y acepta: «Abrir oferta» e «Identificarme y recibir credencial».",
+        "web3": "Si es una cartera nueva, vuelve aquí y confirma con «Sí, es mía».",
+        "openWeb": "Abrir en {name}",
+        "pasteHelp": "¿Prefieres pegarlo? Copia el enlace y, en {name}, entra al Panel, pulsa «Añadir credencial», pégalo en el cuadro «Pegue una URL o el JSON completo…» y pulsa «Añadir».",
+        "copy": "Copiar enlace",
+        "copied": "Enlace copiado",
+        "otherHelp": "Escanea este código con la cartera del otro equipo, o copia el enlace, envíatelo y pégalo allá en «Añadir credencial».",
+        "waiting": "Esperando a tu cartera… Esta ventana se actualiza sola."
       },
       "wallets": {
         "howTitle": "Cómo agregar una cartera",
-        "how1": "Abre una de tus credenciales y pulsa «Guardar en mi cartera».",
+        "how1": "Pulsa «Agregar una cartera» aquí arriba, o «Guardar en mi cartera» en cualquiera de tus credenciales.",
         "how2": "Escanea el código con la cartera que quieras usar.",
         "how3": "Si es una cartera nueva, confírmala aquí con «Sí, es mía».",
-        "goCredentials": "Ir a mis credenciales"
+        "goCredentials": "Ir a mis credenciales",
+        "add": "Agregar una cartera"
       },
       "landing": {
         "eyebrow": "Universidad de Guadalajara · UDGPlus",
@@ -941,6 +958,13 @@
           "area": "Del área de {value}",
           "nombre": "Relacionado con «{value}»"
         }
+      },
+      "walletNotice": {
+        "title": "Confirma tu cartera nueva",
+        "which": "{wallet} quiere guardar «{credential}». Si fuiste tú, agrégala y la credencial llegará en segundos.",
+        "whichNoName": "{wallet} quiere guardar una de tus credenciales. Si fuiste tú, agrégala y la credencial llegará en segundos.",
+        "refuse": "No soy yo",
+        "badge": "Hay una cartera nueva por confirmar"
       }
     }
   }

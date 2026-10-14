@@ -28,6 +28,23 @@ describe('private wallet offers', () => {
     expect(request.protocols.vcapi).toBe(first.exchangeUrl)
     expect(first.qrContent).toBe(first.walletUrl)
     expect(first.deepLink).toMatch(/^dccrequest:\/\/request\?request=/)
+    expect(first.webWalletUrl).toBeUndefined()
+  })
+  test('offers a direct link that opens the web wallet on its request page when one is configured', async () => {
+    const saved = process.env.WALLET_APP_URL
+    process.env.WALLET_APP_URL = 'https://cartera.example.org'
+    try {
+      const { strapi, record } = await fixture()
+      record.recipient.owner = { id: 7 }
+      const query = strapi.db.query
+      strapi.db.query = uid => uid === OFFER_UID ? { create: jest.fn().mockResolvedValue({ id: 1 }) } : query(uid)
+      const offer = await walletOffer({ strapi }).create(record)
+      const url = new URL(offer.webWalletUrl!)
+      expect(url.origin).toBe('https://cartera.example.org')
+      expect(url.hash.startsWith('#/request?request=')).toBe(true)
+      const request = JSON.parse(new URLSearchParams(url.hash.slice('#/request?'.length)).get('request')!)
+      expect(request.protocols.vcapi).toBe(offer.exchangeUrl)
+    } finally { if (saved === undefined) delete process.env.WALLET_APP_URL; else process.env.WALLET_APP_URL = saved }
   })
   test('rejects revoked and invalid signatures before creating an offer', async () => {
     const { strapi, record } = await fixture()

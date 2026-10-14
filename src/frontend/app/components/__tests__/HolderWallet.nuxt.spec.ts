@@ -8,7 +8,7 @@ import { walletCountdown, shortWalletDid } from '@/utils/wallet'
 import { useRuntimeConfig } from '#app'
 let runtime: ReturnType<typeof useRuntimeConfig>
 beforeEach(() => { runtime = useRuntimeConfig() })
-afterEach(() => { vi.restoreAllMocks(); runtime.public.walletAppUrl = ''; runtime.public.walletAppName = 'Cartera UDGPlus' })
+afterEach(() => { vi.restoreAllMocks(); try { localStorage.removeItem('mc-cartera-modo') } catch {} runtime.public.walletAppUrl = ''; runtime.public.walletAppName = 'Cartera UDGPlus' })
 const summary = { eligible: true, legacy: false, walletCount: 0, copies: [] }
 describe('holder wallet', () => {
   it('prepares a QR and mobile link only after the holder acts', async () => {
@@ -22,6 +22,7 @@ describe('holder wallet', () => {
     await vi.waitFor(() => expect(wrapper.find('img').exists()).toBe(true))
     expect(post).toHaveBeenCalledWith('/api/holder/credentials/urn%3Auuid%3Afixture/wallet-offer', {})
     expect(wrapper.find('img').attributes('src')).toMatch(/^data:image\/png;base64,/)
+    await wrapper.find('button.hw-modo--app').trigger('click')
     expect(wrapper.find('a.wallet-open').attributes('href')).toBe(walletUrl)
     expect(wrapper.find('[role="timer"]').text()).toContain('10:00')
     wrapper.unmount()
@@ -37,6 +38,7 @@ describe('holder wallet', () => {
     await vi.waitFor(() => expect(wrapper.find('img').exists()).toBe(true))
     expect(wrapper.findAll('img')).toHaveLength(1)
     expect(wrapper.find('details').exists()).toBe(false)
+    await wrapper.find('button.hw-modo--app').trigger('click')
     expect(wrapper.find('a.wallet-open').attributes('href')).toBe(interactionUrl)
     expect(wrapper.text()).toContain(name)
     const { default: QRCode } = await import('qrcode')
@@ -107,5 +109,40 @@ describe('holder wallet', () => {
     expect(wrapper.find('.wallet-decided').exists()).toBe(true)
     wrapper.unmount()
   })
+  it('opens the web wallet straight on its request page and explains where to paste the link', async () => {
+    runtime.public.walletAppUrl = 'https://cartera.example.org'
+    const exchangeUrl = 'https://issuer.example/api/exchanges/capability'
+    const interactionUrl = `${exchangeUrl}?iuv=1`
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ data: summary })
+    vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { exchangeUrl, interactionUrl, walletUrl: 'x', qrContent: 'x', expiresAt: new Date(Date.now() + 600000).toISOString() } })
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises(); await wrapper.find('button.wallet-save').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('.hw-modos').exists()).toBe(true))
+    expect(wrapper.find('button.hw-modo--web').attributes('aria-checked')).toBe('true')
+    const href = wrapper.find('a.wallet-open-web').attributes('href')!
+    const url = new URL(href)
+    expect(url.origin).toBe('https://cartera.example.org')
+    expect(JSON.parse(new URLSearchParams(url.hash.slice('#/request?'.length)).get('request')!).protocols.vcapi).toBe(exchangeUrl)
+    expect(wrapper.text()).toContain('Add Credential')
+    await wrapper.find('button.wallet-copy').trigger('click')
+    expect(writeText).toHaveBeenCalledWith(interactionUrl)
+    await wrapper.find('button.hw-modo--otro').trigger('click')
+    expect(localStorage.getItem('mc-cartera-modo')).toBe('otro')
+    expect(wrapper.find('a.wallet-open-web').exists()).toBe(false)
+    expect(wrapper.find('img.wallet-qr').exists()).toBe(true)
+    wrapper.unmount()
+  })
+  it('prefers the server-built web wallet link when it comes with the offer', async () => {
+    runtime.public.walletAppUrl = 'https://cartera.example.org'
+    const webWalletUrl = 'https://cartera.example.org/#/request?request=servidor'
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ data: summary })
+    vi.spyOn(apiClient, 'post').mockResolvedValue({ data: { exchangeUrl: 'https://i.example/api/exchanges/x', webWalletUrl, walletUrl: 'x', qrContent: 'x', expiresAt: new Date(Date.now() + 600000).toISOString() } })
+    const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
+    await flushPromises(); await wrapper.find('button.wallet-save').trigger('click')
+    await vi.waitFor(() => expect(wrapper.find('a.wallet-open-web').exists()).toBe(true))
+    expect(wrapper.find('a.wallet-open-web').attributes('href')).toBe(webWalletUrl)
+    wrapper.unmount()
+  })
 })
-

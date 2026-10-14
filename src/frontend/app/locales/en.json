@@ -816,14 +816,31 @@
         "step3": "Accept the credential in your wallet",
         "savedTitle": "Done: it is in your wallet",
         "done": "Got it",
-        "copies": "Saved copies and revocation"
+        "copies": "Saved copies and revocation",
+        "where": "Where do you keep your wallet?",
+        "mode": {
+          "app": "App on this phone",
+          "web": "{name} in the browser",
+          "otro": "On another device"
+        },
+        "openApp": "Open in the {name} app",
+        "web1": "Press «Open in {name}»: your wallet opens in another browser tab with the credential ready.",
+        "web2": "Unlock it (or create it) and accept: «Open offer» and «Identify myself and receive credential».",
+        "web3": "If it is a new wallet, come back here and confirm with «Yes, it's mine».",
+        "openWeb": "Open in {name}",
+        "pasteHelp": "Prefer to paste it? Copy the link and, in {name}, go to the Dashboard, press «Add Credential», paste it in the «Paste a URL or full credential JSON.» box and press «Add».",
+        "copy": "Copy link",
+        "copied": "Link copied",
+        "otherHelp": "Scan this code with the wallet on the other device, or copy the link, send it to yourself and paste it there in «Add credential».",
+        "waiting": "Waiting for your wallet… This window updates by itself."
       },
       "wallets": {
         "howTitle": "How to add a wallet",
-        "how1": "Open one of your credentials and tap “Save to my wallet”.",
+        "how1": "Press «Add a wallet» above, or «Save to my wallet» on any of your credentials.",
         "how2": "Scan the code with the wallet you want to use.",
         "how3": "If it is a new wallet, confirm it here with “Yes, it is mine”.",
-        "goCredentials": "Go to my credentials"
+        "goCredentials": "Go to my credentials",
+        "add": "Add a wallet"
       },
       "landing": {
         "eyebrow": "Universidad de Guadalajara · UDGPlus",
@@ -941,6 +958,13 @@
           "area": "In the area of {value}",
           "nombre": "Related to “{value}”"
         }
+      },
+      "walletNotice": {
+        "title": "Confirm your new wallet",
+        "which": "{wallet} wants to save «{credential}». If it was you, add it and the credential will arrive in seconds.",
+        "whichNoName": "{wallet} wants to save one of your credentials. If it was you, add it and the credential will arrive in seconds.",
+        "refuse": "Not me",
+        "badge": "A new wallet is waiting for confirmation"
       }
     }
   }
