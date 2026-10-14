@@ -115,8 +115,8 @@ const visibles = computed(() => rutas.value
 <style scoped>
 .mc-rutas { display: grid; gap: .75rem; }
 .mc-rutas h2 { font-size: var(--mc-t-l); }
-.mc-ruta { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: .9rem; padding: .9rem; box-shadow: none; align-items: start; }
-.mc-ruta__insignia { width: 4.5rem; height: 4.5rem; }
+.mc-ruta { display: grid; grid-template-columns: 5.5rem minmax(0, 1fr); gap: .9rem; padding: .9rem; box-shadow: none; align-items: start; }
+.mc-ruta__insignia { width: 5.5rem; height: 5.5rem; }
 .mc-ruta__cuerpo { display: grid; gap: .55rem; min-width: 0; }
 .mc-ruta__cabeza { display: flex; flex-wrap: wrap; gap: .4rem .6rem; align-items: center; justify-content: space-between; }
 .mc-ruta__cabeza b { line-height: 1.25; }
