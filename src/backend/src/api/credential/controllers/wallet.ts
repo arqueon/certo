@@ -52,8 +52,11 @@ export default {
     ctx.vary('Accept')
     // A browser opening the interaction URL (the portal's single QR, scanned
     // with the camera) gets a page with one button per wallet; wallets ask
-    // for JSON and keep getting the protocols map.
-    if (ctx.method === 'GET' && ctx.query.iuv === '1' && wantsHtml((...types) => ctx.accepts(...types))) {
+    // for JSON and keep getting the protocols map. HEAD (link previews,
+    // Android checking a link before opening it) is read-only like GET and
+    // must never reach the POST branch, which would consume the offer.
+    const isRead = ctx.method === 'GET' || ctx.method === 'HEAD'
+    if (isRead && ctx.query.iuv === '1' && wantsHtml((...types) => ctx.accepts(...types))) {
       const base = new URL(process.env.PUBLIC_URL || strapi.config.get('server.url'))
       let available = true
       try { await strapi.service('api::credential.wallet-offer').pending(ctx.params.exchangeId) } catch { available = false }
@@ -71,7 +74,7 @@ export default {
     }
     try {
       const service = strapi.service('api::credential.wallet-offer')
-      if (ctx.method === 'GET') {
+      if (isRead) {
         if (ctx.query.iuv !== '1') throw new Error('Invalid interaction')
         await service.pending(ctx.params.exchangeId)
         const base = new URL(process.env.PUBLIC_URL || strapi.config.get('server.url'))
