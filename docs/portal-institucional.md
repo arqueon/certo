@@ -4,7 +4,7 @@ La emisión nueva usa ahora did:web, VC 2.0 y Data Integrity `eddsa-rdfc-2022`. 
 
 Desde ADR 0022, **[Guardar en mi wallet](guardar-en-wallet.md)** añade el canje de un solo uso con autenticación de cartera, copia vinculada al DID y revocación compartida. Ese documento fija las versiones compatibles de LCW y la prueba móvil pendiente.
 
-Con una variable `NUXT_PUBLIC_BRAND_*` no vacía, Certo funciona como portal del titular y verificador público. UDGPlus emite desde su consola externa; esta portada no ofrece diseñar ni emitir credenciales. Sin marca, se conserva la portada de origen. Las protecciones del backend se aplican siempre, aunque un cliente no use esta interfaz.
+Con una variable `NUXT_PUBLIC_BRAND_*` no vacía, Certo funciona como portal del titular y verificador público. La institución emite desde su consola externa; esta portada no ofrece diseñar ni emitir credenciales. Sin marca, se conserva la portada de origen. Las protecciones del backend se aplican siempre, aunque un cliente no use esta interfaz.
 
 ## Configuración pública
 
@@ -12,6 +12,9 @@ Con una variable `NUXT_PUBLIC_BRAND_*` no vacía, Certo funciona como portal del
 | --- | --- |
 | `NUXT_PUBLIC_CATALOG_URL` | **Nueva**, URL HTTP(S) del catálogo. Sin URL válida se ocultan la entrada de portada y el enlace del menú. |
 | `NUXT_PUBLIC_BRAND_NAME`, `NUXT_PUBLIC_BRAND_LOGO_URL`, `NUXT_PUBLIC_BRAND_PRIMARY_COLOR` | Existentes. Cualquiera no vacía activa el portal institucional. El color debe tener formato hexadecimal de seis dígitos. Si no se proporciona logo, se muestra el nombre de la marca. |
+| `NUXT_PUBLIC_BRAND_LOGO_INVERSE_URL` | **Nueva** (0016). Logotipo para fondos oscuros: encabezado y pie en modo oscuro. Sin valor, se usa el logotipo normal convertido en silueta blanca. |
+| `NUXT_PUBLIC_BRAND_EMBLEM_URL` | **Nueva** (0016). Emblema de la medalla de la portada (p. ej. el escudo). Sin valor, el logotipo. |
+| `NUXT_PUBLIC_WALLET_APP_NAME` | Existente. Nombre de la cartera web; por omisión «Cartera UdeG». |
 | `NUXT_PUBLIC_DEFAULT_LOCALE` | Existente. Sin valor: español con marca, inglés sin marca. Una elección guardada en `certo_locale` tiene prioridad. |
 | `NUXT_PUBLIC_DETECT_BROWSER_LOCALE` | Existente. Sin valor: no detectar con marca; detectar sin marca. `true` y `false` explícitos tienen prioridad. |
 | `NUXT_PUBLIC_WEBSITE_URL`, `NUXT_PUBLIC_API_URL` | Existentes. Deben apuntar a las URLs públicas correctas; la primera forma el enlace y QR de verificación. |

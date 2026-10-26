@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { credentialMetadata, criteriaText, didWebDomain, fieldOfStudyLabel, qualificationLabel, resolvedResults, resultAnchor } from '../../utils/credential-metadata'
+import { credentialMetadata, criteriaText, didWebDomain, fieldOfStudyLabel, LEGACY_SKILLS_FRAMEWORKS, qualificationLabel, resolvedResults, resultAnchor, SKILLS_FRAMEWORK } from '../../utils/credential-metadata'
 describe('presentación 0023', () => {
   it('muestra nombre firmado, tipo español y nivel declarado', () => {
     const info = credentialMetadata({ credentialSubject: { name: 'Titular firmada', term: '2026-B', creditsEarned: 0, achievement: { achievementType: 'MicroCredential', inLanguage: 'es', creditsAvailable: 2, alignment: [{ targetName: 'nivel_6', targetFramework: 'Marco Nacional de Cualificaciones (SEP)' }] } } }, { recipient: { name: 'Perfil modificado' } })
@@ -24,6 +24,17 @@ describe('presentación 0023', () => {
     const nuevo = 'Rúbrica versión 1. Ficha activada por Gestora. Instancia que decide: Comité de reconocimiento.'
     expect(criteriaText(nuevo)).toBe(nuevo)
     expect(credentialMetadata({ credentialSubject: { achievement: { fieldOfStudy: 'cinef_06 · TIC' } } }).fieldOfStudy).toBe('TIC')
+  })
+  it.each([SKILLS_FRAMEWORK, ...LEGACY_SKILLS_FRAMEWORKS])('reconoce «%s» como marco de habilidades', (framework) => {
+    const info = credentialMetadata({ credentialSubject: { achievement: { alignment: [
+      { targetName: 'Diseño de rúbricas', targetType: 'ceasn:Competency', targetFramework: framework },
+    ] } } })
+    expect(info.skills.map((s: any) => s.name)).toEqual(['Diseño de rúbricas'])
+    expect(info.outcomes).toEqual([])
+  })
+  it('emite y muestra el marco nuevo; el histórico solo se lee', () => {
+    expect(SKILLS_FRAMEWORK).toBe('Habilidades UdeG')
+    expect(LEGACY_SKILLS_FRAMEWORKS).toEqual(['Habilidades UDGPlus'])
   })
   it('separa las habilidades (marco Habilidades UdeG) de los resultados y lee el resultado que las respalda', () => {
     const info = credentialMetadata({ credentialSubject: { achievement: { alignment: [
