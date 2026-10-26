@@ -38,7 +38,7 @@ describe('webWalletLink', () => {
 describe('walletLanding', () => {
   it('offers the web wallet, the app and a copy button', () => {
     const { html, csp } = walletLanding({ exchangeUrl, available: true, walletAppUrl: 'https://cartera.example.org' })
-    expect(html).toContain('Abrir en Cartera UDGPlus')
+    expect(html).toContain('Abrir en Cartera UdeG')
     expect(html).toContain(`interaction:${exchangeUrl}?iuv=1`)
     expect(html).toContain('https://cartera.example.org/#/request?request=')
     expect(html).toContain('Copiar enlace')

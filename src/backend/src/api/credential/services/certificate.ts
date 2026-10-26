@@ -3,6 +3,7 @@
  */
 
 import { generateCertificateSvg } from '../../../utils/certificate-template'
+import { hiddenRecipientName } from '../../../utils/hidden-recipient'
 
 export default ({ strapi }) => ({
   /**
@@ -33,7 +34,7 @@ export default ({ strapi }) => ({
       }
 
       // Get required data
-      const recipientName = credential.publicRecipientName === false ? 'Titular verificado por UDGPlus' : credential.recipient?.name || 'Recipient'
+      const recipientName = credential.publicRecipientName === false ? hiddenRecipientName() : credential.recipient?.name || 'Recipient'
       const achievementName = credential.achievement?.name || credential.name || 'Achievement'
       const issuerName = credential.issuer?.name || 'Issuer'
       const issueDate = credential.issuanceDate

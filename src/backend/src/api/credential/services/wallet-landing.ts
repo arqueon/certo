@@ -37,7 +37,7 @@ export function webWalletLink(walletAppUrl: string, exchangeUrl: string): string
 export function walletLanding(options: WalletLandingOptions): { html: string; csp: string } {
   const nonce = randomBytes(16).toString('base64')
   const interactionUrl = `${options.exchangeUrl}?iuv=1`
-  const appName = options.walletAppName || 'Cartera UDGPlus'
+  const appName = options.walletAppName || 'Cartera UdeG'
   const web = options.walletAppUrl ? webWalletLink(options.walletAppUrl, options.exchangeUrl) : ''
   const body = options.available
     ? `<h1>Guardar tu credencial</h1>
@@ -55,12 +55,12 @@ ${web ? `<a class="btn primary" href="${escapeHtml(web)}" rel="noreferrer">Abrir
 <title>Guardar credencial</title>
 <style nonce="${nonce}">
 body{font-family:system-ui,sans-serif;margin:0;padding:24px 16px;background:#f6f8fb;color:#1d2a42}
-main{max-width:28rem;margin:0 auto}h1{font-size:1.4rem;color:#00427b}
-.btn{display:block;width:100%;box-sizing:border-box;margin:12px 0;padding:14px;border-radius:10px;border:1px solid #00427b;
-background:#fff;color:#00427b;font:inherit;font-weight:600;text-align:center;text-decoration:none;cursor:pointer}
-.primary{background:#00427b;color:#fff}.nota{font-size:.9rem;color:#4a5568}
-@media (prefers-color-scheme:dark){body{background:#12161f;color:#e8ebf0}h1{color:#9ccaff}
-.btn{background:#1b2230;color:#9ccaff;border-color:#9ccaff}.primary{background:#9ccaff;color:#0b1a2c}.nota{color:#b7c0d4}}
+main{max-width:28rem;margin:0 auto}h1{font-size:1.4rem;color:#202945}
+.btn{display:block;width:100%;box-sizing:border-box;margin:12px 0;padding:14px;border-radius:10px;border:1px solid #202945;
+background:#fff;color:#202945;font:inherit;font-weight:600;text-align:center;text-decoration:none;cursor:pointer}
+.primary{background:#202945;color:#fff}.nota{font-size:.9rem;color:#4a5568}
+@media (prefers-color-scheme:dark){body{background:#12161f;color:#e8ebf0}h1{color:#aab4dc}
+.btn{background:#1b2230;color:#aab4dc;border-color:#aab4dc}.primary{background:#aab4dc;color:#202945}.nota{color:#b7c0d4}}
 </style></head><body><main>${body}</main>
 ${options.available ? `<script nonce="${nonce}">
 document.getElementById('copiar').addEventListener('click', async (e) => {

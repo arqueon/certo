@@ -85,7 +85,7 @@ export default {
     } catch (error) {
       if (error?.status === 202) {
         ctx.status = 202
-        return { status: 'pending-approval', message: 'Confirm this new wallet in the microcredentials portal, then try again.' }
+        return { status: 'pending-approval', message: 'Confirm this new wallet in the digital credential portal, then try again.' }
       }
       // Same envelope for unknown, expired, consumed and invalid presentations.
       ctx.status = 404
