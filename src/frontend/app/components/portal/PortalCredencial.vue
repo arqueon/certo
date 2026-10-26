@@ -406,7 +406,7 @@ async function copy() {
   box-shadow: 0 0 0 8px rgba(99, 171, 208, .18), var(--mc-sombra-alta);
 }
 .mc-detalle__insignia img { width: 100%; height: 100%; object-fit: contain; }
-.mc-detalle__sin-imagen { font-size: 4.5rem; color: #2a6f97; }
+.mc-detalle__sin-imagen { font-size: 4.5rem; color: var(--mc-enlace, #3a4a80); }
 .mc-detalle__titulo { display: grid; gap: .45rem; justify-items: center; min-width: 0; }
 .mc-detalle__titulo .mc-etiqueta { opacity: .85; }
 .mc-detalle__titulo h1 { font-size: clamp(1.7rem, 6vw, 2.6rem); }

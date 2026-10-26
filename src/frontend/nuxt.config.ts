@@ -160,12 +160,17 @@ export default defineNuxtConfig({
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL,
       walletAppUrl: process.env.NUXT_PUBLIC_WALLET_APP_URL || '',
-      walletAppName: process.env.NUXT_PUBLIC_WALLET_APP_NAME || 'Cartera UDGPlus',
+      walletAppName: process.env.NUXT_PUBLIC_WALLET_APP_NAME || 'Cartera UdeG',
       // Public visibility switch only; backend authorization remains independent.
       portalTitularEnabled: false,
       websiteUrl,
       brandName: process.env.NUXT_PUBLIC_BRAND_NAME || '',
       brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '',
+      // Logotipo para fondos oscuros (encabezado azul, pie en modo oscuro) y
+      // emblema para la medalla de la portada. Vacíos: se usa brandLogoUrl
+      // (en fondo oscuro, convertido a silueta blanca con un filtro).
+      brandLogoInverseUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_INVERSE_URL || '',
+      brandEmblemUrl: process.env.NUXT_PUBLIC_BRAND_EMBLEM_URL || '',
       brandPrimaryColor: process.env.NUXT_PUBLIC_BRAND_PRIMARY_COLOR || '',
       // Comma-separated users-permissions provider names to offer on the
       // login page. Read through runtimeConfig, not import.meta.env, so it
@@ -187,8 +192,8 @@ export default defineNuxtConfig({
   },
   css: [
     '~/assets/css/main.css',
-    '~/assets/css/udgplus-tokens.css',
-    '~/assets/css/udgplus-componentes.css',
+    '~/assets/css/udg-tokens.css',
+    '~/assets/css/udg-componentes.css',
   ],
   plugins: [
     '~/plugins/api.ts',
