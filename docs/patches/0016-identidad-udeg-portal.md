@@ -6,7 +6,7 @@
 
 - **Paleta** (`app/assets/css/udg-tokens.css`, antes `udgplus-tokens.css`; `udg-componentes.css`, antes `udgplus-componentes.css`). Oficiales: azul 288C `#202945` (principal, texto y botones), rojo 7621C `#B12028` (error y revocada; acento de la medalla), olivo 7495C `#8F993E` y oro 116C `#FDCF85` (decorativos; el oro también es «en espera» en oscuro), gris K85 `#3c3c3b`. El resto son tintes derivados, marcados en el archivo.
 - **Tipografía:** Montserrat (complementaria del manual) en títulos, autoalojada con su licencia OFL; Figtree se conserva en texto corrido. Se retira Bricolage Grotesque.
-- **Logotipos** en `public/marca/`: `udg-logotipo.svg` (color), `udg-logotipo-blanco.svg`, `udg-escudo.svg` y `udg-escudo-blanco.svg`, optimizados con svgo (~108 KB y ~58 KB).
+- **Logotipos** en `public/marca/`: `udg-logotipo.svg` (color), `udg-logotipo-blanco.svg`, `udg-escudo.svg` y `udg-escudo-blanco.svg`, optimizados con svgo (98, 48, 41 y 20 KB), sin geometría fuera del viewBox. Favicon, iconos de Android, apple-touch y `site.webmanifest` usan el escudo UdeG.
 - **Variables nuevas:** `NUXT_PUBLIC_BRAND_LOGO_INVERSE_URL` (encabezado azul y pie oscuro, sin filtro de silueta) y `NUXT_PUBLIC_BRAND_EMBLEM_URL` (medalla de la portada). Sin ellas, el comportamiento anterior. En el backend: `HIDDEN_RECIPIENT_NAME` (texto del titular oculto), `EMAIL_BRAND_NAME` y `EMAIL_SUPPORT_ADDRESS` (correos al titular).
 - **Textos:** título de pestaña y h1 de la portada «Verificación de credenciales digitales» / «Digital credential verification», antetítulo «Universidad de Guadalajara». Los demás textos con UDGPlus pasan a la marca configurable o a una redacción neutra. Por omisión: «Cartera UdeG», «Titular verificado por la Universidad de Guadalajara».
 - **Marco de habilidades:** se emite y muestra `Habilidades UdeG` (igual que la consola); `Habilidades UDGPlus` queda en `LEGACY_SKILLS_FRAMEWORKS` para leer las credenciales ya emitidas.
@@ -37,6 +37,5 @@ Olivo 7495C sobre blanco da 3.09 y oro 116C sobre fondos claros no llega a 2: lo
 
 ## Pendientes
 
-- `public/udgplus-logo.svg` se conserva hasta que el despliegue deje de apuntar a él; después, retirarlo.
+- Se retiró `public/udgplus-logo.svg`: el despliegue debe apuntar a `/marca/udg-*.svg` en el mismo cambio. `public/marca/udg-lockup.svg` (sin UDG+, sin uso en el código) se conserva.
 - Los correos al titular siguen en inglés (plantillas del proyecto original); solo el nombre del sistema y el contacto son configurables.
-- Los favicon son los de Certo.
