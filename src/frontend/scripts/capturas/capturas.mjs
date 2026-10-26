@@ -18,7 +18,7 @@ const fecha = d => iso(d).slice(0, 10)
 const user = { id: 8, username: 'ana.lopez', email: 'ana.lopez@microcredenciales.invalid', provider: 'keycloak', confirmed: true, createdAt: iso(-40) }
 const profile = { id: 7, name: 'Ana López Ruiz', email: user.email, profileType: 'Recipient' }
 const wallets = [
-  { id: 1, kind: 'account', client: 'web', name: 'Cartera UDGPlus', addedAt: iso(-20), credentials: 3, lastSavedAt: iso(-2) },
+  { id: 1, kind: 'account', client: 'web', name: 'Cartera UdeG', addedAt: iso(-20), credentials: 3, lastSavedAt: iso(-2) },
   { id: 2, kind: 'device', client: 'app', name: null, addedAt: iso(-6), credentials: 1, lastSavedAt: null },
 ]
 const ficha = {
@@ -36,9 +36,9 @@ const ficha = {
   } }],
 }
 const solicitudes = [
-  { referencia: 'SP-0003', estado: 'en_revision', createdAt: iso(-4), fechaLimite: fecha(10), descripcionSaberes: 'Diseñé el sistema de evaluación por proyectos de mi academia y lo apliqué dos semestres.', evidencias: 'https://ejemplo.invalid/portafolio', logro: { clave: 'DEMO-EVAL', nombre: 'Evaluación auténtica en entornos virtuales' }, instanciaDestinataria: 'UDG+ · Dirección de Formación', correoVerificado: true },
-  { referencia: 'SP-0002', estado: 'no_procede', subsanable: true, createdAt: iso(-30), fechaLimite: fecha(-16), resueltaEn: iso(-18), descripcionSaberes: 'Doy tutoría en línea desde 2019.', logro: { clave: 'DEMO-TUT', nombre: 'Tutoría en línea: acompañamiento y retroalimentación' }, instanciaDestinataria: 'UDG+ · Dirección de Formación', instanciaDecide: 'Comité de reconocimiento UDG+', justificacion: 'La descripción no muestra cómo retroalimentas a tus estudiantes. Falta un ejemplo concreto.', indicacionesSubsanacion: 'Agrega dos ejemplos de retroalimentación que hayas dado, sin datos de estudiantes.', correoVerificado: true },
-  { referencia: 'SP-0001', estado: 'reconocida', estadoCredencial: 'emitida', createdAt: iso(-60), fechaLimite: fecha(-46), resueltaEn: iso(-50), descripcionSaberes: 'Coordino el diplomado de diseño instruccional.', logro: { clave: 'DEMO-DI', nombre: 'Diseño instruccional con IA generativa' }, instanciaDestinataria: 'UDG+ · Dirección de Formación', instanciaDecide: 'Comité de reconocimiento UDG+', justificacion: 'Tus productos cumplen todos los criterios de la ficha.', criteriosEquivalencia: 'Rúbrica de la ficha DEMO-DI, nivel Logrado en los tres criterios.', correoVerificado: true },
+  { referencia: 'SP-0003', estado: 'en_revision', createdAt: iso(-4), fechaLimite: fecha(10), descripcionSaberes: 'Diseñé el sistema de evaluación por proyectos de mi academia y lo apliqué dos semestres.', evidencias: 'https://ejemplo.invalid/portafolio', logro: { clave: 'DEMO-EVAL', nombre: 'Evaluación auténtica en entornos virtuales' }, instanciaDestinataria: 'Instancia de ejemplo', correoVerificado: true },
+  { referencia: 'SP-0002', estado: 'no_procede', subsanable: true, createdAt: iso(-30), fechaLimite: fecha(-16), resueltaEn: iso(-18), descripcionSaberes: 'Doy tutoría en línea desde 2019.', logro: { clave: 'DEMO-TUT', nombre: 'Tutoría en línea: acompañamiento y retroalimentación' }, instanciaDestinataria: 'Instancia de ejemplo', instanciaDecide: 'Comité de reconocimiento', justificacion: 'La descripción no muestra cómo retroalimentas a tus estudiantes. Falta un ejemplo concreto.', indicacionesSubsanacion: 'Agrega dos ejemplos de retroalimentación que hayas dado, sin datos de estudiantes.', correoVerificado: true },
+  { referencia: 'SP-0001', estado: 'reconocida', estadoCredencial: 'emitida', createdAt: iso(-60), fechaLimite: fecha(-46), resueltaEn: iso(-50), descripcionSaberes: 'Coordino el diplomado de diseño instruccional.', logro: { clave: 'DEMO-DI', nombre: 'Diseño instruccional con IA generativa' }, instanciaDestinataria: 'Instancia de ejemplo', instanciaDecide: 'Comité de reconocimiento', justificacion: 'Tus productos cumplen todos los criterios de la ficha.', criteriosEquivalencia: 'Rúbrica de la ficha DEMO-DI, nivel Logrado en los tres criterios.', correoVerificado: true },
 ]
 
 function responder(state) {
@@ -78,7 +78,7 @@ function responder(state) {
         return json({ data: ficha })
       }
       if (titular === 'instancias') {
-        return json({ data: [{ clave: 'UDGPLUS', nombre: 'UDG+ · Dirección de Formación' }] })
+        return json({ data: [{ clave: 'EJEMPLO', nombre: 'Instancia de ejemplo' }] })
       }
       if (titular.startsWith('solicitudes-saberes')) {
         return json({ data: state.sinSolicitudes ? [] : solicitudes })

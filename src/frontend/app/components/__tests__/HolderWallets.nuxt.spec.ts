@@ -6,7 +6,7 @@ import { apiClient } from '@/api/api-client'
 
 afterEach(() => vi.restoreAllMocks())
 const wallets = [
-  { id: 1, kind: 'account', client: 'web', name: 'Cartera UDGPlus', addedAt: '2026-10-07T10:00:00Z', credentials: 3, lastSavedAt: '2026-10-07T10:00:00Z' },
+  { id: 1, kind: 'account', client: 'web', name: 'Cartera UdeG', addedAt: '2026-10-07T10:00:00Z', credentials: 3, lastSavedAt: '2026-10-07T10:00:00Z' },
   { id: 2, kind: 'device', client: 'app', name: null, addedAt: '2026-10-05T10:00:00Z', credentials: 1, lastSavedAt: null },
   { id: 3, kind: 'device', client: null, name: null, addedAt: '2026-10-04T10:00:00Z', credentials: 1, lastSavedAt: null },
 ]
@@ -15,7 +15,7 @@ describe('holder wallets', () => {
     vi.spyOn(apiClient, 'get').mockResolvedValue({ data: wallets })
     const wrapper = await mountSuspended(HolderWallets)
     await flushPromises()
-    expect(wrapper.text()).toContain('Cartera UDGPlus (web)')
+    expect(wrapper.text()).toContain('Cartera UdeG (web)')
     expect(wrapper.text()).toContain("in your account's name")
     expect(wrapper.text()).toContain('Phone app')
     expect(wrapper.text()).toContain('Unidentified wallet')

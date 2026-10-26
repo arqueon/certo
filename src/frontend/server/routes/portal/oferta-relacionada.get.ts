@@ -1,7 +1,7 @@
 import { defineEventHandler, getQuery, setHeader } from 'h3'
 
-// «Para seguir aprendiendo» (ideas de POK, VoBo de Rubén del 13-oct-2026): el
-// portal pide a la consola, desde el servidor, hasta 3 ofertas de UDGPlus
+// «Para seguir aprendiendo» (ideas de POK, VoBo del 13-oct-2026): el
+// portal pide a la consola, desde el servidor, hasta 3 ofertas institucionales
 // relacionadas con la ficha de una credencial. Del lado del servidor no hace
 // falta CORS y la VM puede usar la red interna (NUXT_CATALOG_API_URL). Ante
 // cualquier falla responde una lista vacía: el bloque simplemente no aparece.

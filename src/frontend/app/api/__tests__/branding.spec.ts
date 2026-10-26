@@ -1,10 +1,12 @@
-import { afterEach, describe, expect, it } from 'vitest'
 import { useRuntimeConfig } from '#app'
+import { afterEach, describe, expect, it } from 'vitest'
 import { useBranding } from '@/composables/useBranding'
 
 describe('useBranding: logotipos por fondo', () => {
   const pub = () => useRuntimeConfig().public as Record<string, unknown>
-  afterEach(() => { Object.assign(pub(), { brandLogoUrl: '', brandLogoInverseUrl: '', brandEmblemUrl: '' }) })
+  afterEach(() => {
+    Object.assign(pub(), { brandLogoUrl: '', brandLogoInverseUrl: '', brandEmblemUrl: '' })
+  })
 
   it('usa el logotipo para fondo oscuro y el emblema cuando están configurados', () => {
     Object.assign(pub(), { brandLogoUrl: '/marca/udg-logotipo.svg', brandLogoInverseUrl: ' /marca/udg-logotipo-blanco.svg ', brandEmblemUrl: '/marca/udg-escudo.svg' })

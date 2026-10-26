@@ -21,15 +21,15 @@ describe('presentación 0023', () => {
     expect(fieldOfStudyLabel('Educación')).toBe('Educación')
     expect(criteriaText('Evaluación previa; Rúbrica versión 1 Ficha activada por demo.metadatos; instancia que decide: DGUV.'))
       .toBe('Evaluación previa; Rúbrica versión 1. Ficha activada por demo.metadatos. Instancia que decide: DGUV.')
-    const nuevo = 'Rúbrica versión 1. Ficha activada por Gestora. Instancia que decide: UDG+.'
+    const nuevo = 'Rúbrica versión 1. Ficha activada por Gestora. Instancia que decide: Comité de reconocimiento.'
     expect(criteriaText(nuevo)).toBe(nuevo)
     expect(credentialMetadata({ credentialSubject: { achievement: { fieldOfStudy: 'cinef_06 · TIC' } } }).fieldOfStudy).toBe('TIC')
   })
-  it('separa las habilidades (marco Habilidades UDGPlus) de los resultados y lee el resultado que las respalda', () => {
+  it('separa las habilidades (marco Habilidades UdeG) de los resultados y lee el resultado que las respalda', () => {
     const info = credentialMetadata({ credentialSubject: { achievement: { alignment: [
       { targetName: 'Diseña rúbricas', targetCode: 'RA1', targetFramework: 'Resultados de aprendizaje', targetType: 'ceasn:Competency' },
-      { targetName: 'Diseño de rúbricas', targetType: 'ceasn:Competency', targetFramework: 'Habilidades UDGPlus', targetDescription: 'Respaldada por RA1: Diseña rúbricas.', targetUrl: 'https://catalogo.test/x' },
-      { targetName: 'Trabajo en equipo', targetType: 'ceasn:Competency', targetFramework: 'Habilidades UDGPlus' },
+      { targetName: 'Diseño de rúbricas', targetType: 'ceasn:Competency', targetFramework: 'Habilidades UdeG', targetDescription: 'Respaldada por RA1: Diseña rúbricas.', targetUrl: 'https://catalogo.test/x' },
+      { targetName: 'Trabajo en equipo', targetType: 'ceasn:Competency', targetFramework: 'Habilidades UDGPlus' /* marco anterior: se sigue leyendo */ },
     ] } } })
     expect(info.outcomes.map((o: any) => o.targetName)).toEqual(['Diseña rúbricas'])
     expect(info.skills).toEqual([
@@ -40,7 +40,7 @@ describe('presentación 0023', () => {
     expect(resultAnchor('RA 1"><x')).toBe('ra-RA1x')
   })
   it('obtiene el dominio de un emisor did:web y nada de otros métodos', () => {
-    expect(didWebDomain({ id: 'did:web:microcredenciales.udgplus.udg.mx' })).toBe('microcredenciales.udgplus.udg.mx')
+    expect(didWebDomain({ id: 'did:web:microcredenciales.udg.mx' })).toBe('microcredenciales.udg.mx')
     expect(didWebDomain('did:web:localhost%3A8443:emisor')).toBe('localhost:8443')
     expect(didWebDomain({ id: 'did:key:z6Mk' })).toBe('')
     expect(didWebDomain(undefined)).toBe('')
