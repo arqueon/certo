@@ -9,7 +9,7 @@ const props = defineProps<{ credentialId: string, compacto?: boolean, agregar?: 
 const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
-const appName = String(config.public.walletAppName || 'Cartera UDGPlus')
+const appName = String(config.public.walletAppName || 'Cartera UdeG')
 interface PendingWallet { offerId: number, client: 'web' | 'app' | null, name: string | null, requestedAt: string }
 interface Summary { eligible: boolean, legacy: boolean, revoked?: boolean, revocationReason?: string, rejectedWallet?: boolean, pendingWallet?: PendingWallet | null, walletCount: number, copies: { holderDid: string, boundAt: string, credentialId: string }[] }
 interface Offer { exchangeUrl: string, walletUrl: string, qrContent: string, interactionUrl?: string, deepLink?: string, webWalletUrl?: string, expiresAt: string }
@@ -25,7 +25,7 @@ function elegir(valor: Modo) {
   try { localStorage.setItem(CLAVE_MODO, valor) }
   catch { /* sin almacenamiento: solo dura esta visita */ }
 }
-// La Cartera UDGPlus web abre la oferta en su página de solicitud (ruta con #).
+// La cartera web institucional abre la oferta en su página de solicitud (ruta con #).
 const webWalletUrl = computed(() => {
   if (!offer.value) { return '' }
   if (offer.value.webWalletUrl) { return offer.value.webWalletUrl }

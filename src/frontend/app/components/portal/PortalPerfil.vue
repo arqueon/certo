@@ -51,7 +51,7 @@ async function exportData() {
   finally { exporting.value = false }
 }
 
-// Español e inglés primero (los del portal UDGPlus); el resto, en su orden.
+// Español e inglés primero (los del portal institucional); el resto, en su orden.
 const PRIMEROS = ['es', 'en']
 const languages = computed(() => [...(locales.value as Array<{ code: string, name: string }>)]
   .sort((a, b) => (PRIMEROS.includes(a.code) ? PRIMEROS.indexOf(a.code) : 9) - (PRIMEROS.includes(b.code) ? PRIMEROS.indexOf(b.code) : 9)))

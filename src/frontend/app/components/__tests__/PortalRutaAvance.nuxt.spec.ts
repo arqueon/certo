@@ -11,7 +11,7 @@ const ruta = {
   pasos: [
     { clave: 'A', nombre: 'Excel' },
     { clave: 'B', nombre: 'Habilitación' },
-    { clave: 'C', nombre: 'Servicio', inscripcion: 'https://udgplus.udg.mx/servicio' },
+    { clave: 'C', nombre: 'Servicio', inscripcion: 'https://microcredenciales.udg.mx/servicio' },
   ],
 }
 
@@ -29,7 +29,7 @@ describe('vista de avance de rutas', () => {
     const tarjeta = wrapper.get('[data-ruta="RUTA-1"]')
     expect(tarjeta.text()).toContain('2 of 3')
     expect(tarjeta.get('img').attributes('src')).toBe(`${ruta.avance}?hechos=2`)
-    const falta = tarjeta.get('a[href="https://udgplus.udg.mx/servicio"]')
+    const falta = tarjeta.get('a[href="https://microcredenciales.udg.mx/servicio"]')
     expect(falta.attributes('target')).toBe('_blank')
   })
   it('con foco, solo las rutas de esa ficha; una ruta ya recibida se muestra completada', async () => {

@@ -2,7 +2,8 @@
 import { useMounted } from '@vueuse/core'
 
 // Portada pública (dirección B): un encabezado con imagen —la insignia y una
-// credencial verificada, dibujadas con la identidad UDGPlus— y las tres
+// credencial verificada, dibujadas con la identidad institucional (emblema
+// NUXT_PUBLIC_BRAND_EMBLEM_URL y paleta UdeG 2025)— y las tres
 // puertas de entrada: tengo una credencial, me mostraron una, qué se acredita.
 const { t } = useI18n()
 const branding = useBranding()
@@ -27,9 +28,9 @@ const signedIn = computed(() => mounted.value && authStore.isAuthenticated)
           </div>
         </div>
 
-        <figure class="mc-ilustracion" :aria-label="t('portal.b.landing.figure')">
+        <figure class="mc-ilustracion" :aria-label="t('portal.b.landing.figure', { brand: branding.name })">
           <div class="mc-ilustracion__medalla" aria-hidden="true">
-            <div><img :src="branding.logoUrl" alt=""><small>{{ t('portal.b.landing.badge') }}</small></div>
+            <div><img :src="branding.emblemUrl" alt=""><small>{{ t('portal.b.landing.badge') }}</small></div>
           </div>
           <div class="mc-ilustracion__tarjeta" aria-hidden="true">
             <span class="mc-ilustracion__sello"><span class="i-heroicons-check-badge" /></span>
@@ -79,23 +80,24 @@ const signedIn = computed(() => mounted.value && authStore.isAuthenticated)
 .mc-ilustracion { position: relative; justify-self: center; width: min(72%, 260px); aspect-ratio: 1; margin: 0; }
 .mc-ilustracion__medalla {
   position: absolute; inset: 8% 10% 14% 10%; border-radius: 50%; padding: 12px;
-  background: conic-gradient(from 210deg, #63abd0, #2a6f97, #1a203b, #35638e, #63abd0);
-  box-shadow: 0 0 0 10px rgba(99, 171, 208, .16), 0 30px 60px -20px rgba(8, 12, 28, .7);
+  /* Anillo con los colores oficiales UdeG 2025: oro 116C, olivo 7495C, azul 288C, rojo 7621C */
+  background: conic-gradient(from 210deg, #FDCF85, #8F993E, #202945, #B12028, #FDCF85);
+  box-shadow: 0 0 0 10px rgba(253, 207, 133, .16), 0 30px 60px -20px rgba(8, 12, 28, .7);
 }
 .mc-ilustracion__medalla > div {
-  width: 100%; height: 100%; border-radius: 50%; background: #fff; color: #1a203b;
+  width: 100%; height: 100%; border-radius: 50%; background: #fff; color: #202945;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem;
 }
-.mc-ilustracion__medalla img { width: 56%; height: auto; }
-.mc-ilustracion__medalla small { font-size: .7rem; font-weight: 800; letter-spacing: .16em; color: #2a6f97; }
+.mc-ilustracion__medalla img { width: auto; height: 52%; max-width: 64%; object-fit: contain; }
+.mc-ilustracion__medalla small { font-size: .7rem; font-weight: 800; letter-spacing: .16em; color: #B12028; }
 .mc-ilustracion__tarjeta {
   position: absolute; left: -2%; bottom: 4%; display: flex; align-items: center; gap: .65rem;
-  padding: .7rem .9rem; border-radius: 16px; background: #fff; color: #16203a; max-width: 78%;
+  padding: .7rem .9rem; border-radius: 16px; background: #fff; color: #202945; max-width: 78%;
   box-shadow: 0 18px 36px -14px rgba(8, 12, 28, .6); transform: rotate(-3deg);
 }
 .mc-ilustracion__tarjeta b { display: block; font-size: .85rem; line-height: 1.2; }
-.mc-ilustracion__tarjeta small { display: block; font-size: .72rem; color: #17795a; font-weight: 700; }
-.mc-ilustracion__sello { flex: none; display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 10px; background: #ddf3ea; color: #17795a; font-size: 1.3rem; }
+.mc-ilustracion__tarjeta small { display: block; font-size: .72rem; color: #5c6328; font-weight: 700; }
+.mc-ilustracion__sello { flex: none; display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 10px; background: #eef0dc; color: #5c6328; font-size: 1.3rem; }
 .mc-ilustracion__chip {
   position: absolute; right: 0; top: 6%; display: inline-flex; align-items: center; gap: .35rem;
   padding: .4rem .7rem; border-radius: 999px; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35);

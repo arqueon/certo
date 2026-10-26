@@ -24,7 +24,7 @@ window.useSeoMeta=()=>{}; window.definePageMeta=()=>{}; window.onClickOutside=()
 window.HEADER_NAV_LINKS=[];
 window.logoutCount=0;
 window.useAuthStore=()=>({isAuthenticated:true,isIssuer:false,user:{username:'Persona'},logout(){window.logoutCount++}});
-window.useBranding=()=>({name:'UDGPlus',primaryColor:'#b58b32'});
+window.useBranding=()=>({name:'UdeG',primaryColor:'#202945'});
 window.useHead=()=>{}; window.useRoute=()=>({query:{}});
 window.calls=[]; window.mode='ok';
 const base={referencia:'synthetic-private-id',estado:'no_procede',createdAt:'2026-09-25T18:00:00Z',fechaLimite:'2026-10-09',

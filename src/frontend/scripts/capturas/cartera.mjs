@@ -14,19 +14,19 @@ const DAY = 86_400_000
 const iso = d => new Date(Date.now() + d * DAY).toISOString()
 const user = { id: 8, username: 'ana.lopez', email: 'ana.lopez@microcredenciales.invalid', provider: 'keycloak', confirmed: true }
 const profile = { id: 7, name: 'Ana López Ruiz', email: user.email, profileType: 'Recipient' }
-const cred = (id, name, type, issued, expires) => ({ id, credentialId: `urn:uuid:${id}`, name, issuanceDate: iso(issued), expirationDate: iso(expires), revoked: false, issuer: { name: 'Universidad de Guadalajara · UDGPlus' }, achievement: { name, achievementType: type } })
+const cred = (id, name, type, issued, expires) => ({ id, credentialId: `urn:uuid:${id}`, name, issuanceDate: iso(issued), expirationDate: iso(expires), revoked: false, issuer: { name: 'Universidad de Guadalajara' }, achievement: { name, achievementType: type } })
 const credentials = [cred('0001-a', 'Diseño instruccional con IA generativa', 'MicroCredential', -8, 1095), cred('0002-b', 'Evaluación auténtica en entornos virtuales', 'MicroCredential', -22, 1080)]
-const exchangeUrl = 'https://microcredenciales.udgplus.udg.mx/api/exchanges/ejemploEjemploEjemploEjemploEjemploEjemplo1'
+const exchangeUrl = 'https://microcredenciales.udg.mx/api/exchanges/ejemploEjemploEjemploEjemploEjemploEjemplo1'
 const offer = {
   exchangeUrl,
   interactionUrl: `${exchangeUrl}?iuv=1`,
   walletUrl: 'x',
   qrContent: `${exchangeUrl}?iuv=1`,
-  webWalletUrl: `https://cartera.microcredenciales.udgplus.udg.mx/#/request?request=${encodeURIComponent(JSON.stringify({ protocols: { vcapi: exchangeUrl } }))}`,
+  webWalletUrl: `https://cartera.microcredenciales.udg.mx/#/request?request=${encodeURIComponent(JSON.stringify({ protocols: { vcapi: exchangeUrl } }))}`,
   expiresAt: iso(9 / 1440),
 }
-const wallets = [{ id: 1, kind: 'account', client: 'web', name: 'Cartera UDGPlus', addedAt: iso(-20), credentials: 2, lastSavedAt: iso(-2) }]
-const pendiente = { offerId: 9, credentialId: 'urn:uuid:0001-a', credentialName: 'Diseño instruccional con IA generativa', client: 'web', name: 'Cartera UDGPlus', requestedAt: iso(0), expiresAt: iso(8 / 1440) }
+const wallets = [{ id: 1, kind: 'account', client: 'web', name: 'Cartera UdeG', addedAt: iso(-20), credentials: 2, lastSavedAt: iso(-2) }]
+const pendiente = { offerId: 9, credentialId: 'urn:uuid:0001-a', credentialName: 'Diseño instruccional con IA generativa', client: 'web', name: 'Cartera UdeG', requestedAt: iso(0), expiresAt: iso(8 / 1440) }
 const summary = { eligible: true, legacy: false, walletCount: 1, copies: [{ holderDid: 'did:key:x', boundAt: iso(-2), credentialId: 'c' }] }
 
 function responder(state) {

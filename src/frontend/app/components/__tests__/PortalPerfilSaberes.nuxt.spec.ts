@@ -37,7 +37,7 @@ describe('perfil del titular (dirección B)', () => {
   })
 })
 
-const base = { referencia: 'SP-1', createdAt: '2026-10-01T15:00:00Z', fechaLimite: '2026-10-15', descripcionSaberes: 'Diseño rúbricas', logro: { clave: 'DEMO', nombre: 'Evaluación auténtica' }, instanciaDestinataria: 'UDG+' }
+const base = { referencia: 'SP-1', createdAt: '2026-10-01T15:00:00Z', fechaLimite: '2026-10-15', descripcionSaberes: 'Diseño rúbricas', logro: { clave: 'DEMO', nombre: 'Evaluación auténtica' }, instanciaDestinataria: 'Instancia de ejemplo' }
 describe('solicitud de saberes previos (dirección B)', () => {
   it('en revisión: segundo paso activo y plazo visible', async () => {
     const wrapper = await mountSuspended(SolicitudTitularB, { props: { solicitud: { ...base, estado: 'en_revision' }, correoVerificado: true } })

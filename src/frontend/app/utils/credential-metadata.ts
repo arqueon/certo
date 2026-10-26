@@ -18,8 +18,11 @@ export function criteriaText(value: unknown) {
 }
 // Habilidades (consola desde 14-oct-2026): alignment ceasn:Competency en este marco.
 // targetDescription «Respaldada por RA1: …» dice qué resultado las respalda.
-export const SKILLS_FRAMEWORK = 'Habilidades UDGPlus'
-const isSkill = (a: any) => a?.targetFramework === SKILLS_FRAMEWORK
+export const SKILLS_FRAMEWORK = 'Habilidades UdeG'
+// Nombre del marco en las credenciales emitidas antes del cambio de identidad
+// (oct-2026): se siguen leyendo como habilidades; no se emite más con él.
+export const LEGACY_SKILLS_FRAMEWORKS = ['Habilidades UDGPlus']
+const isSkill = (a: any) => a?.targetFramework === SKILLS_FRAMEWORK || LEGACY_SKILLS_FRAMEWORKS.includes(a?.targetFramework)
 export function skillsOf(alignments: any[]) {
   return alignments.filter(isSkill).map((a: any) => ({
     name: String(a.targetName || ''),

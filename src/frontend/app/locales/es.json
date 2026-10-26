@@ -356,8 +356,8 @@
     "step3": "Paso 3"
   },
   "app": {
-    "title": "Plataforma de credenciales digitales",
-    "description": "Plataforma de credenciales digitales. Emite, verifica y comparte constancias con el estándar Open Badges."
+    "title": "Verificación de credenciales digitales",
+    "description": "Verificación de credenciales digitales: consulta, comparte y comprueba credenciales con el estándar Open Badges."
   },
   "a11y": {
     "skipToContent": "Saltar al contenido principal",
@@ -440,14 +440,14 @@
   },
   "portal": {
     "home": {
-      "title": "Microcredenciales de {brand}",
+      "title": "Verificación de credenciales digitales",
       "intro": "Una microcredencial reconoce un aprendizaje concreto que has demostrado. Su enlace permite comprobar quién la emitió y si sigue vigente.",
       "example": "Por ejemplo, puedes incluirla en tu CV para que quien lo lea consulte qué aprendiste y cómo se evaluó. Una imagen por sí sola no permite comprobar su autenticidad.",
       "holder": "Tengo una credencial",
       "holderText": "Entra con tu cuenta para consultar tus credenciales, descargarlas y decidir qué información compartes.",
       "verifier": "Me mostraron una credencial",
       "verifierText": "Pega su enlace o identificador, o sube el archivo que te compartieron, para comprobar su autenticidad y vigencia.",
-      "catalog": "Qué acredita {brand}",
+      "catalog": "Qué se acredita en {brand}",
       "catalogText": "Consulta qué aprendizajes reconoce cada microcredencial y qué debes demostrar para obtenerla."
     },
     "holder": {
@@ -697,7 +697,7 @@
         }
       },
       "app": {
-        "title": "Microcredenciales verificables",
+        "title": "Verificación de credenciales digitales",
         "description": "Una microcredencial reconoce un aprendizaje concreto que has demostrado. Su enlace permite comprobar quién la emitió y si sigue vigente."
       }
     },
@@ -836,10 +836,10 @@
         "add": "Agregar una cartera"
       },
       "landing": {
-        "eyebrow": "Universidad de Guadalajara · UDGPlus",
+        "eyebrow": "Universidad de Guadalajara",
         "signIn": "Entrar a mis credenciales",
         "verify": "Verificar una credencial",
-        "figure": "Ilustración: insignia de UDGPlus y una credencial verificada",
+        "figure": "Ilustración: insignia institucional de {brand} y una credencial verificada",
         "badge": "MICROCREDENCIAL",
         "sampleName": "Diseño instruccional con IA",
         "sampleStatus": "✓ Auténtica y vigente",
@@ -943,7 +943,7 @@
       },
       "next": {
         "title": "Para seguir aprendiendo",
-        "intro": "Oferta de UDGPlus relacionada con lo que ya acreditaste.",
+        "intro": "Oferta educativa relacionada con lo que ya acreditaste.",
         "go": "Ver e inscribirme",
         "hours": "{hours} h",
         "because": {

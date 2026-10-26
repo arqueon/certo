@@ -356,8 +356,8 @@
     "ob3Feature3": "Cryptographically secure"
   },
   "app": {
-    "title": "Digital Credential Platform",
-    "description": "Digital credential platform. Issue, verify, and share certificates using the Open Badges standard."
+    "title": "Digital credential verification",
+    "description": "Digital credential verification: view, share and check credentials using the Open Badges standard."
   },
   "a11y": {
     "skipToContent": "Skip to main content",
@@ -440,7 +440,7 @@
   },
   "portal": {
     "home": {
-      "title": "{brand} microcredentials",
+      "title": "Digital credential verification",
       "intro": "A microcredential recognizes a specific skill or learning outcome you have demonstrated. Its link lets others check who issued it and whether it remains valid.",
       "example": "For example, add it to your CV so readers can see what you learned and how it was assessed. An image alone cannot prove authenticity.",
       "holder": "I have a credential",
@@ -697,7 +697,7 @@
         }
       },
       "app": {
-        "title": "Verifiable microcredentials",
+        "title": "Digital credential verification",
         "description": "A microcredential recognizes a specific skill or learning outcome you have demonstrated. Its link lets others check who issued it and whether it remains valid."
       }
     },
@@ -836,10 +836,10 @@
         "add": "Add a wallet"
       },
       "landing": {
-        "eyebrow": "Universidad de Guadalajara · UDGPlus",
+        "eyebrow": "Universidad de Guadalajara",
         "signIn": "Go to my credentials",
         "verify": "Verify a credential",
-        "figure": "Illustration: UDGPlus badge and a verified credential",
+        "figure": "Illustration: {brand} badge and a verified credential",
         "badge": "MICROCREDENTIAL",
         "sampleName": "Instructional design with AI",
         "sampleStatus": "✓ Authentic and valid",
@@ -943,7 +943,7 @@
       },
       "next": {
         "title": "Keep learning",
-        "intro": "UDGPlus courses related to what you have already earned.",
+        "intro": "Courses related to what you have already earned.",
         "go": "View and enrol",
         "hours": "{hours} h",
         "because": {

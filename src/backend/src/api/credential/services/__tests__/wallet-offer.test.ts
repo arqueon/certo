@@ -92,12 +92,12 @@ describe('private wallet offers', () => {
   })
   test('a waiting new wallet is shown to the holder by kind and name, never by DID', async () => {
     const saved = { ...process.env }
-    Object.assign(process.env, { WALLET_APP_URL: 'https://cartera.example.org', WALLET_APP_NAME: 'Cartera UDGPlus' })
+    Object.assign(process.env, { WALLET_APP_URL: 'https://cartera.example.org', WALLET_APP_NAME: 'Cartera UdeG' })
     try {
       const findOne = jest.fn().mockResolvedValue({ id: 9, pendingHolderDid: 'did:key:new', pendingClient: 'web', pendingOrigin: 'https://cartera.example.org', requestedAt: '2026-10-07T21:47:00Z' })
       const service = walletOffer({ strapi: { db: { query: () => ({ findOne }) } } })
       const pending = await service.awaiting(1)
-      expect(pending).toEqual({ offerId: 9, client: 'web', name: 'Cartera UDGPlus', requestedAt: '2026-10-07T21:47:00Z' })
+      expect(pending).toEqual({ offerId: 9, client: 'web', name: 'Cartera UdeG', requestedAt: '2026-10-07T21:47:00Z' })
       expect(JSON.stringify(pending)).not.toContain('did:')
     } finally { process.env = saved }
   })
