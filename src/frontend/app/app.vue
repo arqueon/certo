@@ -7,6 +7,18 @@ const route = useRoute()
 const pageDescription = computed(() => t('app.description'))
 const pageTitle = computed(() => `${branding.name} - ${t('app.title')}`)
 
+const publicConfig = useRuntimeConfig().public as Record<string, unknown>
+const brandStylesheet = typeof publicConfig.brandStylesheetUrl === 'string'
+  && /^(?:\/(?!\/)|https:\/\/)/.test(publicConfig.brandStylesheetUrl.trim())
+  ? publicConfig.brandStylesheetUrl.trim()
+  : ''
+const headLinks = [
+  ...(String(publicConfig.externalFonts) === 'false'
+    ? []
+    : [{ rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap' }]),
+  ...(brandStylesheet ? [{ rel: 'stylesheet', href: brandStylesheet, tagPriority: 'low' as const }] : []),
+]
+
 // Keep <html lang="..."> in sync with the active locale — important for SEO
 // and accessibility (screen readers use this to pick the right voice)
 useHead({
@@ -19,6 +31,7 @@ useHead({
     'data-tema': computed(() => branding.active && route.meta.temaB ? 'b' : undefined),
     'style': `--brand-primary: ${branding.primaryColor}; --brand-primary-text: ${branding.primaryText}`,
   },
+  link: headLinks,
 })
 
 useSeoMeta({

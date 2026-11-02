@@ -108,10 +108,9 @@ export default defineNuxtConfig({
         { rel: 'describedby', type: 'text/plain', href: '/llms.txt' },
 
         { rel: 'canonical', href: websiteUrl },
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap'
-        },
+        // Space Grotesk (Google Fonts) se añade en app.vue salvo que
+        // NUXT_PUBLIC_EXTERNAL_FONTS=false: una instancia puede no querer
+        // que cada visita consulte a un tercero.
       ],
       script: [
         {
@@ -167,6 +166,12 @@ export default defineNuxtConfig({
       brandName: process.env.NUXT_PUBLIC_BRAND_NAME || '',
       brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '',
       brandPrimaryColor: process.env.NUXT_PUBLIC_BRAND_PRIMARY_COLOR || '',
+      // Hoja de estilo de la instancia, cargada después de los tokens: redefine
+      // las variables --mc-* (colores, fuentes, radios) sin recompilar.
+      // Solo rutas del mismo origen («/marca/…») o https.
+      brandStylesheetUrl: process.env.NUXT_PUBLIC_BRAND_STYLESHEET_URL || '',
+      // 'false' quita la carga de Space Grotesk desde Google Fonts.
+      externalFonts: process.env.NUXT_PUBLIC_EXTERNAL_FONTS || 'true',
       // Comma-separated users-permissions provider names to offer on the
       // login page. Read through runtimeConfig, not import.meta.env, so it
       // stays configurable at container runtime (same bug as WEBSITE_URL had).
