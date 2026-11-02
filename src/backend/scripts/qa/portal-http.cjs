@@ -29,7 +29,7 @@ async function main() {
   const owner = await user('qa-holder'), other = await user('qa-other'), manager = await user('qa-manager')
   const token = u => app.plugin('users-permissions').service('jwt').issue({ id: u.id })
   const tokens = { owner: token(owner), other: token(other), manager: token(manager) }
-  const issuer = await app.entityService.create('api::profile.profile', { data: { name: 'UDGPlus QA', email: manager.email, url: 'http://127.0.0.1:19337', profileType: 'Issuer', owner: manager.id } })
+  const issuer = await app.entityService.create('api::profile.profile', { data: { name: 'Instancia de ejemplo QA', email: manager.email, url: 'http://127.0.0.1:19337', profileType: 'Issuer', owner: manager.id } })
   const holder = await app.entityService.create('api::profile.profile', { data: { name: 'Titular de prueba', email: owner.email, profileType: 'Recipient', owner: owner.id } })
   let count = 0
   async function request(url, who, body, method) {

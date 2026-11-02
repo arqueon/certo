@@ -122,7 +122,7 @@ node node_modules/nuxt/bin/nuxt.mjs typecheck --dotenv /tmp/certo-no-env
 node node_modules/nuxt/bin/nuxt.mjs build --dotenv /tmp/certo-no-env
 ```
 
-Arrancar el servidor construido con `NITRO_HOST=127.0.0.1`, `NITRO_PORT=19300`, `NUXT_PUBLIC_BRAND_NAME=UDGPlus`, `NUXT_PUBLIC_API_URL=http://127.0.0.1:19337` y `NUXT_PUBLIC_WEBSITE_URL=http://127.0.0.1:19300`. En otra terminal:
+Arrancar el servidor construido con `NITRO_HOST=127.0.0.1`, `NITRO_PORT=19300`, `NUXT_PUBLIC_BRAND_NAME=UdeG`, `NUXT_PUBLIC_API_URL=http://127.0.0.1:19337` y `NUXT_PUBLIC_WEBSITE_URL=http://127.0.0.1:19300`. En otra terminal:
 
 ```sh
 QA_CHROMIUM=/usr/bin/chromium node scripts/qa-metadata.mjs /ruta/impresa/browser-fixture.json

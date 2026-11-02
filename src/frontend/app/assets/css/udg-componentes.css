@@ -1,5 +1,5 @@
 /*
- * Piezas comunes de la dirección B sobre los tokens de udgplus-tokens.css.
+ * Piezas comunes de la dirección B sobre los tokens de udg-tokens.css.
  * Prefijo mc- para no chocar con UnoCSS ni con el diseño original de Certo.
  */
 html[data-branded] body {
@@ -30,8 +30,8 @@ html[data-branded] :focus-visible { outline: 3px solid var(--mc-foco); outline-o
 .mc-boton--secundario:hover:not(:disabled) { background: var(--mc-hielo); }
 .mc-boton--texto { background: transparent; color: var(--mc-enlace); padding-inline: .25rem; min-height: 0; text-decoration: underline; text-underline-offset: 3px; }
 .mc-boton--texto:hover:not(:disabled) { background: transparent; color: var(--mc-texto); }
-.mc-boton--claro { background: #fff; color: #1a203b; }
-.mc-boton--claro:hover:not(:disabled) { background: #e8f3f9; }
+.mc-boton--claro { background: #fff; color: var(--mc-navy, #202945); }
+.mc-boton--claro:hover:not(:disabled) { background: #e9ebf3; }
 .mc-boton--vidrio { background: rgba(255, 255, 255, .14); color: #fff; border-color: rgba(255, 255, 255, .4); }
 .mc-boton--vidrio:hover:not(:disabled) { background: rgba(255, 255, 255, .24); }
 .mc-boton--peligro { background: var(--mc-no); color: #fff; }
@@ -92,7 +92,11 @@ html[data-branded] .portal-card h2 { font-family: var(--mc-fuente-titulos); }
   html[data-branded] *, html[data-branded] *::before, html[data-branded] *::after { transition: none !important; animation: none !important; }
 }
 
-/* El logotipo del pie es azul marino: en oscuro, en blanco */
+/* Logotipo del pie en modo oscuro: la versión para fondo oscuro si está
+   configurada (NUXT_PUBLIC_BRAND_LOGO_INVERSE_URL); si no, silueta blanca. */
+.mc-pie__logo-oscuro { display: none; }
 @media (prefers-color-scheme: dark) {
-  html[data-branded][data-tema='b'] footer img { filter: brightness(0) invert(1); }
+  html[data-branded][data-tema='b'] footer img:not(.mc-pie__logo-claro):not(.mc-pie__logo-oscuro) { filter: brightness(0) invert(1); }
+  html[data-branded][data-tema='b'] footer .mc-pie__logo-claro { display: none; }
+  html[data-branded][data-tema='b'] footer .mc-pie__logo-oscuro { display: block; }
 }

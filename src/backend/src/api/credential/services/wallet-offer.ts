@@ -53,7 +53,7 @@ export default ({ strapi }) => ({
     const encoded = encodeURIComponent(JSON.stringify(request))
     const walletUrl = `https://lcw.app/request.html?request=${encoded}`
     // The web wallet opens straight on its request page: the portal offers it
-    // as «Abrir en la Cartera UDGPlus» on a computer, no QR to decipher.
+    // as «Abrir en la Cartera UdeG» on a computer, no QR to decipher.
     let webWalletUrl: string | undefined
     try { if (process.env.WALLET_APP_URL) webWalletUrl = webWalletLink(process.env.WALLET_APP_URL, exchangeUrl) } catch { webWalletUrl = undefined }
     return { exchangeUrl, walletUrl, deepLink: `dccrequest://request?request=${encoded}`,

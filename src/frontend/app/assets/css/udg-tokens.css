@@ -1,0 +1,109 @@
+/*
+ * Tokens de diseño · identidad Universidad de Guadalajara (manual de identidad UdeG 2025).
+ * Sustituyen a los de la dirección B anterior; se conserva su estructura (prefijo mc-).
+ *
+ * Colores oficiales UdeG 2025:
+ *   azul 288C #202945 (principal) · rojo 7621C #B12028 · olivo 7495C #8F993E
+ *   oro 116C #FDCF85 · gris K85 #3c3c3b
+ * Todo lo demás son DERIVADOS (tintes o sombras de esos cinco), marcados «derivado»;
+ * no son colores de marca y no deben usarse fuera de esta interfaz.
+ * Contraste comprobado (WCAG 2.x, AA 4.5:1 en texto normal): ver docs/patches/0016.
+ *
+ * Solo rigen con marca activa (html[data-branded]); el oscuro, en las pantallas
+ * ya rediseñadas (html[data-tema="b"]), para no oscurecer las que aún no lo están.
+ */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/fonts/montserrat-latin-wght-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Figtree';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300 900;
+  src: url('/fonts/figtree-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+html[data-branded] {
+  /* Identidad UdeG */
+  --mc-navy: #202945;       /* azul 288C */
+  --mc-rojo: #B12028;       /* rojo 7621C */
+  --mc-olivo: #8F993E;      /* olivo 7495C: decorativo, 3.1:1 sobre blanco, nunca texto */
+  --mc-oro: #FDCF85;        /* oro 116C: sobre azul 288C (9.9:1), nunca sobre claro */
+  --mc-gris: #3c3c3b;       /* gris K85 */
+  --mc-azul: #34406a;       /* derivado: 288C aclarado */
+  --mc-oceano: #3a4a80;     /* derivado: 288C aclarado y saturado (enlaces) */
+  --mc-claro: #4a5a8c;      /* derivado: 288C aclarado (final del degradado) */
+  --mc-grad: linear-gradient(135deg, #141a2e 0%, #202945 45%, #34406a 80%, #4a5a8c 120%); /* derivado */
+
+  /* Superficies y texto (derivados salvo el texto, que es 288C) */
+  --mc-fondo: #f5f6f9;
+  --mc-superficie: #ffffff;
+  --mc-hielo: #e9ebf3;
+  --mc-linea: #dcdfe8;
+  --mc-texto: #202945;
+  --mc-suave: #565c70;
+  --mc-enlace: #3a4a80;
+  --mc-foco: #3a4a80;
+
+  /* Acción principal */
+  --mc-primario: #202945;
+  --mc-primario-texto: #ffffff;
+  --mc-primario-hover: #34406a;
+
+  /* Estados: vigente (olivo, derivado oscuro) · en espera (oro, derivado oscuro) · revocada o error (rojo 7621C) */
+  --mc-ok: #5c6328;
+  --mc-ok-fondo: #eef0dc;
+  --mc-esp: #8a5800;
+  --mc-esp-fondo: #fef3df;
+  --mc-no: #B12028;
+  --mc-no-fondo: #f9e5e6;
+
+  /* Tipografía: Montserrat (complementaria del manual) en títulos; Figtree en texto corrido */
+  --mc-fuente-titulos: 'Montserrat', 'Figtree', system-ui, sans-serif;
+  --mc-fuente-texto: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mc-t-xs: .75rem;
+  --mc-t-s: .875rem;
+  --mc-t-base: 1rem;
+  --mc-t-l: 1.125rem;
+  --mc-t-xl: 1.5rem;
+  --mc-t-2xl: 1.875rem;
+  --mc-t-3xl: clamp(2rem, 4.5vw, 2.75rem);
+
+  /* Forma y profundidad */
+  --mc-r-s: 10px;
+  --mc-r: 16px;
+  --mc-r-l: 22px;
+  --mc-r-xl: 28px;
+  --mc-sombra: 0 1px 2px rgba(32, 41, 69, .06), 0 8px 24px -12px rgba(32, 41, 69, .18);
+  --mc-sombra-alta: 0 18px 40px -16px rgba(32, 41, 69, .6);
+  --mc-ancho: 1060px;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-branded][data-tema='b'] {
+    color-scheme: dark;
+    --mc-fondo: #0f1322;          /* derivado de 288C */
+    --mc-superficie: #181e33;
+    --mc-hielo: #1f2740;
+    --mc-linea: #2c3552;
+    --mc-texto: #e8eaf2;
+    --mc-suave: #a6adc2;
+    --mc-enlace: #aab4dc;
+    --mc-foco: #aab4dc;
+    --mc-primario: #e3e7f3;
+    --mc-primario-texto: #202945;
+    --mc-primario-hover: #ffffff;
+    --mc-ok: #c7cf86;             /* derivado de olivo 7495C */
+    --mc-ok-fondo: #2a2e14;
+    --mc-esp: #FDCF85;            /* oro 116C */
+    --mc-esp-fondo: #3b2b0e;
+    --mc-no: #f0a3a8;             /* derivado de rojo 7621C */
+    --mc-no-fondo: #431b23;
+    --mc-sombra: 0 1px 2px rgba(0, 0, 0, .3), 0 10px 28px -14px rgba(0, 0, 0, .6);
+  }
+}

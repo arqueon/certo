@@ -13,7 +13,7 @@ export const WEBSITE_URL = import.meta.env?.NUXT_PUBLIC_WEBSITE_URL
   ?? 'https://certo.schroedinger-hat.org'
 
 // "About" y "Docs" (información del proyecto de código abierto Certo, no
-// relevante para un titular UDGPlus) se quitaron a propósito del menú --
+// relevante para un titular institucional) se quitaron a propósito del menú --
 // las páginas siguen existiendo en el código, solo no aparecen en la
 // navegación visible.
 export const HEADER_NAV_LINKS = [

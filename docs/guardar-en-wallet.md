@@ -208,7 +208,7 @@ El último comando crea SQLite temporal, desactiva correo y deja Strapi en `127.
 cd src/frontend
 node node_modules/vitest/vitest.mjs run
 node node_modules/nuxt/bin/nuxt.mjs build --dotenv /tmp/certo-no-env
-NITRO_HOST=127.0.0.1 NITRO_PORT=19300 NUXT_PUBLIC_BRAND_NAME=UDGPlus NUXT_PUBLIC_BRAND_PRIMARY_COLOR='#002d54' NUXT_PUBLIC_API_URL=http://127.0.0.1:19337 NUXT_PUBLIC_WEBSITE_URL=http://127.0.0.1:19300 NUXT_PUBLIC_CATALOG_URL=https://catalog.example.test node .output/server/index.mjs
+NITRO_HOST=127.0.0.1 NITRO_PORT=19300 NUXT_PUBLIC_BRAND_NAME=UdeG NUXT_PUBLIC_BRAND_PRIMARY_COLOR='#202945' NUXT_PUBLIC_API_URL=http://127.0.0.1:19337 NUXT_PUBLIC_WEBSITE_URL=http://127.0.0.1:19300 NUXT_PUBLIC_CATALOG_URL=https://catalog.example.test node .output/server/index.mjs
 # Con los dos servidores abiertos, desde otra terminal de frontend:
 QA_CHROMIUM=/usr/bin/chromium node scripts/qa-wallet.mjs /tmp/certo-portal-http-XXXXX/browser-fixture.json
 ```

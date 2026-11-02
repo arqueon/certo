@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onClickOutside, useMounted } from '@vueuse/core'
 
-// Encabezado de la dirección B: barra azul marino con el logotipo en blanco.
+// Encabezado de la dirección B: barra azul 288C con el logotipo en blanco
+// (NUXT_PUBLIC_BRAND_LOGO_INVERSE_URL o, si falta, silueta del logotipo).
 // En celular, con sesión, Credenciales · Mis carteras · Perfil viven en la
 // navegación inferior; el menú queda para lo demás.
 const { t } = useI18n()
@@ -66,7 +67,7 @@ async function logout() {
     </p>
     <div class="mc-contenedor mc-encabezado__barra">
       <NuxtLink :to="isAuthenticated ? '/dashboard' : '/'" class="mc-encabezado__logo">
-        <img :src="branding.logoUrl" :alt="branding.name" height="28">
+        <img :src="branding.logoInverseUrl || branding.logoUrl" :alt="branding.name" height="44" :class="{ 'mc-encabezado__silueta': !branding.logoInverseUrl }">
       </NuxtLink>
 
       <nav class="mc-encabezado__nav" :aria-label="t('portal.b.nav.main')">
@@ -125,7 +126,9 @@ async function logout() {
 .mc-encabezado { position: fixed; inset: 0 0 auto; z-index: 50; background: var(--mc-navy); }
 .mc-encabezado__error { background: var(--mc-no-fondo); color: var(--mc-no); padding: .5rem 1rem; }
 .mc-encabezado__barra { display: flex; align-items: center; gap: 1.5rem; height: 64px; }
-.mc-encabezado__logo img { height: 28px; width: auto; filter: brightness(0) invert(1); }
+.mc-encabezado__logo img { height: 44px; width: auto; }
+/* Sin logotipo para fondo oscuro configurado: silueta blanca del logotipo normal */
+.mc-encabezado__silueta { filter: brightness(0) invert(1); }
 .mc-encabezado__nav { display: none; gap: .25rem; margin-inline-start: auto; }
 .mc-encabezado__nav a { color: rgba(255, 255, 255, .82); font-weight: 600; font-size: var(--mc-t-s); padding: .5rem .75rem; border-radius: 10px; text-decoration: none; }
 .mc-encabezado__nav a:hover { color: #fff; background: rgba(255, 255, 255, .1); }
@@ -135,7 +138,7 @@ async function logout() {
 .mc-encabezado__idioma :deep(button) { color: rgba(255, 255, 255, .85); }
 .mc-encabezado__idioma :deep(button:hover) { background: rgba(255, 255, 255, .1); }
 .mc-encabezado__usuario { position: relative; }
-.mc-avatar { width: 36px; height: 36px; border-radius: 50%; background: #fff; color: var(--mc-navy, #1a203b); font: 800 1rem var(--mc-fuente-titulos); display: grid; place-items: center; }
+.mc-avatar { width: 36px; height: 36px; border-radius: 50%; background: #fff; color: var(--mc-navy, #202945); font: 800 1rem var(--mc-fuente-titulos); display: grid; place-items: center; }
 .mc-menu { position: absolute; right: 0; top: calc(100% + .5rem); min-width: 13rem; padding: .4rem; display: grid; color: var(--mc-texto); }
 .mc-menu__nombre { padding: .5rem .75rem; font-weight: 700; border-bottom: 1px solid var(--mc-linea); margin-bottom: .25rem; overflow-wrap: anywhere; }
 .mc-menu a, .mc-menu button { text-align: left; padding: .6rem .75rem; border-radius: 10px; color: var(--mc-texto); text-decoration: none; }

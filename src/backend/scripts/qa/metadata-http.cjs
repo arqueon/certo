@@ -26,7 +26,7 @@ async function main() {
   const owner = await user('titular', 'titular@example.org'), manager = await user('gestora', 'gestora@example.org'), other = await user('otra', 'otra@example.org')
   const token = u => app.plugin('users-permissions').service('jwt').issue({ id: u.id })
   const tokens = { owner: token(owner), manager: token(manager), other: token(other) }
-  const issuer = await app.entityService.create('api::profile.profile', { data: { name: 'Consola de gestores UDGPlus', profileType: 'Issuer', owner: manager.id } })
+  const issuer = await app.entityService.create('api::profile.profile', { data: { name: 'Consola de gestores de ejemplo', profileType: 'Issuer', owner: manager.id } })
   const request = async (url, data, who = 'manager', method = 'POST') => {
     const r = await fetch(`http://127.0.0.1:19337/api${url}`, { method, headers: { 'Content-Type': 'application/json', ...(who ? { Authorization: `Bearer ${tokens[who]}` } : {}) }, ...(data ? { body: JSON.stringify({ data }) } : {}) })
     return { status: r.status, body: await r.json() }
@@ -57,7 +57,7 @@ async function main() {
   ok(vc.credentialSubject.identifier.some(i => i.identityType === 'name' && !i.hashed), 'name IdentityObject')
   ok(vc.credentialSubject.identifier.some(i => i.identityType === 'emailAddress' && i.hashed), 'email stays salted')
   ok(vc.issuer.name === 'Universidad de Guadalajara', 'institutional issuer')
-  ok((await app.entityService.findOne('api::profile.profile', issuer.id)).name === 'Consola de gestores UDGPlus', 'stored owner profile unchanged')
+  ok((await app.entityService.findOne('api::profile.profile', issuer.id)).name === 'Consola de gestores de ejemplo', 'stored owner profile unchanged')
   const jsonld = require('jsonld')
   const { localDocumentLoader } = require('../../dist/src/utils/data-integrity')
   await jsonld.expand(vc, { safe: true, documentLoader: await localDocumentLoader() }); count++

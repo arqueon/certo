@@ -1,6 +1,6 @@
 <script setup lang="ts">
-// «Para seguir aprendiendo» (ideas de POK, VoBo de Rubén del 13-oct-2026): de
-// 1 a 3 ofertas de UDGPlus relacionadas con una credencial, cada una con el
+// «Para seguir aprendiendo» (ideas de POK, VoBo del 13-oct-2026): de
+// 1 a 3 ofertas institucionales relacionadas con una credencial, cada una con el
 // motivo («Comparte la habilidad…») y su página de inscripción. Se pide en el
 // cliente, después de montar; si no hay relación o algo falla, no se muestra.
 const props = defineProps<{ clave?: string, nombre?: string, titulo?: string }>()
@@ -71,7 +71,7 @@ function datos(o: any) {
 .mc-siguientes__tarjeta { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .9rem; padding: .7rem; color: var(--mc-texto); text-decoration: none; box-shadow: none; transition: border-color .15s ease; align-items: center; }
 .mc-siguientes__tarjeta:hover { border-color: var(--mc-claro); }
 .mc-siguientes__tarjeta:hover .mc-siguientes__ir { text-decoration: underline; }
-.mc-siguientes__imagen { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--mc-r-s); background: #1a203b; }
+.mc-siguientes__imagen { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--mc-r-s); background: #202945; }
 .mc-siguientes__imagen--vacia { display: grid; place-items: center; color: #fff; font-size: 1.8rem; }
 .mc-siguientes__texto { display: grid; gap: .25rem; min-width: 0; }
 .mc-siguientes__texto b { line-height: 1.25; }

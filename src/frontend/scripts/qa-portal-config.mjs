@@ -5,9 +5,9 @@ const browser = await chromium.launch({ executablePath: process.env.QA_CHROMIUM,
 let assertions = 0
 const cases = [
   { name: 'unbranded', env: {}, lang: 'en', heading: 'Design certificates & send to anyone', upstream: true },
-  { name: 'brand without catalog', env: { NUXT_PUBLIC_BRAND_NAME: 'UDGPlus' }, lang: 'es', heading: 'Microcredenciales de UDGPlus' },
-  { name: 'explicit default locale', env: { NUXT_PUBLIC_BRAND_NAME: 'UDGPlus', NUXT_PUBLIC_DEFAULT_LOCALE: 'en' }, lang: 'en', heading: 'UDGPlus microcredentials' },
-  { name: 'explicit browser detection', env: { NUXT_PUBLIC_BRAND_NAME: 'UDGPlus', NUXT_PUBLIC_DETECT_BROWSER_LOCALE: 'true' }, lang: 'en', heading: 'UDGPlus microcredentials' },
+  { name: 'brand without catalog', env: { NUXT_PUBLIC_BRAND_NAME: 'UdeG' }, lang: 'es', heading: 'Verificación de credenciales digitales' },
+  { name: 'explicit default locale', env: { NUXT_PUBLIC_BRAND_NAME: 'UdeG', NUXT_PUBLIC_DEFAULT_LOCALE: 'en' }, lang: 'en', heading: 'Digital credential verification' },
+  { name: 'explicit browser detection', env: { NUXT_PUBLIC_BRAND_NAME: 'UdeG', NUXT_PUBLIC_DETECT_BROWSER_LOCALE: 'true' }, lang: 'en', heading: 'Digital credential verification' },
 ]
 try {
   for (const fixture of cases) {

@@ -5,7 +5,7 @@ describe('institutional portal', () => {
   it('activates only when a brand variable is provided', () => {
     expect(brandActive({})).toBe(false)
     expect(brandActive({ brandName: '', brandPrimaryColor: '' })).toBe(false)
-    expect(brandActive({ brandName: 'UDGPlus' })).toBe(true)
+    expect(brandActive({ brandName: 'UdeG' })).toBe(true)
     expect(brandActive({ brandPrimaryColor: '#002d54' })).toBe(true)
   })
   it.each(['urn:uuid:abcd', '42'])('accepts bare and encoded credential identifiers %s', id => {

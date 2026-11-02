@@ -25,11 +25,11 @@ async function session(user, token, options = {}) {
 await fetch(`http://127.0.0.1:19337/api/credentials/${encodeURIComponent(fixture.id)}/privacy`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${fixture.token}` }, body: JSON.stringify({ data: { publicRecipientName: true, publicLinkActive: true } }) })
 const visitor = await session()
 await visitor.page.goto(base, { waitUntil: 'networkidle' })
-await check(() => expect(visitor.page.locator('h1')).toHaveText('Microcredenciales de UDGPlus'))
+await check(() => expect(visitor.page.locator('h1')).toHaveText('Verificación de credenciales digitales'))
 await check(() => expect(visitor.page.locator('html')).toHaveAttribute('lang', 'es'))
 await check(() => expect(visitor.page.locator('nav').getByText('Emitir', { exact: true })).toHaveCount(0))
 await check(() => expect(visitor.page.locator('nav').getByText('Panel de control', { exact: true })).toHaveCount(0))
-await check(() => expect(visitor.page.getByRole('heading', { name: 'Qué acredita UDGPlus' })).toBeVisible())
+await check(() => expect(visitor.page.getByRole('heading', { name: 'Qué se acredita en UdeG' })).toBeVisible())
 for (const mode of ['light', 'dark']) {
   await visitor.page.evaluate(mode => { document.documentElement.classList.toggle('dark', mode === 'dark') }, mode)
   const colors = await visitor.page.locator('nav a[href="/login"]').first().evaluate(el => {
@@ -77,7 +77,7 @@ await owner.page.getByLabel('Mostrar mi nombre en la página pública').uncheck(
 await owner.page.getByRole('button', { name: 'Guardar privacidad' }).click()
 await check(() => expect(owner.page.getByText('Privacidad guardada.', { exact: true })).toBeVisible())
 await visitor.page.reload()
-await check(() => expect(visitor.page.getByText('Titular verificado por UDGPlus', { exact: true })).toBeVisible())
+await check(() => expect(visitor.page.getByText('Titular verificado por la Universidad de Guadalajara', { exact: true })).toBeVisible())
 await check(() => expect(visitor.page.getByText('Titular de prueba', { exact: true })).toHaveCount(0))
 await owner.page.getByLabel('Mantener activo el enlace público').uncheck()
 await owner.page.getByRole('button', { name: 'Guardar privacidad' }).click()

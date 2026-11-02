@@ -16,7 +16,10 @@ const authStore = useAuthStore()
         <div>
           <div class="flex items-center gap-3">
             <span v-if="branding.active && branding.logoUrl === '/certo-logo-text.png'" class="text-2xl font-bold">{{ branding.name }}</span>
-            <img v-else :src="branding.logoUrl" :alt="`${branding.name} logo`" class="h-14 w-auto">
+            <template v-else>
+              <img :src="branding.logoUrl" :alt="`${branding.name} logo`" class="h-14 w-auto" :class="{ 'mc-pie__logo-claro': branding.logoInverseUrl }">
+              <img v-if="branding.logoInverseUrl" :src="branding.logoInverseUrl" :alt="`${branding.name} logo`" class="h-14 w-auto mc-pie__logo-oscuro">
+            </template>
           </div>
           <p class="mt-4 text-text-secondary max-w-sm">
             {{ t('footer.description') }}

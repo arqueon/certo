@@ -40,8 +40,8 @@ describe('walletClient and walletName', () => {
     expect(walletClient('null')).toEqual({ client: 'app', clientOrigin: null })
   })
   it('names the configured web wallet, other web wallets by host, apps not at all', () => {
-    const env = { WALLET_APP_URL: 'https://cartera.example.org', WALLET_APP_NAME: 'Cartera UDGPlus' }
-    expect(walletName('web', 'https://cartera.example.org', env)).toBe('Cartera UDGPlus')
+    const env = { WALLET_APP_URL: 'https://cartera.example.org', WALLET_APP_NAME: 'Cartera UdeG' }
+    expect(walletName('web', 'https://cartera.example.org', env)).toBe('Cartera UdeG')
     expect(walletName('web', 'https://otra.example.net', env)).toBe('otra.example.net')
     expect(walletName('app', null, env)).toBeNull()
   })

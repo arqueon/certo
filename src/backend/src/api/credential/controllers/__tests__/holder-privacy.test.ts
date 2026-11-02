@@ -77,7 +77,7 @@ describe('holder privacy authorization and public surfaces', () => {
     const before = JSON.stringify(verification)
     const displayed = publicVerification(verification)
     expect(JSON.stringify(displayed)).not.toMatch(/Private Person|private@example|original.signature/)
-    expect(displayed.rawCredential.recipient.name).toBe('Titular verificado por UDGPlus')
+    expect(displayed.rawCredential.recipient.name).toBe('Titular verificado por la Universidad de Guadalajara')
     expect(JSON.stringify(verification)).toBe(before)
   })
   test('legacy defaults remain public with visible holder name', () => {

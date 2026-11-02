@@ -23,11 +23,11 @@ describe('ideas de POK en el portal', () => {
     expect(wrapper.find('[data-testid="seguir-aprendiendo"]').exists()).toBe(false)
   })
   it('para seguir aprendiendo: muestra la oferta, su motivo y el enlace de inscripción', async () => {
-    registerEndpoint('/portal/oferta-relacionada', () => ({ data: [{ clave: 'UDG-DRU-1', nombre: 'Excel básico', tipo: 'Curso', horas: 40, modalidad: null, inscripcion: 'https://udgplus.udg.mx/excel-basico', motivo: { tipo: 'area', valor: 'Educación' } }] }))
+    registerEndpoint('/portal/oferta-relacionada', () => ({ data: [{ clave: 'DEMO-CURSO-1', nombre: 'Excel básico', tipo: 'Curso', horas: 40, modalidad: null, inscripcion: 'https://microcredenciales.udg.mx/excel-basico', motivo: { tipo: 'area', valor: 'Educación' } }] }))
     const wrapper = await mountSuspended(PortalSiguientes, { props: { clave: 'DEMO' } })
     await flushPromises()
     const tarjeta = wrapper.get('[data-testid="seguir-aprendiendo"] a')
-    expect(tarjeta.attributes('href')).toBe('https://udgplus.udg.mx/excel-basico')
+    expect(tarjeta.attributes('href')).toBe('https://microcredenciales.udg.mx/excel-basico')
     expect(tarjeta.text()).toContain('Excel básico')
     expect(tarjeta.text()).toContain('Educación')
   })

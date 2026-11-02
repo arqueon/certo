@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { apiClient } from '@/api/api-client'
 import PortalAvisoCartera from '@/components/portal/PortalAvisoCartera.vue'
 
-const pendiente = { offerId: 9, credentialId: 'urn:uuid:x', credentialName: 'Diseño instruccional con IA', client: 'web' as const, name: 'Cartera UDGPlus', requestedAt: '2026-10-14T02:36:00Z', expiresAt: '2026-10-14T02:46:00Z' }
+const pendiente = { offerId: 9, credentialId: 'urn:uuid:x', credentialName: 'Diseño instruccional con IA', client: 'web' as const, name: 'Cartera UdeG', requestedAt: '2026-10-14T02:36:00Z', expiresAt: '2026-10-14T02:46:00Z' }
 afterEach(() => { vi.restoreAllMocks(); useCarteraPendiente().pendientes.value = [] })
 
 describe('aviso global de cartera nueva', () => {
@@ -16,7 +16,7 @@ describe('aviso global de cartera nueva', () => {
     const wrapper = await mountSuspended(PortalAvisoCartera)
     const aviso = wrapper.find('[data-testid="aviso-cartera"]')
     expect(aviso.text()).toContain('Diseño instruccional con IA')
-    expect(aviso.text()).toContain('Cartera UDGPlus (web)')
+    expect(aviso.text()).toContain('Cartera UdeG (web)')
     expect(aviso.text()).not.toContain('did:')
     const version = carteras.version.value
     await wrapper.find('button.aviso-approve').trigger('click')

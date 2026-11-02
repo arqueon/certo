@@ -1,3 +1,5 @@
+import { hiddenRecipientName } from '../../../utils/hidden-recipient'
+
 /** Holder access never inherits the legacy null-owner exception for issuers. */
 export const isCredentialOwner = (credential: any, userId: unknown): boolean =>
   userId != null && credential?.recipient?.owner?.id != null
@@ -30,7 +32,7 @@ export function publicVerification(result: any) {
   }
   if (raw.publicRecipientName === false) {
     copy.recipientNameHidden = true
-    copy.rawCredential.recipient = { name: 'Titular verificado por UDGPlus' }
+    copy.rawCredential.recipient = { name: hiddenRecipientName() }
     delete copy.rawCredential.proof
     delete copy.rawCredential.evidence
     delete copy.rawCredential.narrative

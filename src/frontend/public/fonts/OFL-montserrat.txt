@@ -1,4 +1,7 @@
-Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage)
+Copyright 2011 The Montserrat Project Authors (https://github.com/JulietaUla/Montserrat)
+
+Subconjunto latino en WOFF2 del archivo Montserrat-VariableFont_wght.ttf que acompaña al manual de identidad UdeG 2025 (fonttools pyftsubset, 2026-10-21).
+
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:

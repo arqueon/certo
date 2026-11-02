@@ -1,3 +1,4 @@
+import { emailBrand } from './email-brand'
 // src/backend/src/api/credential/templates/credential-issuance.ts
 
 interface Achievement {
@@ -21,6 +22,7 @@ interface TemplateParams {
 }
 
 export const generateCredentialIssuanceEmail = ({ achievement, credential, frontendUrl, user }: TemplateParams) => {
+  const brand = emailBrand()
   const subject = `You've received a new credential: ${achievement.name}`
 
   const text = `Congratulations! You have been awarded the "${achievement.name}" credential.
@@ -29,7 +31,7 @@ View your credential at: ${frontendUrl}/credentials/${credential.credentialId}
 
 Follow our LinkedIn guide to add this credential to your LinkedIn profile: ${frontendUrl}/linkedin
 
-If you need any support or have any question please contact us at hello@schroedinger-hat.org
+If you need any support or have any question please contact us at ${brand.support}
 
 ${user ? `
 A user account has been created for you to manage your credentials.
@@ -40,7 +42,7 @@ To set your password, please visit: ${frontendUrl}/forgot-password
 ` : ''}
 
 Thank you,
-The Certo Team`
+${brand.name}`
 
   const linkedInUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(achievement.name)}&organizationId=53115782&issueYear=${new Date().getFullYear()}&certId=${credential.credentialId}&certUrl=${encodeURIComponent(frontendUrl + '/credentials/' + credential.credentialId)}`
 
@@ -65,7 +67,7 @@ The Certo Team`
           <!-- Header -->
           <tr>
             <td style="background-color: #2d3748; padding: 24px; text-align: center; border-top-left-radius: 8px; border-top-right-radius: 8px;">
-              <h1 style="margin: 0; font-size: 24px; color: #ffffff; font-weight: bold;">Certo</h1>
+              <h1 style="margin: 0; font-size: 24px; color: #ffffff; font-weight: bold;">${brand.name}</h1>
             </td>
           </tr>
           <!-- Body -->
@@ -95,11 +97,11 @@ The Certo Team`
 
               <div style="margin: 24px 0; padding: 16px; background: #f3f4f6; border-radius: 6px; text-align: center;">
                 <strong>Want to add this credential to your LinkedIn profile?</strong><br />
-                <a href="https://certo.schroedinger-hat.org/linkedin" style="color: #0077b5; text-decoration: underline;">Follow our LinkedIn guide</a>
+                <a href="${frontendUrl}/linkedin" style="color: #0077b5; text-decoration: underline;">Follow our LinkedIn guide</a>
               </div>
 
               <div style="margin: 24px 0; padding: 16px; background: #fef9c3; border-radius: 6px; text-align: center; color: #92400e;">
-                If you need any support or have any question please contact us at <a href="mailto:hello@schroedinger-hat.org" style="color: #92400e; text-decoration: underline;">hello@schroedinger-hat.org</a>
+                If you need any support or have any question please contact us at <a href="mailto:${brand.support}" style="color: #92400e; text-decoration: underline;">${brand.support}</a>
               </div>
 
               ${user ? `
@@ -127,8 +129,8 @@ The Certo Team`
           <!-- Footer -->
           <tr>
             <td style="padding: 24px; text-align: center; background-color: #edf2f7; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;">
-              <p style="margin: 0; font-size: 12px; color: #718096;">You received this email because you were issued a credential through Certo.</p>
-              <p style="margin: 5px 0 0 0; font-size: 12px; color: #718096;">&copy; ${new Date().getFullYear()} Certo. All rights reserved.</p>
+              <p style="margin: 0; font-size: 12px; color: #718096;">You received this email because you were issued a credential through ${brand.name}.</p>
+              <p style="margin: 5px 0 0 0; font-size: 12px; color: #718096;">&copy; ${new Date().getFullYear()} ${brand.name}. All rights reserved.</p>
             </td>
           </tr>
         </table>

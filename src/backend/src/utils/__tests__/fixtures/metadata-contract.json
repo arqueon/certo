@@ -15,8 +15,8 @@
           "type": [
             "Profile"
           ],
-          "name": "Dirección General de Universidad Virtual y Aprendizaje Digital para Toda la Vida (UDG+)",
-          "url": "https://udgplus.udg.mx",
+          "name": "Instancia de ejemplo",
+          "url": "https://microcredenciales.udg.mx",
           "parentOrg": {
             "type": [
               "Profile"
@@ -63,7 +63,7 @@
           "En línea"
         ],
         "criteria": {
-          "narrative": "Acredita «Análisis de datos» conforme a esta regla: cumplir cada criterio. Juicio humano con rúbrica. Docente; Rúbrica versión 1. Ficha activada por Gestora de prueba; instancia que decide: UDG+.",
+          "narrative": "Acredita «Análisis de datos» conforme a esta regla: cumplir cada criterio. Juicio humano con rúbrica. Docente; Rúbrica versión 1. Ficha activada por Gestora de prueba; instancia que decide: Comité de reconocimiento.",
           "url": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
         }
       }
@@ -84,8 +84,8 @@
           "type": [
             "Profile"
           ],
-          "name": "Dirección General de Universidad Virtual y Aprendizaje Digital para Toda la Vida (UDG+)",
-          "url": "https://udgplus.udg.mx",
+          "name": "Instancia de ejemplo",
+          "url": "https://microcredenciales.udg.mx",
           "parentOrg": {
             "type": [
               "Profile"
@@ -132,23 +132,23 @@
           "En línea"
         ],
         "criteria": {
-          "narrative": "Acredita «Análisis de datos» conforme a esta regla: cumplir cada criterio. Juicio humano con rúbrica. Docente; Rúbrica versión 1. Ficha activada por Gestora de prueba; instancia que decide: UDG+.",
+          "narrative": "Acredita «Análisis de datos» conforme a esta regla: cumplir cada criterio. Juicio humano con rúbrica. Docente; Rúbrica versión 1. Ficha activada por Gestora de prueba; instancia que decide: Comité de reconocimiento.",
           "url": "https://catalogo.example.org/publico/catalogo/UDG-DATOS?version=2"
         }
       },
       "subject": {
         "name": "Persona de prueba",
         "term": "2026-B",
-        "description": "Programa o evento: Curso piloto UDG–ASU.",
+        "description": "Programa o evento: Curso piloto de ejemplo.",
         "tag": [
-          "Curso piloto UDG–ASU"
+          "Curso piloto de ejemplo"
         ],
         "source": {
           "type": [
             "Profile"
           ],
-          "name": "Arizona State University",
-          "url": "https://www.asu.edu"
+          "name": "Institución aliada de ejemplo",
+          "url": "https://aliada.example.org"
         },
         "creditsEarned": 2,
         "activityStartDate": "2026-10-01T00:00:00Z",

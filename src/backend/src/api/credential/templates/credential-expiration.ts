@@ -1,3 +1,4 @@
+import { emailBrand } from './email-brand'
 interface Achievement {
   name: string
 }
@@ -29,6 +30,7 @@ export const generateCredentialExpirationEmail = ({
   daysLeft,
   expirationDate,
 }: ExpirationWarningParams) => {
+  const brand = emailBrand()
   const formattedDate = expirationDate.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -45,10 +47,10 @@ export const generateCredentialExpirationEmail = ({
 
 View and renew your credential at: ${credentialUrl}
 
-If you have any questions, please contact the issuer or reach us at hello@schroedinger-hat.org
+If you have any questions, please contact the issuer or reach us at ${brand.support}
 
 Thank you,
-The Certo Team`
+${brand.name}`
 
   const urgencyColor = daysLeft <= 1 ? '#e53e3e' : daysLeft <= 7 ? '#dd6b20' : '#d69e2e'
   const urgencyBg = daysLeft <= 1 ? '#fff5f5' : daysLeft <= 7 ? '#fffaf0' : '#fffff0'
@@ -91,12 +93,12 @@ The Certo Team`
 
     <p style="color: #718096; font-size: 14px;">
       If you believe this is an error or have questions, please contact the credential issuer or reach us at
-      <a href="mailto:hello@schroedinger-hat.org" style="color: #667eea;">hello@schroedinger-hat.org</a>.
+      <a href="mailto:${brand.support}" style="color: #667eea;">${brand.support}</a>.
     </p>
   </div>
 
   <p style="text-align: center; color: #a0aec0; font-size: 12px; margin-top: 20px;">
-    You received this email because you hold a credential managed through Certo.
+    You received this email because you hold a credential managed through ${brand.name}.
   </p>
 </body>
 </html>`

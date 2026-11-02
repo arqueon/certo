@@ -8,7 +8,7 @@ import { walletCountdown, shortWalletDid } from '@/utils/wallet'
 import { useRuntimeConfig } from '#app'
 let runtime: ReturnType<typeof useRuntimeConfig>
 beforeEach(() => { runtime = useRuntimeConfig() })
-afterEach(() => { vi.restoreAllMocks(); try { localStorage.removeItem('mc-cartera-modo') } catch {} runtime.public.walletAppUrl = ''; runtime.public.walletAppName = 'Cartera UDGPlus' })
+afterEach(() => { vi.restoreAllMocks(); try { localStorage.removeItem('mc-cartera-modo') } catch {} runtime.public.walletAppUrl = ''; runtime.public.walletAppName = 'Cartera UdeG' })
 const summary = { eligible: true, legacy: false, walletCount: 0, copies: [] }
 describe('holder wallet', () => {
   it('prepares a QR and mobile link only after the holder acts', async () => {
@@ -27,7 +27,7 @@ describe('holder wallet', () => {
     expect(wrapper.find('[role="timer"]').text()).toContain('10:00')
     wrapper.unmount()
   })
-  it.each(['Cartera UDGPlus', 'Otra cartera'])('shows a single QR with the interaction URL for %s', async name => {
+  it.each(['Cartera UdeG', 'Otra cartera'])('shows a single QR with the interaction URL for %s', async name => {
     runtime.public.walletAppName = name
     const interactionUrl = 'https://issuer.example/api/exchanges/capability?iuv=1'
     const walletUrl = 'https://lcw.app/request.html?request=example'
@@ -95,12 +95,12 @@ describe('holder wallet', () => {
     expect(shortWalletDid('did:web:example.org')).toBe('did:web:example.org')
   })
   it('asks the holder to confirm a new wallet and sends the answer', async () => {
-    const pendingWallet = { offerId: 9, client: 'web', name: 'Cartera UDGPlus', requestedAt: '2026-10-07T21:47:00Z' }
+    const pendingWallet = { offerId: 9, client: 'web', name: 'Cartera UdeG', requestedAt: '2026-10-07T21:47:00Z' }
     vi.spyOn(apiClient, 'get').mockResolvedValueOnce({ data: { ...summary, pendingWallet } }).mockResolvedValue({ data: { ...summary, pendingWallet: null } })
     const post = vi.spyOn(apiClient, 'post').mockResolvedValue(undefined as any)
     const wrapper = await mountSuspended(HolderWallet, { props: { credentialId: 'fixture' } })
     await flushPromises()
-    expect(wrapper.find('[data-testid="wallet-pending"]').text()).toContain('Cartera UDGPlus (web)')
+    expect(wrapper.find('[data-testid="wallet-pending"]').text()).toContain('Cartera UdeG (web)')
     expect(wrapper.text()).not.toContain('did:')
     await wrapper.find('button.wallet-approve').trigger('click')
     await flushPromises()

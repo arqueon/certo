@@ -8,7 +8,7 @@ import { publicVerification } from '../../api/credential/services/holder-access'
 describe('contrato de metadatos 0023', () => {
   test('admite los objetos exactos del ejemplo y normaliza perfiles y criterios', () => {
     const a = achievement(contract.create.data.achievement)
-    expect(a.creator.id).toBe('https://udgplus.udg.mx')
+    expect(a.creator.id).toBe('https://microcredenciales.udg.mx')
     expect(a.creator.parentOrg.id).toBe('https://www.udg.mx/')
     expect(a.criteria.id).toContain('?version=2')
     expect(a.alignment.map((a: any) => a.targetType)).toEqual(['ceasn:Competency', 'ext:QualificationLevel', 'ext:QualificationLevel'])
@@ -71,7 +71,7 @@ describe('serialización y privacidad 0023', () => {
     expect(vc.credentialSubject.identifier).toEqual(expect.arrayContaining([{ type: 'IdentityObject', identityType: 'name', hashed: false, identityHash: 'Persona de prueba' }]))
     expect(vc.credentialSubject.identifier[0].hashed).toBe(true)
     expect(vc.credentialSubject).not.toHaveProperty('tag')
-    expect(vc.credentialSubject.narrative).toContain('Curso piloto UDG–ASU')
+    expect(vc.credentialSubject.narrative).toContain('Curso piloto de ejemplo')
     expect(vc.credentialSubject.achievement.alignment.every((a: any) => a.targetUrl.endsWith('?version=2'))).toBe(true)
     expect(vc.issuer).toMatchObject({ name: 'Universidad de Guadalajara', address: { addressRegion: 'Jalisco', addressCountryCode: 'MX' } })
     await expect(require('jsonld').expand(vc, { safe: true, documentLoader: await localDocumentLoader() })).resolves.toBeDefined()
@@ -92,7 +92,7 @@ describe('serialización y privacidad 0023', () => {
     const projection = publicVerification({ credential: vc, rawCredential: record })
     expect(JSON.stringify(projection)).not.toContain('Persona de prueba')
     expect(projection.credential.credentialSubject.term).toBe('2026-B')
-    expect(projection.credential.credentialSubject.source.name).toBe('Arizona State University')
+    expect(projection.credential.credentialSubject.source.name).toBe('Institución aliada de ejemplo')
     expect(vc.credentialSubject.name).toBe('Persona de prueba')
     expect(projection.rawCredential).not.toHaveProperty('subjectMetadata0023')
   })
