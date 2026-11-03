@@ -34,10 +34,16 @@ export function webWalletLink(walletAppUrl: string, exchangeUrl: string): string
   return url.href
 }
 
+// Color de la instancia (BRAND_PRIMARY_COLOR y, para el modo oscuro,
+// BRAND_PRIMARY_COLOR_DARK, en #rrggbb); por omisión, grises neutros.
+const hex = (v: string | undefined, def: string) => (/^#[0-9a-f]{6}$/i.test(v?.trim() || '') ? v!.trim() : def)
+
 export function walletLanding(options: WalletLandingOptions): { html: string; csp: string } {
+  const c = hex(process.env.BRAND_PRIMARY_COLOR, '#1e293b')
+  const cd = hex(process.env.BRAND_PRIMARY_COLOR_DARK, '#cbd5e1')
   const nonce = randomBytes(16).toString('base64')
   const interactionUrl = `${options.exchangeUrl}?iuv=1`
-  const appName = options.walletAppName || 'Cartera UdeG'
+  const appName = options.walletAppName || 'Cartera'
   const web = options.walletAppUrl ? webWalletLink(options.walletAppUrl, options.exchangeUrl) : ''
   const body = options.available
     ? `<h1>Guardar tu credencial</h1>
@@ -55,12 +61,12 @@ ${web ? `<a class="btn primary" href="${escapeHtml(web)}" rel="noreferrer">Abrir
 <title>Guardar credencial</title>
 <style nonce="${nonce}">
 body{font-family:system-ui,sans-serif;margin:0;padding:24px 16px;background:#f6f8fb;color:#1d2a42}
-main{max-width:28rem;margin:0 auto}h1{font-size:1.4rem;color:#202945}
-.btn{display:block;width:100%;box-sizing:border-box;margin:12px 0;padding:14px;border-radius:10px;border:1px solid #202945;
-background:#fff;color:#202945;font:inherit;font-weight:600;text-align:center;text-decoration:none;cursor:pointer}
-.primary{background:#202945;color:#fff}.nota{font-size:.9rem;color:#4a5568}
-@media (prefers-color-scheme:dark){body{background:#12161f;color:#e8ebf0}h1{color:#aab4dc}
-.btn{background:#1b2230;color:#aab4dc;border-color:#aab4dc}.primary{background:#aab4dc;color:#202945}.nota{color:#b7c0d4}}
+main{max-width:28rem;margin:0 auto}h1{font-size:1.4rem;color:${c}}
+.btn{display:block;width:100%;box-sizing:border-box;margin:12px 0;padding:14px;border-radius:10px;border:1px solid ${c};
+background:#fff;color:${c};font:inherit;font-weight:600;text-align:center;text-decoration:none;cursor:pointer}
+.primary{background:${c};color:#fff}.nota{font-size:.9rem;color:#4a5568}
+@media (prefers-color-scheme:dark){body{background:#12161f;color:#e8ebf0}h1{color:${cd}}
+.btn{background:#1b2230;color:${cd};border-color:${cd}}.primary{background:${cd};color:${c}}.nota{color:#b7c0d4}}
 </style></head><body><main>${body}</main>
 ${options.available ? `<script nonce="${nonce}">
 document.getElementById('copiar').addEventListener('click', async (e) => {
