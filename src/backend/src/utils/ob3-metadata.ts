@@ -135,11 +135,16 @@ export function issuerProfile(strapi: any, did: string) {
   if (address.length !== 2 || !address[0] || !/^[A-Z]{2}$/.test(address[1])) fail('ISSUER_PROFILE_ADDRESS', 'debe tener el formato Región, CC')
   // Local HTTP origins remain possible for isolated QA, never for configured
   // external profile URLs or images.
-  const defaultImage = `${base}/marca/escudo-udeg.png`
+  // Sin marca en el código (credenciales-comunitarias, decisión 0011): el nombre
+  // y la URL del emisor los pone cada despliegue. Sin ellos no se emite, para no
+  // firmar nunca a nombre de otra institución.
+  const defaultImage = `${base}/marca/emisor.png`
+  if (!process.env.ISSUER_PROFILE_NAME?.trim()) fail('ISSUER_PROFILE_NAME', 'es obligatorio: nombre de quien emite')
+  if (!process.env.ISSUER_PROFILE_URL?.trim()) fail('ISSUER_PROFILE_URL', 'es obligatorio: sitio https de quien emite')
   return {
     id: did, type: ['Profile'],
-    name: text(process.env.ISSUER_PROFILE_NAME || 'Universidad de Guadalajara', 'ISSUER_PROFILE_NAME'),
-    url: httpsUrl(process.env.ISSUER_PROFILE_URL || 'https://www.udg.mx', 'ISSUER_PROFILE_URL'),
+    name: text(process.env.ISSUER_PROFILE_NAME, 'ISSUER_PROFILE_NAME'),
+    url: httpsUrl(process.env.ISSUER_PROFILE_URL!, 'ISSUER_PROFILE_URL'),
     image: { id: process.env.ISSUER_PROFILE_IMAGE ? httpsUrl(process.env.ISSUER_PROFILE_IMAGE, 'ISSUER_PROFILE_IMAGE') : defaultImage, type: 'Image' },
     address: { type: ['Address'], addressRegion: address[0], addressCountryCode: address[1] },
   }

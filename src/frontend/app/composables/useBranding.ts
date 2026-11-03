@@ -1,6 +1,8 @@
 import { brandActive, contrastText, safeHttpUrl } from '~/utils/portal'
 export interface BrandingConfig {
   active: boolean
+  /** Organización que aparece sobre el título de la portada (NUXT_PUBLIC_BRAND_ORGANIZATION); vacía, no se muestra. */
+  organization: string
   catalogUrl: string
   primaryText: string
   name: string
@@ -14,6 +16,7 @@ export interface BrandingConfig {
 
 const DEFAULT_BRANDING: BrandingConfig = {
   active: false,
+  organization: '',
   catalogUrl: '',
   primaryText: '#000000',
   name: 'Certo',
@@ -42,6 +45,7 @@ export function useBranding(): BrandingConfig {
   const primaryColor = validColor(publicConfig.brandPrimaryColor as string)
   return {
     active: brandActive(publicConfig),
+    organization: typeof publicConfig.brandOrganization === 'string' ? publicConfig.brandOrganization.trim() : '',
     catalogUrl: safeHttpUrl(publicConfig.catalogUrl),
     primaryText: contrastText(primaryColor),
     name: typeof publicConfig.brandName === 'string' && publicConfig.brandName.trim()

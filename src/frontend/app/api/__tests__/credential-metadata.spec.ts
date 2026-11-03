@@ -36,6 +36,13 @@ describe('presentación 0023', () => {
     expect(SKILLS_FRAMEWORK).toBe('Habilidades UdeG')
     expect(LEGACY_SKILLS_FRAMEWORKS).toEqual(['Habilidades UDGPlus'])
   })
+  it('reconoce como habilidad cualquier alignment ceasn:Competency, con el marco que nombre cada instancia', () => {
+    const skills = skillsOf([
+      { targetName: 'Escucha activa', targetType: 'ceasn:Competency', targetFramework: 'Saberes de la red', targetDescription: 'Respaldada por RA2: Escucha.' },
+      { targetName: 'Resultado', targetFramework: 'Resultados de aprendizaje' },
+    ])
+    expect(skills.map(s => [s.name, s.result])).toEqual([['Escucha activa', 'RA2']])
+  })
   it('separa las habilidades (marco Habilidades UdeG) de los resultados y lee el resultado que las respalda', () => {
     const info = credentialMetadata({ credentialSubject: { achievement: { alignment: [
       { targetName: 'Diseña rúbricas', targetCode: 'RA1', targetFramework: 'Resultados de aprendizaje', targetType: 'ceasn:Competency' },

@@ -836,7 +836,6 @@
         "add": "Add a wallet"
       },
       "landing": {
-        "eyebrow": "Universidad de Guadalajara",
         "signIn": "Go to my credentials",
         "verify": "Verify a credential",
         "figure": "Illustration: {brand} badge and a verified credential",

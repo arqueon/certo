@@ -159,11 +159,13 @@ export default defineNuxtConfig({
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL,
       walletAppUrl: process.env.NUXT_PUBLIC_WALLET_APP_URL || '',
-      walletAppName: process.env.NUXT_PUBLIC_WALLET_APP_NAME || 'Cartera UdeG',
+      walletAppName: process.env.NUXT_PUBLIC_WALLET_APP_NAME || 'Cartera',
       // Public visibility switch only; backend authorization remains independent.
       portalTitularEnabled: false,
       websiteUrl,
       brandName: process.env.NUXT_PUBLIC_BRAND_NAME || '',
+      // Organización sobre el título de la portada (p. ej. la institución); vacía, no se muestra.
+      brandOrganization: process.env.NUXT_PUBLIC_BRAND_ORGANIZATION || '',
       brandLogoUrl: process.env.NUXT_PUBLIC_BRAND_LOGO_URL || '',
       // Logotipo para fondos oscuros (encabezado azul, pie en modo oscuro) y
       // emblema para la medalla de la portada. Vacíos: se usa brandLogoUrl
