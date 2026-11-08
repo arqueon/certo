@@ -9,7 +9,7 @@ const props = defineProps<{ credentialId: string, compacto?: boolean, agregar?: 
 const { t, locale } = useI18n()
 const config = useRuntimeConfig()
 const appUrl = String(config.public.walletAppUrl || '').trim()
-const appName = String(config.public.walletAppName || 'Cartera UdeG')
+const appName = String(config.public.walletAppName || 'Cartera')
 interface PendingWallet { offerId: number, client: 'web' | 'app' | null, name: string | null, requestedAt: string }
 interface Summary { eligible: boolean, legacy: boolean, revoked?: boolean, revocationReason?: string, rejectedWallet?: boolean, pendingWallet?: PendingWallet | null, walletCount: number, copies: { holderDid: string, boundAt: string, credentialId: string }[] }
 interface Offer { exchangeUrl: string, walletUrl: string, qrContent: string, interactionUrl?: string, deepLink?: string, webWalletUrl?: string, expiresAt: string }

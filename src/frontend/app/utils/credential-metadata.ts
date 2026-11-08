@@ -22,7 +22,13 @@ export const SKILLS_FRAMEWORK = 'Habilidades UdeG'
 // Nombre del marco en las credenciales emitidas antes del cambio de identidad
 // (oct-2026): se siguen leyendo como habilidades; no se emite más con él.
 export const LEGACY_SKILLS_FRAMEWORKS = ['Habilidades UDGPlus']
-const isSkill = (a: any) => a?.targetFramework === SKILLS_FRAMEWORK || LEGACY_SKILLS_FRAMEWORKS.includes(a?.targetFramework)
+// Cada instancia nombra su marco de habilidades; se reconocen por su tipo
+// (ceasn:Competency) y, para lo emitido antes, por los nombres conocidos.
+// Los resultados de aprendizaje también pueden venir como ceasn:Competency: se excluyen por su marco.
+function isSkill(a: any) {
+  return (a?.targetType === 'ceasn:Competency' && a?.targetFramework !== 'Resultados de aprendizaje')
+    || a?.targetFramework === SKILLS_FRAMEWORK || LEGACY_SKILLS_FRAMEWORKS.includes(a?.targetFramework)
+}
 export function skillsOf(alignments: any[]) {
   return alignments.filter(isSkill).map((a: any) => ({
     name: String(a.targetName || ''),

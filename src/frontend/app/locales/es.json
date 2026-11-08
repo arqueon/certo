@@ -836,12 +836,11 @@
         "add": "Agregar una cartera"
       },
       "landing": {
-        "eyebrow": "Universidad de Guadalajara",
         "signIn": "Entrar a mis credenciales",
         "verify": "Verificar una credencial",
         "figure": "Ilustración: insignia institucional de {brand} y una credencial verificada",
         "badge": "MICROCREDENCIAL",
-        "sampleName": "Diseño instruccional con IA",
+        "sampleName": "Credencial de ejemplo",
         "sampleStatus": "✓ Auténtica y vigente",
         "sampleQr": "Verificable con QR"
       },

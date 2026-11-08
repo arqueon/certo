@@ -53,6 +53,12 @@ describe('contrato de metadatos 0023', () => {
       process.env.ISSUER_PROFILE_URL = 'http://example.org'
       expect(() => issuerProfile({ config: { get: () => 'https://test.org' } }, 'did:web:test.org')).toThrow('ISSUER_PROFILE_URL')
     } finally { if (original === undefined) delete process.env.ISSUER_PROFILE_URL; else process.env.ISSUER_PROFILE_URL = original }
+    // Sin nombre de emisor configurado no se firma a nombre de nadie (antes caía en una institución fija).
+    const nombre = process.env.ISSUER_PROFILE_NAME
+    try {
+      delete process.env.ISSUER_PROFILE_NAME
+      expect(() => issuerProfile({ config: { get: () => 'https://test.org' } }, 'did:web:test.org')).toThrow('ISSUER_PROFILE_NAME')
+    } finally { process.env.ISSUER_PROFILE_NAME = nombre }
   })
 })
 describe('serialización y privacidad 0023', () => {
@@ -73,7 +79,7 @@ describe('serialización y privacidad 0023', () => {
     expect(vc.credentialSubject).not.toHaveProperty('tag')
     expect(vc.credentialSubject.narrative).toContain('Curso piloto de ejemplo')
     expect(vc.credentialSubject.achievement.alignment.every((a: any) => a.targetUrl.endsWith('?version=2'))).toBe(true)
-    expect(vc.issuer).toMatchObject({ name: 'Universidad de Guadalajara', address: { addressRegion: 'Jalisco', addressCountryCode: 'MX' } })
+    expect(vc.issuer).toMatchObject({ name: 'Emisor de prueba', url: 'https://emisor.example.test', address: { addressRegion: 'Jalisco', addressCountryCode: 'MX' } })
     await expect(require('jsonld').expand(vc, { safe: true, documentLoader: await localDocumentLoader() })).resolves.toBeDefined()
     expect(await verifyDataIntegrity(vc, await verificationLoader(strapi, vc))).toEqual({ valid: true })
     const altered = structuredClone(vc); altered.credentialSubject.term = '2027-A'

@@ -3,7 +3,7 @@ import { useMounted } from '@vueuse/core'
 
 // Portada pública (dirección B): un encabezado con imagen —la insignia y una
 // credencial verificada, dibujadas con la identidad institucional (emblema
-// NUXT_PUBLIC_BRAND_EMBLEM_URL y paleta UdeG 2025)— y las tres
+// NUXT_PUBLIC_BRAND_EMBLEM_URL y la paleta --mc-* de la instancia)— y las tres
 // puertas de entrada: tengo una credencial, me mostraron una, qué se acredita.
 const { t } = useI18n()
 const branding = useBranding()
@@ -17,7 +17,7 @@ const signedIn = computed(() => mounted.value && authStore.isAuthenticated)
     <section class="mc-portada__cabeza mc-degradado mc-puntos">
       <div class="mc-contenedor mc-portada__rejilla">
         <div class="mc-portada__texto">
-          <p class="mc-etiqueta">{{ t('portal.b.landing.eyebrow') }}</p>
+          <p v-if="branding.organization" class="mc-etiqueta">{{ branding.organization }}</p>
           <h1 class="mc-titulo">{{ t('portal.home.title', { brand: branding.name }) }}</h1>
           <p class="mc-portada__intro">{{ t('portal.home.intro') }}</p>
           <div class="mc-portada__botones">
@@ -80,24 +80,24 @@ const signedIn = computed(() => mounted.value && authStore.isAuthenticated)
 .mc-ilustracion { position: relative; justify-self: center; width: min(72%, 260px); aspect-ratio: 1; margin: 0; }
 .mc-ilustracion__medalla {
   position: absolute; inset: 8% 10% 14% 10%; border-radius: 50%; padding: 12px;
-  /* Anillo con los colores oficiales UdeG 2025: oro 116C, olivo 7495C, azul 288C, rojo 7621C */
-  background: conic-gradient(from 210deg, #FDCF85, #8F993E, #202945, #B12028, #FDCF85);
-  box-shadow: 0 0 0 10px rgba(253, 207, 133, .16), 0 30px 60px -20px rgba(8, 12, 28, .7);
+  /* Anillo con la paleta de la instancia (variables --mc-*). */
+  background: conic-gradient(from 210deg, var(--mc-oro, #d4d4d8), var(--mc-olivo, #71717a), var(--mc-navy, #27272a), var(--mc-rojo, #52525b), var(--mc-oro, #d4d4d8));
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--mc-oro, #d4d4d8) 16%, transparent), 0 30px 60px -20px rgba(8, 12, 28, .7);
 }
 .mc-ilustracion__medalla > div {
-  width: 100%; height: 100%; border-radius: 50%; background: #fff; color: #202945;
+  width: 100%; height: 100%; border-radius: 50%; background: #fff; color: var(--mc-navy, #27272a);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem;
 }
 .mc-ilustracion__medalla img { width: auto; height: 52%; max-width: 64%; object-fit: contain; }
-.mc-ilustracion__medalla small { font-size: .7rem; font-weight: 800; letter-spacing: .16em; color: #B12028; }
+.mc-ilustracion__medalla small { font-size: .7rem; font-weight: 800; letter-spacing: .16em; color: var(--mc-rojo, #52525b); }
 .mc-ilustracion__tarjeta {
   position: absolute; left: -2%; bottom: 4%; display: flex; align-items: center; gap: .65rem;
-  padding: .7rem .9rem; border-radius: 16px; background: #fff; color: #202945; max-width: 78%;
+  padding: .7rem .9rem; border-radius: 16px; background: #fff; color: var(--mc-navy, #27272a); max-width: 78%;
   box-shadow: 0 18px 36px -14px rgba(8, 12, 28, .6); transform: rotate(-3deg);
 }
 .mc-ilustracion__tarjeta b { display: block; font-size: .85rem; line-height: 1.2; }
-.mc-ilustracion__tarjeta small { display: block; font-size: .72rem; color: #5c6328; font-weight: 700; }
-.mc-ilustracion__sello { flex: none; display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 10px; background: #eef0dc; color: #5c6328; font-size: 1.3rem; }
+.mc-ilustracion__tarjeta small { display: block; font-size: .72rem; color: var(--mc-ok, #3f6212); font-weight: 700; }
+.mc-ilustracion__sello { flex: none; display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 10px; background: var(--mc-ok-fondo, #ecfccb); color: var(--mc-ok, #3f6212); font-size: 1.3rem; }
 .mc-ilustracion__chip {
   position: absolute; right: 0; top: 6%; display: inline-flex; align-items: center; gap: .35rem;
   padding: .4rem .7rem; border-radius: 999px; background: rgba(255, 255, 255, .16); border: 1px solid rgba(255, 255, 255, .35);
